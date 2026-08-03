@@ -33,6 +33,11 @@
 @keyframes arrowFloat { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-3px); } }
 @keyframes slideUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.dev-accounts { margin-top: 24px; padding: 14px; background: #FDF9F0; border: 1px dashed #F5B731; border-radius: 12px; }
+.dev-title { font-size: 11px; font-weight: 700; color: #5A6A80; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+.dev-account { display: block; width: 100%; text-align: left; background: #fff; border: 1px solid #E3E9F2; border-radius: 8px; padding: 8px 10px; margin-bottom: 6px; font-size: 12px; color: #0F2447; cursor: pointer; font-family: Poppins, sans-serif; transition: all 0.15s; }
+.dev-account:hover { border-color: #F5B731; background: #fffbee; }
+.dev-account:last-child { margin-bottom: 0; }
 </style>{% endblock %}
 {% block body %}
 <svg width="0" height="0"><defs><linearGradient id="kg" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#0F2447"/><stop offset="1" stop-color="#1D4E89"/></linearGradient></defs></svg>
@@ -55,6 +60,23 @@
       </div>
       <button type="submit" class="btn-submit">Se connecter</button>
     </form>
+
+    {% if app.environment == 'dev' %}
+    <div class="dev-accounts">
+      <div class="dev-title">🔧 Comptes de test (dev uniquement — cliquez pour remplir)</div>
+      <button type="button" class="dev-account" data-email="admin@klevup.test" data-password="admin123"><strong>Admin</strong> — admin@klevup.test / admin123</button>
+      <button type="button" class="dev-account" data-email="apporteur@klevup.test" data-password="admin123"><strong>Apporteur</strong> — apporteur@klevup.test / admin123</button>
+      <button type="button" class="dev-account" data-email="client@klevup.test" data-password="admin123"><strong>Client</strong> — client@klevup.test / admin123</button>
+    </div>
+    <script>
+    document.querySelectorAll('.dev-account').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        document.querySelector('input[name="_username"]').value = btn.dataset.email;
+        document.querySelector('input[name="_password"]').value = btn.dataset.password;
+      });
+    });
+    </script>
+    {% endif %}
   </div>
 </div>
 {% endblock %}
