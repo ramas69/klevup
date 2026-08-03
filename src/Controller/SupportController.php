@@ -28,7 +28,7 @@ class SupportController extends AbstractController
                 $resolved,
                 fn(Ticket $t) => $t->getResolvedAt() !== null && $t->getResolvedAt() >= $monthStart
             )),
-            'response_time' => '4 h',
+            'response_time' => $this->averageResolutionTime($resolved),
         ];
 
         $app = $em->getRepository(Application::class)->findOneBy(['client' => $user]);
@@ -56,5 +56,33 @@ class SupportController extends AbstractController
             'application' => $application,
             'tickets' => $ticketsData,
         ]);
+    }
+
+    /**
+     * Average time between creation and resolution of resolved tickets.
+     * Falls back to the 24h commitment when nothing has been resolved yet.
+     *
+     * @param Ticket[] $resolved
+     */
+    private function averageResolutionTime(array $resolved): string
+    {
+        $durations = [];
+        foreach ($resolved as $ticket) {
+            if ($ticket->getResolvedAt() !== null) {
+                $durations[] = $ticket->getResolvedAt()->getTimestamp() - $ticket->getCreatedAt()->getTimestamp();
+            }
+        }
+
+        if ($durations === []) {
+            return '24 h';
+        }
+
+        $avg = (int) (array_sum($durations) / count($durations));
+
+        return match (true) {
+            $avg < 3600 => max(1, intdiv($avg, 60)) . ' min',
+            $avg < 172800 => intdiv($avg, 3600) . ' h',
+            default => intdiv($avg, 86400) . ' j',
+        };
     }
 }

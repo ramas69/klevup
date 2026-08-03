@@ -64,6 +64,20 @@ class AdminController extends AbstractController
         ]);
     }
 
+    // Best-effort notification — never blocks the admin action if the transport fails.
+    private function notify(MailerInterface $mailer, string $to, string $subject, string $body): void
+    {
+        try {
+            $mailer->send((new Email())
+                ->from('no-reply@klevup.fr')
+                ->to($to)
+                ->subject($subject)
+                ->text($body . "\n\nL'équipe Klevup"));
+        } catch (\Throwable) {
+            // Silently ignore: email is a courtesy, the state change already succeeded.
+        }
+    }
+
     private function sendInvitationEmail(MailerInterface $mailer, string $email, string $role, string $inviteLink): void
     {
         try {
@@ -102,7 +116,7 @@ class AdminController extends AbstractController
     }
 
     #[Route('/admin/lead/{id}/update', name: 'admin_lead_update', methods: ['POST'])]
-    public function updateLead(Lead $lead, Request $request, EntityManagerInterface $em): Response
+    public function updateLead(Lead $lead, Request $request, EntityManagerInterface $em, MailerInterface $mailer): Response
     {
         if (!$this->isCsrfTokenValid('lead_update_' . $lead->getId(), (string) $request->request->get('_token'))) {
             throw $this->createAccessDeniedException(self::CSRF_ERROR);
@@ -128,6 +142,19 @@ class AdminController extends AbstractController
             $commission->setLead($lead);
             $em->persist($commission);
             $this->addFlash('success', sprintf('Commission de %d € créée pour %s.', $lead->getCommission(), $lead->getApporteur()->getName()));
+            $this->notify(
+                $mailer,
+                $lead->getApporteur()->getEmail(),
+                sprintf('[Klevup] Vente signée — %d € de commission', $lead->getCommission()),
+                sprintf(
+                    "Bonjour %s,\n\nBonne nouvelle : votre lead « %s » (%s) est signé !\nUne commission de %d € vient d'être créée — elle vous sera versée prochainement.\n\nSuivez vos commissions : %s",
+                    $lead->getApporteur()->getName(),
+                    $lead->getContact(),
+                    $lead->getSolution(),
+                    $lead->getCommission(),
+                    $this->generateUrl('dashboard', [], UrlGeneratorInterface::ABSOLUTE_URL)
+                )
+            );
         }
 
         $em->flush();
@@ -146,7 +173,7 @@ class AdminController extends AbstractController
     }
 
     #[Route('/admin/ticket/{id}/update', name: 'admin_ticket_update', methods: ['POST'])]
-    public function updateTicket(Ticket $ticket, Request $request, EntityManagerInterface $em): Response
+    public function updateTicket(Ticket $ticket, Request $request, EntityManagerInterface $em, MailerInterface $mailer): Response
     {
         if (!$this->isCsrfTokenValid('ticket_update_' . $ticket->getId(), (string) $request->request->get('_token'))) {
             throw $this->createAccessDeniedException(self::CSRF_ERROR);
@@ -159,12 +186,33 @@ class AdminController extends AbstractController
             return $this->redirectToRoute('admin_tickets');
         }
 
+        $previousStatus = $ticket->getStatus();
+        $previousNote = $ticket->getAdminNote();
+
         $ticket->setStatus($status);
         $note = trim((string) $request->request->get('admin_note'));
         $ticket->setAdminNote($note !== '' ? $note : null);
         $ticket->setResolvedAt($status === 'resolved' ? ($ticket->getResolvedAt() ?? new \DateTimeImmutable()) : null);
 
         $em->flush();
+
+        // Notify the client only when something they can see actually changed.
+        if ($previousStatus !== $status || $previousNote !== $ticket->getAdminNote()) {
+            $statusLabels = ['new' => 'Nouveau', 'in_progress' => 'En cours', 'test' => 'En test', 'resolved' => 'Résolu'];
+            $body = sprintf(
+                "Bonjour %s,\n\nVotre demande %s « %s » a été mise à jour.\n\nStatut : %s",
+                $ticket->getUser()->getName(),
+                $ticket->getReference(),
+                $ticket->getTitle(),
+                $statusLabels[$status] ?? $status
+            );
+            if ($ticket->getAdminNote() !== null) {
+                $body .= "\nNote de l'équipe : " . $ticket->getAdminNote();
+            }
+            $body .= "\n\nSuivez vos demandes : " . $this->generateUrl('support', [], UrlGeneratorInterface::ABSOLUTE_URL);
+            $this->notify($mailer, $ticket->getUser()->getEmail(), sprintf('[Klevup] %s — %s', $ticket->getReference(), $statusLabels[$status] ?? $status), $body);
+        }
+
         $this->addFlash('success', sprintf('Ticket %s mis à jour.', $ticket->getReference()));
 
         return $this->redirectToRoute('admin_tickets');
@@ -179,7 +227,7 @@ class AdminController extends AbstractController
     }
 
     #[Route('/admin/commission/{id}/encash', name: 'admin_commission_encash', methods: ['POST'])]
-    public function encashCommission(Commission $commission, Request $request, EntityManagerInterface $em): Response
+    public function encashCommission(Commission $commission, Request $request, EntityManagerInterface $em, MailerInterface $mailer): Response
     {
         if (!$this->isCsrfTokenValid('commission_encash_' . $commission->getId(), (string) $request->request->get('_token'))) {
             throw $this->createAccessDeniedException(self::CSRF_ERROR);
@@ -190,6 +238,19 @@ class AdminController extends AbstractController
             $commission->setEncashedAt(new \DateTimeImmutable());
             $em->flush();
             $this->addFlash('success', sprintf('Commission de %d € marquée encaissée.', $commission->getAmount()));
+            $this->notify(
+                $mailer,
+                $commission->getUser()->getEmail(),
+                sprintf('[Klevup] Commission de %d € versée', $commission->getAmount()),
+                sprintf(
+                    "Bonjour %s,\n\nVotre commission de %d € (%s — %s) vient d'être versée.\n\nSuivez vos commissions : %s",
+                    $commission->getUser()->getName(),
+                    $commission->getAmount(),
+                    $commission->getCompanyName(),
+                    $commission->getSolution(),
+                    $this->generateUrl('dashboard', [], UrlGeneratorInterface::ABSOLUTE_URL)
+                )
+            );
         }
 
         return $this->redirectToRoute('admin_commissions');
