@@ -12,6 +12,30 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_APPORTEUR')]
 class LeadController extends AbstractController
 {
+    #[Route('/leads', name: 'leads')]
+    public function list(EntityManagerInterface $em): Response
+    {
+        $leads = $em->getRepository(Lead::class)->findBy(
+            ['apporteur' => $this->getUser()],
+            ['createdAt' => 'DESC']
+        );
+
+        $signed = array_filter($leads, fn(Lead $l) => $l->getStatus() === 'signed');
+
+        return $this->render('lead/list.html.twig', [
+            'leads' => $leads,
+            'stats' => [
+                'total' => count($leads),
+                'in_progress' => count($leads) - count($signed),
+                'signed' => count($signed),
+                'potential' => array_sum(array_map(
+                    fn(Lead $l) => $l->getCommission(),
+                    array_filter($leads, fn(Lead $l) => $l->getStatus() !== 'signed')
+                )),
+            ],
+        ]);
+    }
+
     #[Route('/lead/new', name: 'lead_new', methods: ['GET', 'POST'])]
     public function new(Request $request, EntityManagerInterface $em): Response
     {
@@ -41,7 +65,7 @@ class LeadController extends AbstractController
 
             $this->addFlash('success', 'Lead envoyé — l\'équipe Klevup prend le relais.');
 
-            return $this->redirectToRoute('dashboard');
+            return $this->redirectToRoute('leads');
         }
 
         return $this->render('lead/new.html.twig');

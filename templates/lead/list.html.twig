@@ -1,0 +1,85 @@
+{% extends "apporteur/base_apporteur.html.twig" %}
+{% block title %}Mes leads - Klevup{% endblock %}
+{% block page_title %}Mes leads{% endblock %}
+{% block page_subtitle %}Suivez l'avancement de chaque contact transmis — l'équipe Klevup gère les RDV, devis et signatures.{% endblock %}
+
+{% block topbar_action %}
+<a class="btn btn-gold" href="{{ path('lead_new') }}">+ Envoyer un lead</a>
+{% endblock %}
+
+{% block apporteur_styles %}<style>
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.stat{background:#fff;border:2px solid #E3E9F2;border-radius:18px;padding:20px}
+.stat-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#5A6A80;margin-bottom:8px}
+.stat-val{font-size:28px;font-weight:800;color:#0F2447}
+.stat-val.gold{color:#F5B731}
+.filters{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.filter-btn{padding:8px 16px;border-radius:999px;border:2px solid #E3E9F2;background:#fff;color:#0F2447;cursor:pointer;font-weight:700;font-size:13px;font-family:Poppins,sans-serif;transition:all .15s}
+.filter-btn:hover{border-color:#F5B731}
+.filter-btn.active{background:#0F2447;color:#fff;border-color:#0F2447}
+.status-new{background:#e3f2fd;color:#1976d2}
+.status-meeting{background:#fff3e0;color:#f57c00}
+.status-devis{background:#fffbee;color:#ff9800}
+.status-signed{background:#e8f5e9;color:#2E8B57}
+.amount{font-weight:700;color:#0F2447}
+.amount.green{color:#2E8B57}
+@media(max-width:768px){.stats-row{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:480px){.stats-row{grid-template-columns:1fr}}
+</style>{% endblock %}
+
+{% block apporteur_content %}
+<div class="stats-row">
+  <div class="stat"><div class="stat-label">Total leads</div><div class="stat-val">{{ stats.total }}</div></div>
+  <div class="stat"><div class="stat-label">En cours</div><div class="stat-val">{{ stats.in_progress }}</div></div>
+  <div class="stat"><div class="stat-label">Signés</div><div class="stat-val">{{ stats.signed }}</div></div>
+  <div class="stat"><div class="stat-label">Commissions potentielles</div><div class="stat-val gold">{{ stats.potential }} €</div></div>
+</div>
+
+{% if leads|length > 0 %}
+<div class="filters">
+  <button type="button" class="filter-btn active" data-filter="all">Tous</button>
+  <button type="button" class="filter-btn" data-filter="new">Nouveaux</button>
+  <button type="button" class="filter-btn" data-filter="meeting">RDV planifié</button>
+  <button type="button" class="filter-btn" data-filter="devis">Devis envoyé</button>
+  <button type="button" class="filter-btn" data-filter="signed">Signés</button>
+</div>
+
+<div class="panel">
+  <table id="leads-table">
+    <thead>
+      <tr><th>Contact</th><th>Solution</th><th>Envoyé le</th><th>Statut</th><th>Commission</th></tr>
+    </thead>
+    <tbody>
+      {% for lead in leads %}
+      <tr data-status="{{ lead.status }}">
+        <td><strong>{{ lead.contact }}</strong></td>
+        <td>{{ lead.solution }}</td>
+        <td>{{ lead.createdAt|date('d/m/Y') }}</td>
+        <td><span class="status-badge status-{{ lead.status }}">{{ {'new': 'Nouveau', 'meeting': 'RDV planifié', 'devis': 'Devis envoyé', 'signed': 'Signé 🎉'}[lead.status]|default(lead.status) }}</span></td>
+        <td class="amount {{ lead.status == 'signed' ? 'green' }}">{{ lead.status == 'signed' ? '' : '~' }}{{ lead.commission }} €</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<script>
+document.querySelectorAll('.filter-btn').forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    document.querySelectorAll('.filter-btn').forEach(function (b) { b.classList.remove('active'); });
+    btn.classList.add('active');
+    var filter = btn.dataset.filter;
+    document.querySelectorAll('#leads-table tbody tr').forEach(function (row) {
+      row.style.display = (filter === 'all' || row.dataset.status === filter) ? '' : 'none';
+    });
+  });
+});
+</script>
+{% else %}
+<div class="empty">
+  <p>Aucun lead pour le moment.</p>
+  <p style="margin:12px 0 20px;font-size:14px">Un contact intéressé par une solution Klevup ? Transmettez-le en 2 minutes.</p>
+  <a class="btn btn-gold" href="{{ path('lead_new') }}">+ Envoyer mon premier lead</a>
+</div>
+{% endif %}
+{% endblock %}
