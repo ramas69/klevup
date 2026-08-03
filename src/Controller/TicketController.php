@@ -28,9 +28,9 @@ class TicketController extends AbstractController
             $type = (string) $request->request->get('type', 'bug');
             $priority = (string) $request->request->get('priority', 'normal');
 
-            if ($title === '' || $description === '') {
+            if ($title === '' || $description === '' || mb_strlen($title) > 255 || mb_strlen($description) > 5000) {
                 return $this->render('ticket/new.html.twig', [
-                    'error' => 'Titre et description sont obligatoires.',
+                    'error' => 'Titre (255 max) et description (5000 max) sont obligatoires.',
                 ]);
             }
 

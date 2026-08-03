@@ -30,10 +30,10 @@ class AuthController extends AbstractController
     #[Route('/register/{code}', name: 'register', methods: ['GET', 'POST'])]
     public function register(string $code, Request $request, UserPasswordHasherInterface $hasher, EntityManagerInterface $em): Response
     {
-        // Invitation must exist and be unused. Role is derived from it — never from user input.
+        // Invitation must exist, be unused and not expired. Role is derived from it — never from user input.
         $invitation = $em->getRepository(Invitation::class)->findPendingByCode($code);
-        if ($invitation === null) {
-            throw $this->createNotFoundException('Invitation invalide ou déjà utilisée.');
+        if ($invitation === null || $invitation->isExpired()) {
+            throw $this->createNotFoundException('Invitation invalide, expirée ou déjà utilisée.');
         }
 
         if ($request->isMethod('POST')) {
@@ -45,6 +45,20 @@ class AuthController extends AbstractController
                 return $this->render('auth/register.html.twig', [
                     'code' => $code,
                     'error' => 'Tous les champs sont obligatoires.',
+                ]);
+            }
+
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL) || mb_strlen($email) > 180 || mb_strlen($name) > 255) {
+                return $this->render('auth/register.html.twig', [
+                    'code' => $code,
+                    'error' => 'Email ou nom invalide.',
+                ]);
+            }
+
+            if (strlen($password) < 8) {
+                return $this->render('auth/register.html.twig', [
+                    'code' => $code,
+                    'error' => 'Mot de passe trop court — 8 caractères minimum.',
                 ]);
             }
 

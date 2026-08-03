@@ -24,9 +24,9 @@ class LeadController extends AbstractController
             $solution = trim((string) $request->request->get('solution'));
             $commission = max(0, (int) $request->request->get('commission', 0));
 
-            if ($contact === '' || $solution === '') {
+            if ($contact === '' || $solution === '' || mb_strlen($contact) > 255 || mb_strlen($solution) > 255) {
                 return $this->render('lead/new.html.twig', [
-                    'error' => 'Contact et solution sont obligatoires.',
+                    'error' => 'Contact et solution sont obligatoires (255 caractères max).',
                 ]);
             }
 

@@ -1,6 +1,7 @@
 <?php
 namespace App\Controller;
 
+use App\Entity\Application;
 use App\Entity\Commission;
 use App\Entity\Invitation;
 use App\Entity\Lead;
@@ -19,6 +20,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class AdminController extends AbstractController
 {
     private const INVITABLE_ROLES = ['ROLE_APPORTEUR', 'ROLE_CLIENT'];
+    private const CSRF_ERROR = 'Jeton CSRF invalide.';
     private const LEAD_STATUSES = ['new', 'meeting', 'devis', 'signed'];
     private const TICKET_STATUSES = ['new', 'in_progress', 'test', 'resolved'];
 
@@ -71,7 +73,7 @@ class AdminController extends AbstractController
     public function updateLead(Lead $lead, Request $request, EntityManagerInterface $em): Response
     {
         if (!$this->isCsrfTokenValid('lead_update_' . $lead->getId(), (string) $request->request->get('_token'))) {
-            throw $this->createAccessDeniedException('Jeton CSRF invalide.');
+            throw $this->createAccessDeniedException(self::CSRF_ERROR);
         }
 
         $status = (string) $request->request->get('status');
@@ -115,7 +117,7 @@ class AdminController extends AbstractController
     public function updateTicket(Ticket $ticket, Request $request, EntityManagerInterface $em): Response
     {
         if (!$this->isCsrfTokenValid('ticket_update_' . $ticket->getId(), (string) $request->request->get('_token'))) {
-            throw $this->createAccessDeniedException('Jeton CSRF invalide.');
+            throw $this->createAccessDeniedException(self::CSRF_ERROR);
         }
 
         $status = (string) $request->request->get('status');
@@ -148,7 +150,7 @@ class AdminController extends AbstractController
     public function encashCommission(Commission $commission, Request $request, EntityManagerInterface $em): Response
     {
         if (!$this->isCsrfTokenValid('commission_encash_' . $commission->getId(), (string) $request->request->get('_token'))) {
-            throw $this->createAccessDeniedException('Jeton CSRF invalide.');
+            throw $this->createAccessDeniedException(self::CSRF_ERROR);
         }
 
         if ($commission->getStatus() !== 'encashed') {
@@ -161,11 +163,79 @@ class AdminController extends AbstractController
         return $this->redirectToRoute('admin_commissions');
     }
 
+    #[Route('/admin/applications', name: 'admin_applications')]
+    public function applications(EntityManagerInterface $em): Response
+    {
+        $clients = array_filter(
+            $em->getRepository(User::class)->findAll(),
+            fn(User $u) => in_array('ROLE_CLIENT', $u->getRoles(), true)
+        );
+
+        return $this->render('admin/applications.html.twig', [
+            'applications' => $em->getRepository(Application::class)->findBy([], ['id' => 'DESC']),
+            'clients' => $clients,
+        ]);
+    }
+
+    #[Route('/admin/application/create', name: 'admin_application_create', methods: ['POST'])]
+    public function createApplication(Request $request, EntityManagerInterface $em): Response
+    {
+        if (!$this->isCsrfTokenValid('application_create', (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException(self::CSRF_ERROR);
+        }
+
+        $name = trim((string) $request->request->get('name'));
+        $client = $em->getRepository(User::class)->find((int) $request->request->get('client_id'));
+
+        if ($name === '' || $client === null || !in_array('ROLE_CLIENT', $client->getRoles(), true)) {
+            $this->addFlash('error', 'Nom et client (rôle client) sont obligatoires.');
+
+            return $this->redirectToRoute('admin_applications');
+        }
+
+        $app = new Application();
+        $app->setName($name);
+        $app->setDescription(trim((string) $request->request->get('description')));
+        $app->setVersion(trim((string) $request->request->get('version')) ?: '1.0');
+        $app->setUrl(trim((string) $request->request->get('url')));
+        $app->setClient($client);
+        $launched = (string) $request->request->get('launched_at');
+        $app->setLaunchedAt($launched !== '' ? new \DateTimeImmutable($launched) : null);
+        $maintenance = (string) $request->request->get('maintenance_until');
+        $app->setMaintenanceUntil($maintenance !== '' ? new \DateTimeImmutable($maintenance) : null);
+
+        $em->persist($app);
+        $em->flush();
+        $this->addFlash('success', sprintf('Application « %s » créée pour %s.', $app->getName(), $client->getName()));
+
+        return $this->redirectToRoute('admin_applications');
+    }
+
+    #[Route('/admin/application/{id}/update', name: 'admin_application_update', methods: ['POST'])]
+    public function updateApplication(Application $app, Request $request, EntityManagerInterface $em): Response
+    {
+        if (!$this->isCsrfTokenValid('application_update_' . $app->getId(), (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException(self::CSRF_ERROR);
+        }
+
+        $version = trim((string) $request->request->get('version'));
+        if ($version !== '') {
+            $app->setVersion($version);
+        }
+        $maintenance = (string) $request->request->get('maintenance_until');
+        $app->setMaintenanceUntil($maintenance !== '' ? new \DateTimeImmutable($maintenance) : null);
+
+        $em->flush();
+        $this->addFlash('success', sprintf('Application « %s » mise à jour.', $app->getName()));
+
+        return $this->redirectToRoute('admin_applications');
+    }
+
     #[Route('/admin/user/{id}/delete', name: 'admin_user_delete', methods: ['POST'])]
     public function deleteUser(User $user, Request $request, EntityManagerInterface $em): Response
     {
         if (!$this->isCsrfTokenValid('delete_user_' . $user->getId(), (string) $request->request->get('_token'))) {
-            throw $this->createAccessDeniedException('Jeton CSRF invalide.');
+            throw $this->createAccessDeniedException(self::CSRF_ERROR);
         }
 
         // Prevent an admin from deleting their own account while logged in.

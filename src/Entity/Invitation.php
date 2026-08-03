@@ -26,9 +26,16 @@ class Invitation
     private ?\DateTimeImmutable $usedAt = null;
 
     #[ORM\Column]
+    private \DateTimeImmutable $expiresAt;
+
+    #[ORM\Column]
     private \DateTimeImmutable $createdAt;
 
-    public function __construct() { $this->createdAt = new \DateTimeImmutable(); }
+    public function __construct()
+    {
+        $this->createdAt = new \DateTimeImmutable();
+        $this->expiresAt = $this->createdAt->modify('+30 days');
+    }
 
     public function getId(): ?int { return $this->id; }
     public function getCode(): string { return $this->code; }
@@ -40,5 +47,8 @@ class Invitation
     public function getUsedAt(): ?\DateTimeImmutable { return $this->usedAt; }
     public function setUsedAt(?\DateTimeImmutable $usedAt): self { $this->usedAt = $usedAt; return $this; }
     public function isUsed(): bool { return $this->usedAt !== null; }
+    public function getExpiresAt(): \DateTimeImmutable { return $this->expiresAt; }
+    public function setExpiresAt(\DateTimeImmutable $expiresAt): self { $this->expiresAt = $expiresAt; return $this; }
+    public function isExpired(): bool { return $this->expiresAt < new \DateTimeImmutable(); }
     public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
 }

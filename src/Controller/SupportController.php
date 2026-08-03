@@ -1,6 +1,7 @@
 <?php
 namespace App\Controller;
 
+use App\Entity\Application;
 use App\Entity\Ticket;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -30,14 +31,14 @@ class SupportController extends AbstractController
             'response_time' => '4 h',
         ];
 
-        // TODO: replace with an Application entity once client apps are modeled.
-        $application = [
-            'name' => 'Formapro Gestion',
-            'description' => 'votre plateforme de gestion de formation',
-            'launch_date' => '12 mai 2026',
-            'version' => '1.3',
-            'url' => 'formapro.klevup-apps.fr',
-            'maintenance_until' => '12/05/2027',
+        $app = $em->getRepository(Application::class)->findOneBy(['client' => $user]);
+        $application = $app === null ? null : [
+            'name' => $app->getName(),
+            'description' => $app->getDescription(),
+            'launch_date' => $app->getLaunchedAt()?->format('d/m/Y') ?? '—',
+            'version' => $app->getVersion(),
+            'url' => $app->getUrl(),
+            'maintenance_until' => $app->getMaintenanceUntil()?->format('d/m/Y'),
         ];
 
         $ticketsData = array_map(fn(Ticket $t) => [

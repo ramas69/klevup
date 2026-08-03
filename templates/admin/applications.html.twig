@@ -1,0 +1,113 @@
+{% extends "base.html.twig" %}
+{% block title %}Applications - Admin Klevup{% endblock %}
+{% block styles %}<style>
+body { background: #f8f9fa; }
+.admin-page { max-width: 1120px; margin: 0 auto; padding: 40px 24px; }
+.admin-header { background: #fff; border-radius: 18px; padding: 30px; margin-bottom: 20px; border: 2px solid #E3E9F2; box-shadow: 0 4px 12px rgba(15, 36, 71, 0.08); }
+.admin-header h1 { color: #0F2447; font-size: 28px; font-weight: 700; margin-bottom: 6px; }
+.admin-header p { color: #5A6A80; font-size: 14px; }
+.admin-nav { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+.admin-nav a { padding: 10px 18px; border-radius: 999px; background: #fff; border: 2px solid #E3E9F2; color: #0F2447; text-decoration: none; font-weight: 600; font-size: 13px; transition: all 0.2s; }
+.admin-nav a:hover { border-color: #F5B731; }
+.admin-nav a.active { background: #0F2447; color: #fff; border-color: #0F2447; }
+.flash-success { color: #2E8B57; background: #e8f5e9; border: 1px solid #2E8B57; border-radius: 12px; padding: 12px; margin-bottom: 12px; font-size: 14px; }
+.flash-error { color: #C0392B; background: #fdecea; border: 1px solid #C0392B; border-radius: 12px; padding: 12px; margin-bottom: 12px; font-size: 14px; }
+.card { background: #fff; border-radius: 18px; padding: 24px; border: 2px solid #E3E9F2; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(15, 36, 71, 0.08); }
+.card h2 { color: #0F2447; font-size: 18px; font-weight: 700; margin-bottom: 16px; }
+.grid-form { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.form-group label { display: block; color: #0F2447; font-weight: 600; margin-bottom: 6px; font-size: 13px; }
+.form-group input, .form-group select { width: 100%; padding: 10px; border: 2px solid #E3E9F2; border-radius: 10px; font-family: Poppins, sans-serif; font-size: 13px; }
+.form-group input:focus, .form-group select:focus { outline: none; border-color: #F5B731; }
+.btn-save { background: #F5B731; color: #0F2447; border: none; padding: 10px 20px; border-radius: 10px; font-weight: 700; font-size: 13px; cursor: pointer; font-family: Poppins, sans-serif; margin-top: 14px; }
+.btn-save:hover { filter: brightness(1.06); }
+.panel { background: #fff; border-radius: 18px; overflow: hidden; border: 2px solid #E3E9F2; box-shadow: 0 4px 12px rgba(15, 36, 71, 0.08); }
+table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+thead th { background: #0F2447; color: #fff; padding: 12px 14px; text-align: left; font-weight: 700; font-size: 11px; text-transform: uppercase; }
+tbody tr { border-bottom: 1px solid #E3E9F2; }
+tbody tr:nth-child(even) { background: #f8f9fa; }
+tbody td { padding: 12px 14px; vertical-align: middle; }
+.inline-form { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.inline-form input { padding: 8px 10px; border: 2px solid #E3E9F2; border-radius: 10px; font-family: Poppins, sans-serif; font-size: 13px; width: 110px; }
+.btn-mini { background: #F5B731; color: #0F2447; border: none; padding: 8px 14px; border-radius: 10px; font-weight: 700; font-size: 12px; cursor: pointer; font-family: Poppins, sans-serif; }
+.empty { text-align: center; padding: 40px; color: #5A6A80; }
+@media(max-width: 768px){ .grid-form { grid-template-columns: 1fr; } }
+</style>{% endblock %}
+{% block body %}
+<div class="admin-page">
+  <div class="admin-header">
+    <h1>Applications clients</h1>
+    <p>Chaque client voit son application dans le portail support.</p>
+  </div>
+  {% include 'admin/_nav.html.twig' %}
+  {% for message in app.flashes('success') %}<div class="flash-success">{{ message }}</div>{% endfor %}
+  {% for message in app.flashes('error') %}<div class="flash-error">{{ message }}</div>{% endfor %}
+
+  <div class="card">
+    <h2>Nouvelle application</h2>
+    <form method="post" action="{{ path('admin_application_create') }}">
+      <input type="hidden" name="_token" value="{{ csrf_token('application_create') }}">
+      <div class="grid-form">
+        <div class="form-group">
+          <label>Nom</label>
+          <input type="text" name="name" required placeholder="Ex : Formapro Gestion">
+        </div>
+        <div class="form-group">
+          <label>Client</label>
+          <select name="client_id" required>
+            {% for c in clients %}<option value="{{ c.id }}">{{ c.name }} ({{ c.email }})</option>{% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>URL</label>
+          <input type="text" name="url" placeholder="app.klevup-apps.fr">
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <input type="text" name="description" placeholder="votre plateforme de gestion…">
+        </div>
+        <div class="form-group">
+          <label>Version</label>
+          <input type="text" name="version" value="1.0">
+        </div>
+        <div class="form-group">
+          <label>Livrée le</label>
+          <input type="date" name="launched_at">
+        </div>
+        <div class="form-group">
+          <label>Maintenance jusqu'au</label>
+          <input type="date" name="maintenance_until">
+        </div>
+      </div>
+      <button type="submit" class="btn-save">Créer l'application</button>
+    </form>
+  </div>
+
+  <div class="panel">
+    {% if applications|length > 0 %}
+    <table>
+      <thead><tr><th>Application</th><th>Client</th><th>URL</th><th>Livrée</th><th>Version / Maintenance / Action</th></tr></thead>
+      <tbody>
+        {% for a in applications %}
+        <tr>
+          <td><strong>{{ a.name }}</strong><br><span style="font-size:12px;color:#5A6A80">{{ a.description }}</span></td>
+          <td>{{ a.client.name }}</td>
+          <td style="font-size:12px">{{ a.url }}</td>
+          <td>{{ a.launchedAt ? a.launchedAt|date('d/m/Y') : '—' }}</td>
+          <td>
+            <form method="post" action="{{ path('admin_application_update', {id: a.id}) }}" class="inline-form">
+              <input type="hidden" name="_token" value="{{ csrf_token('application_update_' ~ a.id) }}">
+              <input type="text" name="version" value="{{ a.version }}" title="Version">
+              <input type="date" name="maintenance_until" value="{{ a.maintenanceUntil ? a.maintenanceUntil|date('Y-m-d') : '' }}" title="Maintenance jusqu'au">
+              <button type="submit" class="btn-mini">Enregistrer</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty">Aucune application — créez-en une ci-dessus.</div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
