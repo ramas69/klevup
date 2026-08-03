@@ -51,7 +51,7 @@ thead th,tbody td{padding:8px}
     <ul class="sidebar-nav">
       <li><a href="{{ path('dashboard') }}" class="{{ app.current_route == 'dashboard' ? 'active' }}">Tableau de bord</a></li>
       <li><a href="{{ path('leads') }}" class="{{ app.current_route == 'leads' ? 'active' }}">Mes leads</a></li>
-      <li><a href="{{ path('dashboard') }}#commissions">Mes commissions</a></li>
+      <li><a href="{{ path('commissions') }}" class="{{ app.current_route == 'commissions' ? 'active' }}">Mes commissions</a></li>
       <li><a href="mailto:contact@klevup.fr">Aide & contact</a></li>
       <li><a href="{{ path('logout') }}">Déconnexion</a></li>
     </ul>

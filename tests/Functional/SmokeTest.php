@@ -44,6 +44,7 @@ class SmokeTest extends WebTestCase
         yield 'admin invite' => ['/admin/invite'];
         yield 'lead new' => ['/lead/new'];
         yield 'leads list' => ['/leads'];
+        yield 'commissions list' => ['/commissions'];
         yield 'ticket new' => ['/ticket/new'];
     }
 }

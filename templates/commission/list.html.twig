@@ -1,0 +1,80 @@
+{% extends "apporteur/base_apporteur.html.twig" %}
+{% block title %}Mes commissions - Klevup{% endblock %}
+{% block page_title %}Mes commissions{% endblock %}
+{% block page_subtitle %}Chaque vente signée génère votre commission — versée après encaissement par Klevup.{% endblock %}
+
+{% block apporteur_styles %}<style>
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.stat{background:#fff;border:2px solid #E3E9F2;border-radius:18px;padding:20px}
+.stat.feat{background:linear-gradient(135deg,#0F2447 0%,#1D4E89 70%,#2A6DB5 100%);border:none}
+.stat.feat .stat-label{color:rgba(255,255,255,.8)}
+.stat.feat .stat-val{color:#F5B731}
+.stat-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#5A6A80;margin-bottom:8px}
+.stat-val{font-size:28px;font-weight:800;color:#0F2447}
+.stat-val.green{color:#2E8B57}
+.filters{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.filter-btn{padding:8px 16px;border-radius:999px;border:2px solid #E3E9F2;background:#fff;color:#0F2447;cursor:pointer;font-weight:700;font-size:13px;font-family:Poppins,sans-serif;transition:all .15s}
+.filter-btn:hover{border-color:#F5B731}
+.filter-btn.active{background:#0F2447;color:#fff;border-color:#0F2447}
+.status-pending{background:#fffbee;color:#ff9800}
+.status-encashed{background:#e8f5e9;color:#2E8B57}
+.amount{font-weight:700;color:#0F2447}
+.amount.green{color:#2E8B57}
+@media(max-width:768px){.stats-row{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:480px){.stats-row{grid-template-columns:1fr}}
+</style>{% endblock %}
+
+{% block apporteur_content %}
+<div class="stats-row">
+  <div class="stat feat"><div class="stat-label">En attente</div><div class="stat-val">{{ stats.pending }} €</div></div>
+  <div class="stat"><div class="stat-label">Total versé</div><div class="stat-val green">{{ stats.encashed }} €</div></div>
+  <div class="stat"><div class="stat-label">Ce mois</div><div class="stat-val">{{ stats.month }} €</div></div>
+  <div class="stat"><div class="stat-label">Commissions</div><div class="stat-val">{{ stats.count }}</div></div>
+</div>
+
+{% if commissions|length > 0 %}
+<div class="filters">
+  <button type="button" class="filter-btn active" data-filter="all">Toutes</button>
+  <button type="button" class="filter-btn" data-filter="pending">En attente</button>
+  <button type="button" class="filter-btn" data-filter="encashed">Encaissées</button>
+</div>
+
+<div class="panel">
+  <table id="commissions-table">
+    <thead>
+      <tr><th>Entreprise</th><th>Solution</th><th>Créée le</th><th>Statut</th><th>Montant</th></tr>
+    </thead>
+    <tbody>
+      {% for c in commissions %}
+      <tr data-status="{{ c.status }}">
+        <td><strong>{{ c.companyName }}</strong></td>
+        <td>{{ c.solution }}</td>
+        <td>{{ c.createdAt|date('d/m/Y') }}</td>
+        <td><span class="status-badge status-{{ c.status }}">{{ c.status == 'encashed' ? 'Versée le ' ~ c.encashedAt|date('d/m/Y') : 'En attente de versement' }}</span></td>
+        <td class="amount {{ c.status == 'encashed' ? 'green' }}">{{ c.status == 'encashed' ? '+' : '' }}{{ c.amount }} €</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<script>
+document.querySelectorAll('.filter-btn').forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    document.querySelectorAll('.filter-btn').forEach(function (b) { b.classList.remove('active'); });
+    btn.classList.add('active');
+    var filter = btn.dataset.filter;
+    document.querySelectorAll('#commissions-table tbody tr').forEach(function (row) {
+      row.style.display = (filter === 'all' || row.dataset.status === filter) ? '' : 'none';
+    });
+  });
+});
+</script>
+{% else %}
+<div class="empty">
+  <p>Aucune commission pour le moment.</p>
+  <p style="margin:12px 0 20px;font-size:14px">Vos commissions apparaissent ici dès qu'un de vos leads est signé.</p>
+  <a class="btn btn-gold" href="{{ path('lead_new') }}">+ Envoyer un lead</a>
+</div>
+{% endif %}
+{% endblock %}
