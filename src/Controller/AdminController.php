@@ -11,6 +11,8 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\Email;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -25,7 +27,7 @@ class AdminController extends AbstractController
     private const TICKET_STATUSES = ['new', 'in_progress', 'test', 'resolved'];
 
     #[Route('/admin/invite', name: 'admin_invite')]
-    public function invite(Request $request, EntityManagerInterface $em): Response
+    public function invite(Request $request, EntityManagerInterface $em, MailerInterface $mailer): Response
     {
         $inviteLink = null;
 
@@ -35,19 +37,49 @@ class AdminController extends AbstractController
                 $role = 'ROLE_APPORTEUR';
             }
 
+            $email = trim((string) $request->request->get('email'));
+            if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $this->addFlash('error', 'Email invalide — invitation non créée.');
+
+                return $this->redirectToRoute('admin_invite');
+            }
+
             $invitation = new Invitation();
             $invitation->setCode(bin2hex(random_bytes(16)));
             $invitation->setRole($role);
+            $invitation->setEmail($email !== '' ? $email : null);
             $em->persist($invitation);
             $em->flush();
 
             $inviteLink = $this->generateUrl('register', ['code' => $invitation->getCode()], UrlGeneratorInterface::ABSOLUTE_URL);
+
+            if ($email !== '') {
+                $this->sendInvitationEmail($mailer, $email, $role, $inviteLink);
+            }
         }
 
         return $this->render('admin/invite.html.twig', [
             'inviteLink' => $inviteLink,
             'roles' => self::INVITABLE_ROLES,
         ]);
+    }
+
+    private function sendInvitationEmail(MailerInterface $mailer, string $email, string $role, string $inviteLink): void
+    {
+        try {
+            $mailer->send((new Email())
+                ->from('no-reply@klevup.fr')
+                ->to($email)
+                ->subject('Votre invitation Klevup')
+                ->text(sprintf(
+                    "Bonjour,\n\nVous êtes invité à rejoindre Klevup en tant que %s.\n\nCréez votre compte ici (lien valable 30 jours) :\n%s\n\nL'équipe Klevup",
+                    $role === 'ROLE_APPORTEUR' ? 'apporteur d\'affaires' : 'client',
+                    $inviteLink
+                )));
+            $this->addFlash('success', sprintf('Invitation envoyée à %s.', $email));
+        } catch (\Throwable) {
+            $this->addFlash('error', 'Envoi email impossible — partagez le lien manuellement.');
+        }
     }
 
     #[Route('/admin/users', name: 'admin_users')]
