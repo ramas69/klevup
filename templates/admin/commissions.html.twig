@@ -22,7 +22,7 @@
       <tr>
         <td><strong>{{ c.companyName }}</strong></td>
         <td>{{ c.solution }}</td>
-        <td>{{ c.user.name }}</td>
+        <td>{{ c.user.name }}<br><span style="font-size:11px;color:#5A6A80;font-family:monospace">{{ c.user.iban ?? 'IBAN manquant' }}</span></td>
         <td>{{ c.createdAt|date('d/m/Y') }}</td>
         <td class="amount">{{ c.amount }} €</td>
         <td><span class="status-badge status-{{ c.status }}">{{ c.status == 'encashed' ? 'Encaissée le ' ~ c.encashedAt|date('d/m/Y') : 'En attente' }}</span></td>

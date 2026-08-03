@@ -1,0 +1,98 @@
+{% extends "base.html.twig" %}
+{% block title %}{{ ticket.reference }} - Support Klevup{% endblock %}
+{% block styles %}<style>
+body { background: #f8f9fa; }
+.page { max-width: 760px; margin: 0 auto; padding: 40px 24px; }
+.nav-back { margin-bottom: 24px; }
+.nav-back a { display: inline-flex; align-items: center; gap: 8px; color: #0F2447; text-decoration: none; font-weight: 600; font-size: 14px; padding: 8px 12px; border-radius: 8px; transition: all 0.3s; }
+.nav-back a:hover { background: rgba(15, 36, 71, 0.1); }
+.card { background: #fff; border-radius: 18px; padding: 28px; border: 2px solid #E3E9F2; box-shadow: 0 4px 12px rgba(15, 36, 71, 0.08); margin-bottom: 18px; }
+.ticket-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+.ticket-ref { font-family: monospace; font-weight: 700; color: #5A6A80; font-size: 13px; }
+.card h1 { color: #0F2447; font-size: 22px; font-weight: 700; margin: 4px 0 8px; }
+.ticket-meta { font-size: 13px; color: #5A6A80; }
+.badges { display: flex; gap: 8px; flex-wrap: wrap; }
+.badge { display: inline-block; padding: 5px 12px; border-radius: 999px; font-size: 11px; font-weight: 700; }
+.priority-critical { background: #ffebee; color: #c0392b; }
+.priority-high { background: #fff3e0; color: #f57c00; }
+.priority-normal { background: #f5f5f5; color: #666; }
+.status-new { background: #e3f2fd; color: #1976d2; }
+.status-in_progress { background: #fff3e0; color: #f57c00; }
+.status-test { background: #fffbee; color: #ff9800; }
+.status-resolved { background: #e8f5e9; color: #2E8B57; }
+.desc { background: #f8f9fa; border-radius: 12px; padding: 14px 16px; font-size: 14px; color: #1A2332; margin-top: 16px; line-height: 1.6; }
+.admin-note { background: #FDF9F0; border: 1px dashed #F5B731; border-radius: 12px; padding: 14px 16px; font-size: 13.5px; color: #1A2332; margin-top: 12px; }
+.admin-note strong { color: #0F2447; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 6px; }
+.thread h2 { color: #0F2447; font-size: 17px; font-weight: 700; margin-bottom: 16px; }
+.msg { max-width: 85%; margin-bottom: 12px; padding: 12px 16px; border-radius: 14px; font-size: 14px; line-height: 1.55; }
+.msg .who { font-size: 11px; font-weight: 700; margin-bottom: 4px; opacity: 0.7; }
+.msg.mine { background: #E3E9F2; color: #1A2332; margin-left: auto; border-bottom-right-radius: 4px; }
+.msg.staff { background: linear-gradient(135deg, #0F2447 0%, #1D4E89 100%); color: #fff; border-bottom-left-radius: 4px; }
+.no-msg { color: #5A6A80; font-size: 14px; text-align: center; padding: 12px 0 20px; }
+.form-group textarea { width: 100%; min-height: 90px; padding: 12px; border: 2px solid #E3E9F2; border-radius: 12px; font-family: Poppins, sans-serif; font-size: 14px; resize: vertical; }
+.form-group textarea:focus { outline: none; border-color: #F5B731; box-shadow: 0 0 0 3px rgba(245, 183, 49, 0.1); }
+.actions { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+.btn-reopen { background: #fff; color: #0F2447; border: 2px solid #0F2447; padding: 11px 22px; border-radius: 12px; font-weight: 700; font-size: 14px; cursor: pointer; font-family: Poppins, sans-serif; }
+.btn-reopen:hover { background: #0F2447; color: #fff; }
+.flash-success { color: #2E8B57; background: #e8f5e9; border: 1px solid #2E8B57; border-radius: 12px; padding: 12px; margin-bottom: 16px; font-size: 14px; }
+.flash-error { color: #C0392B; background: #fdecea; border: 1px solid #C0392B; border-radius: 12px; padding: 12px; margin-bottom: 16px; font-size: 14px; }
+</style>{% endblock %}
+{% block body %}
+<div class="page">
+  <div class="nav-back">
+    <a href="{{ path('support') }}">← Retour au support</a>
+  </div>
+
+  {% for message in app.flashes('success') %}<div class="flash-success">{{ message }}</div>{% endfor %}
+  {% for message in app.flashes('error') %}<div class="flash-error">{{ message }}</div>{% endfor %}
+
+  <div class="card">
+    <div class="ticket-head">
+      <div>
+        <span class="ticket-ref">{{ ticket.reference }}</span>
+        <h1>{{ ticket.title }}</h1>
+        <div class="ticket-meta">{{ {'bug': 'Bug', 'feature': 'Demande d\'évolution', 'question': 'Question'}[ticket.type]|default(ticket.type) }} · créée le {{ ticket.createdAt|date('d/m/Y') }}{% if ticket.resolvedAt %} · résolue le {{ ticket.resolvedAt|date('d/m/Y') }}{% endif %}</div>
+      </div>
+      <div class="badges">
+        <span class="badge priority-{{ ticket.priority }}">● {{ {'critical': 'Critique', 'high': 'Haute', 'normal': 'Normale'}[ticket.priority]|default(ticket.priority) }}</span>
+        <span class="badge status-{{ ticket.status }}">{{ {'new': 'Nouveau', 'in_progress': 'En cours', 'test': 'En test', 'resolved': 'Résolu ✓'}[ticket.status]|default(ticket.status) }}</span>
+      </div>
+    </div>
+    <div class="desc">{{ ticket.description|nl2br }}</div>
+    {% if ticket.adminNote %}
+    <div class="admin-note"><strong>Dernière mise à jour de l'équipe</strong>{{ ticket.adminNote }}</div>
+    {% endif %}
+  </div>
+
+  <div class="card thread">
+    <h2>Échanges</h2>
+    {% if ticket.messages|length > 0 %}
+      {% for msg in ticket.messages %}
+      <div class="msg {{ msg.author.id == app.user.id ? 'mine' : 'staff' }}">
+        <div class="who">{{ msg.author.id == app.user.id ? 'Vous' : 'Équipe Klevup' }} · {{ msg.createdAt|date('d/m/Y H:i') }}</div>
+        {{ msg.content|nl2br }}
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="no-msg">Aucun échange pour le moment — posez votre question ci-dessous.</div>
+    {% endif %}
+
+    <form method="post" action="{{ path('ticket_message', {id: ticket.id}) }}">
+      <input type="hidden" name="_token" value="{{ csrf_token('ticket_message_' ~ ticket.id) }}">
+      <div class="form-group">
+        <textarea name="content" required placeholder="Votre message à l'équipe Klevup…" aria-label="Votre message"></textarea>
+      </div>
+      <div class="actions">
+        <button type="submit" class="btn btn-gold">Envoyer</button>
+      </div>
+    </form>
+
+    {% if ticket.status == 'resolved' %}
+    <form method="post" action="{{ path('ticket_reopen', {id: ticket.id}) }}" style="margin-top:10px">
+      <input type="hidden" name="_token" value="{{ csrf_token('ticket_reopen_' ~ ticket.id) }}">
+      <button type="submit" class="btn-reopen">Rouvrir cette demande</button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

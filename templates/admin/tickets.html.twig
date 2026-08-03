@@ -20,6 +20,10 @@
 .status-resolved{background:#e8f5e9;color:#2E8B57}
 .inline-form textarea{flex:1;min-width:240px;min-height:40px;resize:vertical}
 .inline-form{align-items:flex-start}
+.thread{margin:10px 0;border-left:3px solid #E3E9F2;padding-left:12px}
+.thread-msg{font-size:13px;color:#1A2332;margin-bottom:8px;line-height:1.5}
+.thread-who{display:block;font-size:11px;font-weight:700;color:#5A6A80}
+.thread-msg.staff .thread-who{color:#1D4E89}
 </style>{% endblock %}
 
 {% block admin_content %}
@@ -38,6 +42,21 @@
       </div>
     </div>
     <div class="ticket-desc">{{ ticket.description }}</div>
+    {% if ticket.messages|length > 0 %}
+    <div class="thread">
+      {% for msg in ticket.messages %}
+      <div class="thread-msg {{ msg.author.id == ticket.user.id ? 'client' : 'staff' }}">
+        <span class="thread-who">{{ msg.author.id == ticket.user.id ? ticket.user.name : 'Klevup' }} · {{ msg.createdAt|date('d/m H:i') }}</span>
+        {{ msg.content|nl2br }}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    <form method="post" action="{{ path('admin_ticket_message', {id: ticket.id}) }}" class="inline-form" style="margin-bottom:8px">
+      <input type="hidden" name="_token" value="{{ csrf_token('admin_ticket_message_' ~ ticket.id) }}">
+      <textarea name="content" placeholder="Répondre au client (email envoyé)…" aria-label="Répondre au client" required></textarea>
+      <button type="submit" class="btn-save">Répondre</button>
+    </form>
     <form method="post" action="{{ path('admin_ticket_update', {id: ticket.id}) }}" class="inline-form">
       <input type="hidden" name="_token" value="{{ csrf_token('ticket_update_' ~ ticket.id) }}">
       <select name="status" aria-label="Statut du ticket">

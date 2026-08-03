@@ -2,6 +2,8 @@
 namespace App\Entity;
 
 use App\Repository\TicketRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: TicketRepository::class)]
@@ -44,7 +46,15 @@ class Ticket
     #[ORM\JoinColumn(nullable: false)]
     private User $user;
 
-    public function __construct() { $this->createdAt = new \DateTimeImmutable(); }
+    #[ORM\OneToMany(mappedBy: 'ticket', targetEntity: TicketMessage::class)]
+    #[ORM\OrderBy(['createdAt' => 'ASC'])]
+    private Collection $messages;
+
+    public function __construct()
+    {
+        $this->createdAt = new \DateTimeImmutable();
+        $this->messages = new ArrayCollection();
+    }
 
     public function getId(): ?int { return $this->id; }
     public function getReference(): string { return $this->reference; }
@@ -66,4 +76,5 @@ class Ticket
     public function setResolvedAt(?\DateTimeImmutable $date): self { $this->resolvedAt = $date; return $this; }
     public function getUser(): User { return $this->user; }
     public function setUser(User $user): self { $this->user = $user; return $this; }
+    public function getMessages(): Collection { return $this->messages; }
 }

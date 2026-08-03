@@ -2,6 +2,7 @@
 namespace App\Controller;
 
 use App\Entity\Ticket;
+use App\Entity\TicketMessage;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -14,13 +15,14 @@ class TicketController extends AbstractController
 {
     private const TYPES = ['bug', 'feature', 'question'];
     private const PRIORITIES = ['critical', 'high', 'normal'];
+    private const CSRF_ERROR = 'Jeton CSRF invalide.';
 
     #[Route('/ticket/new', name: 'ticket_new', methods: ['GET', 'POST'])]
     public function new(Request $request, EntityManagerInterface $em): Response
     {
         if ($request->isMethod('POST')) {
             if (!$this->isCsrfTokenValid('ticket_new', (string) $request->request->get('_token'))) {
-                throw $this->createAccessDeniedException('Jeton CSRF invalide.');
+                throw $this->createAccessDeniedException(self::CSRF_ERROR);
             }
 
             $title = trim((string) $request->request->get('title'));
@@ -51,6 +53,69 @@ class TicketController extends AbstractController
         }
 
         return $this->render('ticket/new.html.twig');
+    }
+
+    #[Route('/ticket/{id}', name: 'ticket_show', methods: ['GET'], requirements: ['id' => '\d+'])]
+    public function show(Ticket $ticket): Response
+    {
+        $this->denyUnlessOwner($ticket);
+
+        return $this->render('ticket/show.html.twig', ['ticket' => $ticket]);
+    }
+
+    #[Route('/ticket/{id}/message', name: 'ticket_message', methods: ['POST'], requirements: ['id' => '\d+'])]
+    public function message(Ticket $ticket, Request $request, EntityManagerInterface $em): Response
+    {
+        $this->denyUnlessOwner($ticket);
+
+        if (!$this->isCsrfTokenValid('ticket_message_' . $ticket->getId(), (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException(self::CSRF_ERROR);
+        }
+
+        $content = trim((string) $request->request->get('content'));
+        if ($content === '' || mb_strlen($content) > 5000) {
+            $this->addFlash('error', 'Message vide ou trop long (5000 caractères max).');
+
+            return $this->redirectToRoute('ticket_show', ['id' => $ticket->getId()]);
+        }
+
+        $message = new TicketMessage();
+        $message->setTicket($ticket);
+        $message->setAuthor($this->getUser());
+        $message->setContent($content);
+        $em->persist($message);
+        $em->flush();
+
+        $this->addFlash('success', 'Message envoyé.');
+
+        return $this->redirectToRoute('ticket_show', ['id' => $ticket->getId()]);
+    }
+
+    #[Route('/ticket/{id}/reopen', name: 'ticket_reopen', methods: ['POST'], requirements: ['id' => '\d+'])]
+    public function reopen(Ticket $ticket, Request $request, EntityManagerInterface $em): Response
+    {
+        $this->denyUnlessOwner($ticket);
+
+        if (!$this->isCsrfTokenValid('ticket_reopen_' . $ticket->getId(), (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException(self::CSRF_ERROR);
+        }
+
+        if ($ticket->getStatus() === 'resolved') {
+            $ticket->setStatus('in_progress');
+            $ticket->setResolvedAt(null);
+            $em->flush();
+            $this->addFlash('success', sprintf('Demande %s rouverte — notre équipe reprend le dossier.', $ticket->getReference()));
+        }
+
+        return $this->redirectToRoute('ticket_show', ['id' => $ticket->getId()]);
+    }
+
+    // 404 (not 403) so ticket existence is never leaked to other clients.
+    private function denyUnlessOwner(Ticket $ticket): void
+    {
+        if ($ticket->getUser()->getUserIdentifier() !== $this->getUser()?->getUserIdentifier()) {
+            throw $this->createNotFoundException();
+        }
     }
 
     private function nextReference(EntityManagerInterface $em): string

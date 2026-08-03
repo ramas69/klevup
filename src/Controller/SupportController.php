@@ -42,6 +42,7 @@ class SupportController extends AbstractController
         ];
 
         $ticketsData = array_map(fn(Ticket $t) => [
+            'id' => $t->getId(),
             'ref' => $t->getReference(),
             'title' => $t->getTitle(),
             'type' => $t->getType(),

@@ -48,18 +48,20 @@
     </div>
     <h1>Connexion</h1>
     <p>Accédez à votre espace</p>
+    {% for message in app.flashes('success') %}<div style="color:#2E8B57;background:#e8f5e9;border:1px solid #2E8B57;border-radius:12px;padding:12px;margin-bottom:20px;font-size:13px">{{ message }}</div>{% endfor %}
     {% if error %}<div class="error">{{ error.messageKey }}</div>{% endif %}
     <form method="post">
       <div class="form-group">
-        <label>Email</label>
-        <input type="email" name="_username" value="{{ last_username }}" required>
+        <label for="login-email">Email</label>
+        <input type="email" id="login-email" name="_username" value="{{ last_username }}" required>
       </div>
       <div class="form-group">
-        <label>Mot de passe</label>
-        <input type="password" name="_password" required>
+        <label for="login-password">Mot de passe</label>
+        <input type="password" id="login-password" name="_password" required>
       </div>
       <button type="submit" class="btn-submit">Se connecter</button>
     </form>
+    <div class="link"><a href="{{ path('forgot_password') }}">Mot de passe oublié ?</a></div>
 
     {% if app.environment == 'dev' %}
     <div class="dev-accounts">

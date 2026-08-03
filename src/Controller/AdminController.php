@@ -6,6 +6,7 @@ use App\Entity\Commission;
 use App\Entity\Invitation;
 use App\Entity\Lead;
 use App\Entity\Ticket;
+use App\Entity\TicketMessage;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -214,6 +215,46 @@ class AdminController extends AbstractController
         }
 
         $this->addFlash('success', sprintf('Ticket %s mis à jour.', $ticket->getReference()));
+
+        return $this->redirectToRoute('admin_tickets');
+    }
+
+    #[Route('/admin/ticket/{id}/message', name: 'admin_ticket_message', methods: ['POST'])]
+    public function messageTicket(Ticket $ticket, Request $request, EntityManagerInterface $em, MailerInterface $mailer): Response
+    {
+        if (!$this->isCsrfTokenValid('admin_ticket_message_' . $ticket->getId(), (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException(self::CSRF_ERROR);
+        }
+
+        $content = trim((string) $request->request->get('content'));
+        if ($content === '' || mb_strlen($content) > 5000) {
+            $this->addFlash('error', 'Message vide ou trop long.');
+
+            return $this->redirectToRoute('admin_tickets');
+        }
+
+        $message = new TicketMessage();
+        $message->setTicket($ticket);
+        $message->setAuthor($this->getUser());
+        $message->setContent($content);
+        $em->persist($message);
+        $em->flush();
+
+        $this->notify(
+            $mailer,
+            $ticket->getUser()->getEmail(),
+            sprintf('[Klevup] Nouveau message sur %s', $ticket->getReference()),
+            sprintf(
+                "Bonjour %s,\n\nL'équipe Klevup a répondu à votre demande %s « %s » :\n\n%s\n\nRépondez ici : %s",
+                $ticket->getUser()->getName(),
+                $ticket->getReference(),
+                $ticket->getTitle(),
+                $content,
+                $this->generateUrl('ticket_show', ['id' => $ticket->getId()], UrlGeneratorInterface::ABSOLUTE_URL)
+            )
+        );
+
+        $this->addFlash('success', sprintf('Message envoyé sur %s.', $ticket->getReference()));
 
         return $this->redirectToRoute('admin_tickets');
     }

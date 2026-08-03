@@ -1,0 +1,67 @@
+{% extends "base.html.twig" %}
+{% block title %}Mon profil - Klevup{% endblock %}
+{% block styles %}<style>
+body { background: #f8f9fa; }
+.page { max-width: 640px; margin: 0 auto; padding: 40px 24px; }
+.nav-back { margin-bottom: 24px; }
+.nav-back a { display: inline-flex; align-items: center; gap: 8px; color: #0F2447; text-decoration: none; font-weight: 600; font-size: 14px; padding: 8px 12px; border-radius: 8px; transition: all 0.3s; }
+.nav-back a:hover { background: rgba(15, 36, 71, 0.1); }
+.card { background: #fff; border-radius: 18px; padding: 30px; border: 2px solid #E3E9F2; box-shadow: 0 4px 12px rgba(15, 36, 71, 0.08); margin-bottom: 20px; }
+.card h1 { color: #0F2447; font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+.card h2 { color: #0F2447; font-size: 17px; font-weight: 700; margin: 24px 0 12px; padding-top: 20px; border-top: 1px solid #E3E9F2; }
+.card p.sub { color: #5A6A80; font-size: 14px; margin-bottom: 24px; }
+.form-group { margin-bottom: 18px; }
+.form-group label { display: block; color: #0F2447; font-weight: 600; margin-bottom: 8px; font-size: 14px; }
+.form-group input { width: 100%; padding: 12px; border: 2px solid #E3E9F2; border-radius: 12px; font-family: Poppins, sans-serif; font-size: 14px; transition: all 0.3s; }
+.form-group input:focus { outline: none; border-color: #F5B731; box-shadow: 0 0 0 3px rgba(245, 183, 49, 0.1); }
+.form-group small { color: #5A6A80; font-size: 12px; display: block; margin-top: 6px; }
+.flash-success { color: #2E8B57; background: #e8f5e9; border: 1px solid #2E8B57; border-radius: 12px; padding: 12px; margin-bottom: 16px; font-size: 14px; }
+.flash-error { color: #C0392B; background: #fdecea; border: 1px solid #C0392B; border-radius: 12px; padding: 12px; margin-bottom: 16px; font-size: 14px; }
+</style>{% endblock %}
+{% block body %}
+<div class="page">
+  <div class="nav-back">
+    {% if is_granted('ROLE_ADMIN') %}<a href="{{ path('admin_users') }}">← Retour à l'administration</a>
+    {% elseif is_granted('ROLE_APPORTEUR') %}<a href="{{ path('dashboard') }}">← Retour au tableau de bord</a>
+    {% else %}<a href="{{ path('support') }}">← Retour au support</a>{% endif %}
+  </div>
+  <div class="card">
+    <h1>Mon profil</h1>
+    <p class="sub">{{ app.user.email }}</p>
+    {% for message in app.flashes('success') %}<div class="flash-success">{{ message }}</div>{% endfor %}
+    {% for message in app.flashes('error') %}<div class="flash-error">{{ message }}</div>{% endfor %}
+    <form method="post">
+      <input type="hidden" name="_token" value="{{ csrf_token('profile') }}">
+      <div class="form-group">
+        <label for="name">Nom</label>
+        <input type="text" id="name" name="name" value="{{ app.user.name }}" required>
+      </div>
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" value="{{ app.user.email }}" required>
+        <small>Sert aussi d'identifiant de connexion.</small>
+      </div>
+      {% if isApporteur %}
+      <div class="form-group">
+        <label for="iban">IBAN (versement des commissions)</label>
+        <input type="text" id="iban" name="iban" value="{{ app.user.iban }}" placeholder="FR76 XXXX XXXX XXXX XXXX XXXX XXX">
+        <small>Nécessaire pour recevoir vos commissions par virement.</small>
+      </div>
+      {% endif %}
+
+      <h2>Changer de mot de passe (optionnel)</h2>
+      <div class="form-group">
+        <label for="current_password">Mot de passe actuel</label>
+        <input type="password" id="current_password" name="current_password" autocomplete="current-password">
+      </div>
+      <div class="form-group">
+        <label for="new_password">Nouveau mot de passe</label>
+        <input type="password" id="new_password" name="new_password" minlength="8" autocomplete="new-password">
+        <small>8 caractères minimum. Laissez vide pour ne pas changer.</small>
+      </div>
+
+      <button type="submit" class="btn btn-gold" style="width:100%">Enregistrer</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

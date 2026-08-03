@@ -34,6 +34,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 100, nullable: true)]
     private ?string $invitationCode = null;
 
+    #[ORM\Column(length: 34, nullable: true)]
+    private ?string $iban = null;
+
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $resetToken = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $resetTokenExpiresAt = null;
+
     #[ORM\Column]
     private \DateTimeImmutable $createdAt;
 
@@ -67,6 +76,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setStatus(string $status): self { $this->status = $status; return $this; }
     public function getInvitationCode(): ?string { return $this->invitationCode; }
     public function setInvitationCode(?string $code): self { $this->invitationCode = $code; return $this; }
+    public function getIban(): ?string { return $this->iban; }
+    public function setIban(?string $iban): self { $this->iban = $iban; return $this; }
+    public function getResetToken(): ?string { return $this->resetToken; }
+    public function setResetToken(?string $token): self { $this->resetToken = $token; return $this; }
+    public function getResetTokenExpiresAt(): ?\DateTimeImmutable { return $this->resetTokenExpiresAt; }
+    public function setResetTokenExpiresAt(?\DateTimeImmutable $date): self { $this->resetTokenExpiresAt = $date; return $this; }
     public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
     public function getLeads(): Collection { return $this->leads; }
     public function getCommissions(): Collection { return $this->commissions; }
