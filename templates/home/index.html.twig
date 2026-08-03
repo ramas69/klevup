@@ -1,0 +1,178 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Klevup — Les applications intelligentes qui font monter votre business{% endblock %}
+
+{% block styles %}
+<style>
+nav{position:sticky;top:0;background:#fff;border-bottom:1px solid var(--border);z-index:10}
+.nav-in{display:flex;align-items:center;justify-content:space-between;height:72px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:24px;color:var(--navy);letter-spacing:-.5px;text-decoration:none}
+.nav-links{display:flex;gap:32px;align-items:center}
+.nav-links a{color:var(--ink);text-decoration:none;font-weight:500;font-size:15px}
+.nav-links a:hover{color:var(--blue)}
+.btn-ghost{background:transparent;color:#fff;border:2px solid rgba(255,255,255,.6);padding:12px 24px;font-size:15px}
+.btn-ghost:hover{border-color:#fff}
+.hero{background:var(--grad);color:#fff;padding:88px 0 96px}
+.hero .wrap{display:grid;grid-template-columns:1.15fr .85fr;gap:56px;align-items:center}
+.eyebrow{display:inline-block;background:rgba(245,183,49,.15);border:1px solid var(--gold);color:var(--gold);font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:6px 14px;border-radius:999px;margin-bottom:22px}
+h1{font-size:52px;font-weight:800;letter-spacing:-1.5px;line-height:1.12;color:#fff}
+h1 em{font-style:normal;color:var(--gold)}
+.hero p{margin:22px 0 34px;font-size:18px;color:#CFE0F5;line-height:1.65;max-width:520px}
+.hero-ctas{display:flex;gap:14px;flex-wrap:wrap}
+.hero-note{margin-top:18px;font-size:13.5px;color:#9FB6D6}
+.hero-card{background:#fff;border-radius:22px;padding:28px;color:var(--ink);box-shadow:0 24px 60px rgba(4,12,28,.45);transform:rotate(1.5deg)}
+.hc-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border);font-size:14px}
+.hc-row:last-child{border:none}
+.hc-badge{background:#E2EFDA;color:var(--success);font-size:11.5px;font-weight:700;border-radius:999px;padding:3px 10px}
+.hc-price{font-weight:800;color:var(--navy)}
+.proof{background:var(--cream);padding:22px 0;text-align:center;font-size:14px;color:var(--gray);font-weight:500}
+.proof b{color:var(--navy)}
+section{padding:84px 0}
+.sec-head{text-align:center;max-width:640px;margin:0 auto 52px}
+.sec-head h2{font-size:34px;font-weight:700;color:var(--navy);letter-spacing:-.5px}
+.sec-head p{margin-top:14px;color:var(--gray);font-size:16.5px;line-height:1.6}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:22px}
+.card{background:#fff;border:2px solid var(--border);border-radius:18px;padding:28px;position:relative}
+.card.hl{border:3px solid var(--gold)}
+.card .tag{position:absolute;top:-13px;left:24px;background:var(--gold);color:var(--navy);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;padding:4px 12px;border-radius:999px}
+.card h3{color:var(--navy);font-size:19px;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:10px}
+.card .arr{color:var(--gold);font-size:20px}
+.card p{color:var(--gray);font-size:14.5px;line-height:1.6}
+.card .price{margin-top:16px;font-weight:800;color:var(--navy);font-size:17px}
+.card .price span{font-weight:500;color:var(--gray);font-size:13px}
+.steps{background:var(--cream)}
+.steps-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+.step{background:#fff;border:2px solid var(--border);border-radius:18px;padding:30px 26px}
+.step .n{width:44px;height:44px;border-radius:12px;background:var(--grad);color:#fff;font-weight:800;font-size:19px;display:flex;align-items:center;justify-content:center;margin-bottom:18px}
+.step h3{color:var(--navy);font-size:17.5px;margin-bottom:8px}
+.step p{color:var(--gray);font-size:14.5px;line-height:1.6}
+.apporteur{background:var(--grad);color:#fff}
+.apporteur .wrap{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center}
+.apporteur h2{font-size:32px;font-weight:700;letter-spacing:-.5px;line-height:1.25;color:#fff}
+.apporteur h2 em{font-style:normal;color:var(--gold)}
+.apporteur p{margin:18px 0 26px;color:#CFE0F5;font-size:16px;line-height:1.65}
+.stat-cards{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.stat{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);border-radius:18px;padding:22px;text-align:center}
+.stat .v{font-size:34px;font-weight:800;color:var(--gold)}
+.stat .l{font-size:13px;color:#CFE0F5;margin-top:4px}
+.final{text-align:center}
+.final h2{font-size:34px;font-weight:700;color:var(--navy);letter-spacing:-.5px}
+.final p{color:var(--gray);margin:14px auto 30px;max-width:520px;font-size:16.5px}
+footer{background:var(--navy);color:#9FB6D6;padding:40px 0;font-size:14px}
+footer .wrap{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}
+footer .fl{display:flex;align-items:center;gap:10px;color:#fff;font-weight:700;font-size:19px}
+footer a{color:var(--gold);text-decoration:none;font-weight:600}
+@media(max-width:860px){
+  .hero .wrap,.apporteur .wrap{grid-template-columns:1fr}
+  .grid,.steps-grid{grid-template-columns:1fr}
+  h1{font-size:38px}
+  .nav-links a:not(.btn){display:none}
+}
+</style>
+{% endblock %}
+
+{% block body %}
+<svg width="0" height="0"><defs><linearGradient id="kg" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#0F2447"/><stop offset="1" stop-color="#1D4E89"/></linearGradient></defs></svg>
+
+<nav><div class="wrap nav-in">
+  <a class="logo" href="{{ path('home') }}">
+    <svg width="38" height="38" viewBox="0 0 130 130"><rect width="130" height="130" rx="32" fill="url(#kg)"/><line x1="38" y1="30" x2="38" y2="100" stroke="#fff" stroke-width="15" stroke-linecap="round"/><line x1="40" y1="68" x2="85" y2="103" stroke="#fff" stroke-width="15" stroke-linecap="round"/><line x1="40" y1="68" x2="88" y2="31" stroke="#F5B731" stroke-width="15" stroke-linecap="round"/><path d="M72 27 L92 27 L92 47" fill="none" stroke="#F5B731" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    klevup
+  </a>
+  <div class="nav-links">
+    <a href="#solutions">Solutions</a>
+    <a href="#comment">Comment ça marche</a>
+    <a href="#apporteur">Devenir apporteur</a>
+    <a class="btn btn-gold" href="#contact">Demander une démo</a>
+  </div>
+</div></nav>
+
+<header class="hero">
+  <div class="wrap">
+    <div>
+      <span class="eyebrow">Applications métier clés en main</span>
+      <h1>Votre application professionnelle, <em>prête en quelques jours</em>, à vous pour toujours.</h1>
+      <p>Gestion de formation, e-learning, prospection, prise de commande — nos développeurs livrent votre outil personnalisé, sans abonnement imposé, dès 2 000 €.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-gold" href="#contact">Demander une démo gratuite</a>
+        <a class="btn btn-ghost" href="#solutions">Voir les solutions</a>
+      </div>
+      <div class="hero-note">✓ Vous êtes propriétaire de votre outil &nbsp; ✓ Livraison rapide &nbsp; ✓ Équipe française</div>
+    </div>
+    <div class="hero-card">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px">
+        <svg width="40" height="40" viewBox="0 0 130 130"><rect width="130" height="130" rx="32" fill="url(#kg)"/><line x1="38" y1="30" x2="38" y2="100" stroke="#fff" stroke-width="15" stroke-linecap="round"/><line x1="40" y1="68" x2="85" y2="103" stroke="#fff" stroke-width="15" stroke-linecap="round"/><line x1="40" y1="68" x2="88" y2="31" stroke="#F5B731" stroke-width="15" stroke-linecap="round"/><path d="M72 27 L92 27 L92 47" fill="none" stroke="#F5B731" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <div><div style="font-weight:700;color:var(--navy)">Votre projet Klevup</div><div style="font-size:12.5px;color:var(--gray)">Suivi de livraison</div></div>
+      </div>
+      <div class="hc-row"><span>Maquette validée</span><span class="hc-badge">Fait</span></div>
+      <div class="hc-row"><span>Personnalisation à votre marque</span><span class="hc-badge">Fait</span></div>
+      <div class="hc-row"><span>Formation de votre équipe</span><span class="hc-badge">En cours</span></div>
+      <div class="hc-row"><span>Mise en ligne</span><span style="color:var(--gray);font-size:13px">J+10</span></div>
+      <div class="hc-row"><span style="font-weight:700;color:var(--navy)">Investissement unique</span><span class="hc-price">2 990 €</span></div>
+    </div>
+  </div>
+</header>
+
+<div class="proof"><div class="wrap">Déjà choisi par des <b>organismes de formation</b>, des <b>formateurs indépendants</b> et des <b>TPE</b> qui voulaient un outil à eux — pas un abonnement de plus.</div></div>
+
+<section id="solutions">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2>Une solution pour chaque métier</h2>
+      <p>Des applications éprouvées, personnalisées à votre activité et livrées à votre marque. Vous payez une fois, l'outil est à vous.</p>
+    </div>
+    <div class="grid">
+      <div class="card hl"><span class="tag">La plus demandée</span><h3><span class="arr">↗</span> Gestion d'organisme de formation</h3><p>Inscriptions, émargements, convocations, documents Qualiopi : la plateforme tout-en-un qui remplace Excel et les outils à 300 €/mois.</p><div class="price">À partir de 3 000 € <span>· paiement unique</span></div></div>
+      <div class="card"><h3><span class="arr">↗</span> Plateforme e-learning (LMS)</h3><p>Vendez et diffusez vos formations en ligne sur votre propre plateforme, à votre marque, sans commission ni dépendance.</p><div class="price">À partir de 2 500 € <span>· paiement unique</span></div></div>
+      <div class="card"><h3><span class="arr">↗</span> Prospection + emailing</h3><p>Trouvez vos prospects et automatisez vos campagnes : votre machine commerciale interne, simple et efficace.</p><div class="price">À partir de 2 000 € <span>· paiement unique</span></div></div>
+      <div class="card"><h3><span class="arr">↗</span> Prise de commande en ligne</h3><p>Vos clients commandent en ligne, vous encaissez 100 %. Zéro commission par transaction, contrairement aux grandes plateformes.</p><div class="price">À partir de 2 000 € <span>· paiement unique</span></div></div>
+    </div>
+    <p style="text-align:center;margin-top:28px;color:var(--gray);font-size:15px">Un besoin spécifique ? <a href="#contact" style="color:var(--blue);font-weight:600">Notre équipe développe aussi sur mesure →</a></p>
+  </div>
+</section>
+
+<section class="steps" id="comment">
+  <div class="wrap">
+    <div class="sec-head"><h2>Comment ça marche</h2><p>De l'échange à la mise en ligne, un parcours simple et sans surprise.</p></div>
+    <div class="steps-grid">
+      <div class="step"><div class="n">1</div><h3>On échange 30 minutes</h3><p>Vous nous expliquez votre activité et vos irritants. On vous montre la solution en démo, avec un devis ferme sous 48 h.</p></div>
+      <div class="step"><div class="n">2</div><h3>On personnalise et on livre</h3><p>Votre logo, vos couleurs, vos spécificités métier. Votre application est prête en quelques jours, pas en quelques mois.</p></div>
+      <div class="step"><div class="n">3</div><h3>Vous êtes autonome</h3><p>On forme votre équipe à la prise en main. L'outil vous appartient : pas d'abonnement imposé, pas de mauvaise surprise.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="apporteur" id="apporteur">
+  <div class="wrap">
+    <div>
+      <h2>Vous connaissez des entreprises qui en ont besoin ? <em>Devenez apporteur.</em></h2>
+      <p>Consultants, formateurs, commerciaux, entrepreneurs : recommandez Klevup autour de vous. Vous transmettez le contact, on s'occupe de tout — démo, devis, livraison — et vous touchez votre commission à chaque vente.</p>
+      <a class="btn btn-gold" href="#contact">Rejoindre le réseau apporteurs</a>
+    </div>
+    <div class="stat-cards">
+      <div class="stat"><div class="v">15 %</div><div class="l">de commission sur chaque vente</div></div>
+      <div class="stat"><div class="v">20 %</div><div class="l">dès la 4ᵉ vente du trimestre</div></div>
+      <div class="stat"><div class="v">≈ 1 000 €</div><div class="l">par mois à 2 ventes/mois</div></div>
+      <div class="stat"><div class="v">24 h</div><div class="l">pour prendre en charge vos leads</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="final" id="contact">
+  <div class="wrap">
+    <h2>Parlons de votre projet</h2>
+    <p>30 minutes, sans engagement. On vous montre l'outil adapté à votre métier et on vous donne un prix ferme.</p>
+    <a class="btn btn-gold" href="mailto:contact@klevup.fr" style="font-size:17px;padding:16px 34px">Demander une démo gratuite</a>
+    <p style="margin-top:16px;font-size:13.5px">ou écrivez-nous : <a href="mailto:contact@klevup.fr" style="color:var(--blue);font-weight:600">contact@klevup.fr</a></p>
+  </div>
+</section>
+
+<footer><div class="wrap">
+  <div class="fl">
+    <svg width="30" height="30" viewBox="0 0 130 130"><rect width="130" height="130" rx="32" fill="#fff"/><line x1="38" y1="30" x2="38" y2="100" stroke="#0F2447" stroke-width="15" stroke-linecap="round"/><line x1="40" y1="68" x2="85" y2="103" stroke="#0F2447" stroke-width="15" stroke-linecap="round"/><line x1="40" y1="68" x2="88" y2="31" stroke="#F5B731" stroke-width="15" stroke-linecap="round"/><path d="M72 27 L92 27 L92 47" fill="none" stroke="#F5B731" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    klevup
+  </div>
+  <div>Les applications intelligentes qui font monter votre business.</div>
+  <div><a href="mailto:contact@klevup.fr">contact@klevup.fr</a></div>
+</div></footer>
+{% endblock %}

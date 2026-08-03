@@ -1,0 +1,67 @@
+{% extends "base.html.twig" %}
+{% block title %}Register - Klevup{% endblock %}
+{% block styles %}<style>
+.auth-page { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: linear-gradient(135deg, #0F2447 0%, #1D4E89 70%, #2A6DB5 100%); padding: 20px; position: relative; overflow: hidden; animation: bgMove 8s ease-in-out infinite; }
+.auth-page::before { content: ''; position: absolute; top: -50%; right: -10%; width: 600px; height: 600px; background: radial-gradient(circle, rgba(245, 183, 49, 0.1) 0%, transparent 70%); border-radius: 50%; animation: float 15s ease-in-out infinite; }
+.auth-page::after { content: ''; position: absolute; bottom: -30%; left: -5%; width: 400px; height: 400px; background: radial-gradient(circle, rgba(207, 224, 245, 0.08) 0%, transparent 70%); border-radius: 50%; animation: float 12s ease-in-out infinite reverse; }
+@keyframes bgMove { 0%, 100% { background: linear-gradient(135deg, #0F2447 0%, #1D4E89 70%, #2A6DB5 100%); } 50% { background: linear-gradient(135deg, #1D4E89 0%, #2A6DB5 70%, #0F2447 100%); } }
+@keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-30px); } }
+.auth-card { background: white; border-radius: 18px; padding: 40px; box-shadow: 0 16px 48px rgba(0,0,0,.2); max-width: 400px; width: 100%; position: relative; z-index: 10; animation: slideUp 0.8s ease-out; }
+.auth-logo { text-align: center; margin-bottom: 30px; font-weight: 800; font-size: 24px; color: #0F2447; }
+.auth-card h1 { text-align: center; color: #0F2447; font-size: 28px; margin-bottom: 10px; }
+.auth-card p { text-align: center; color: #5A6A80; font-size: 14px; margin-bottom: 30px; }
+.form-group { margin-bottom: 20px; }
+.form-group label { display: block; color: #0F2447; font-weight: 600; margin-bottom: 8px; font-size: 14px; }
+.form-group input, .form-group select { width: 100%; padding: 12px; border: 2px solid #E3E9F2; border-radius: 12px; font-family: Poppins, sans-serif; font-size: 14px; }
+.form-group input:focus, .form-group select:focus { outline: none; border-color: #F5B731; }
+.btn-submit { width: 100%; padding: 14px; background: #F5B731; color: #0F2447; border: none; border-radius: 12px; font-weight: 700; font-size: 16px; cursor: pointer; margin-top: 20px; }
+.btn-submit:hover { filter: brightness(1.06); }
+.link { text-align: center; margin-top: 20px; font-size: 14px; }
+.link a { color: #F5B731; font-weight: 600; text-decoration: none; }
+.auth-logo svg { animation: logoPulse 2s ease-in-out infinite; }
+.auth-logo svg line[stroke="#F5B731"], .auth-logo svg path { stroke-dasharray: 50; stroke-dashoffset: 50; animation: arrowDraw 1.5s ease-in-out 0.3s forwards, arrowFloat 3s ease-in-out 1.8s infinite; }
+.auth-card h1 { animation: fadeIn 0.8s ease-out 0.2s both; }
+.auth-card p { animation: fadeIn 0.8s ease-out 0.3s both; }
+.form-group { animation: fadeIn 0.8s ease-out both; }
+.form-group:nth-child(1) { animation-delay: 0.4s; }
+.form-group:nth-child(2) { animation-delay: 0.5s; }
+.form-group:nth-child(3) { animation-delay: 0.6s; }
+.form-group:nth-child(4) { animation-delay: 0.7s; }
+.btn-submit { animation: fadeIn 0.8s ease-out 0.8s both; transition: all 0.3s; }
+.btn-submit:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(245, 183, 49, 0.3); }
+@keyframes logoPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+@keyframes arrowDraw { 0% { stroke-dashoffset: 50; opacity: 0; } 50% { opacity: 1; } 100% { stroke-dashoffset: 0; opacity: 1; } }
+@keyframes arrowFloat { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-3px); } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+</style>{% endblock %}
+{% block body %}
+<svg width="0" height="0"><defs><linearGradient id="kg" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#0F2447"/><stop offset="1" stop-color="#1D4E89"/></linearGradient></defs></svg>
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <svg width="48" height="48" viewBox="0 0 130 130"><rect width="130" height="130" rx="32" fill="url(#kg)"/><line x1="38" y1="30" x2="38" y2="100" stroke="#fff" stroke-width="15" stroke-linecap="round"/><line x1="40" y1="68" x2="85" y2="103" stroke="#fff" stroke-width="15" stroke-linecap="round"/><line x1="40" y1="68" x2="88" y2="31" stroke="#F5B731" stroke-width="15" stroke-linecap="round"/><path d="M72 27 L92 27 L92 47" fill="none" stroke="#F5B731" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <h1>Créer un compte</h1>
+    <p>Bienvenue sur Klevup — complétez votre profil</p>
+    {% if error is defined and error %}
+      <p style="color: #C0392B; background: #fdecea; border: 1px solid #C0392B; border-radius: 12px; padding: 12px; margin-bottom: 20px;">{{ error }}</p>
+    {% endif %}
+    <form method="post">
+      <div class="form-group">
+        <label>Nom</label>
+        <input type="text" name="name" required>
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" name="email" required>
+      </div>
+      <div class="form-group">
+        <label>Mot de passe</label>
+        <input type="password" name="password" required>
+      </div>
+      <button type="submit" class="btn-submit">S'inscrire</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

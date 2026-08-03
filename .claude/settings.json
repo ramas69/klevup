@@ -1,0 +1,47 @@
+{
+  "permissions": {
+    "allow": [
+      "Edit",
+      "Write",
+      "Bash(npx tsc:*)",
+      "Bash(npx eslint:*)",
+      "Bash(npx vitest:*)",
+      "Bash(npm run:*)",
+      "Bash(npm test:*)",
+      "Bash(npm ci)",
+      "Bash(npm install:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git checkout:*)",
+      "Bash(git switch:*)",
+      "Bash(git restore:*)",
+      "Bash(git stash:*)",
+      "Bash(git push:*)",
+      "Bash(supabase db push:*)",
+      "Bash(supabase gen types:*)",
+      "Bash(supabase functions deploy:*)",
+      "Bash(supabase config push:*)",
+      "Bash(supabase migration list:*)",
+      "Bash(open:*)",
+      "Bash(mkdir:*)",
+      "Bash(cp:*)",
+      "Bash(mv:*)",
+      "Bash(base64:*)",
+      "Bash(sips:*)",
+      "Bash(pdftoppm:*)",
+      "Bash(node:*)",
+      "Bash(curl:*)"
+    ],
+    "deny": [
+      "Bash(sudo:*)",
+      "Bash(rm -rf /)",
+      "Bash(rm -rf ~)",
+      "Bash(supabase db reset:*)"
+    ],
+    "defaultMode": "auto"
+  },
+  "disabledMcpjsonServers": [
+    "supabase",
+    "supabase-prod"
+  ]
+}

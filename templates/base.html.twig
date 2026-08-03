@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}Klevup{% endblock %}</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0F2447; --blue:#1D4E89; --gold:#F5B731; --cream:#FDF9F0;
+  --ink:#1A2332; --gray:#5A6A80; --border:#E3E9F2; --success:#2E8B57;
+  --grad:linear-gradient(135deg,#0F2447 0%,#1D4E89 70%,#2A6DB5 100%);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Poppins','Segoe UI',sans-serif;color:var(--ink);background:#fff}
+.wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+.btn{display:inline-block;font-weight:700;border-radius:12px;text-decoration:none;cursor:pointer;border:none;font-family:inherit;transition:.15s}
+.btn-gold{background:var(--gold);color:var(--navy);padding:13px 26px;font-size:15px}
+.btn-gold:hover{filter:brightness(1.06);transform:translateY(-1px)}
+</style>
+{% block styles %}{% endblock %}
+</head>
+<body>
+{% block body %}{% endblock %}
+</body>
+</html>
