@@ -1,78 +1,56 @@
-{% extends "base.html.twig" %}
+{% extends "admin/base_admin.html.twig" %}
 {% block title %}Tickets - Admin Klevup{% endblock %}
-{% block styles %}<style>
-body { background: #f8f9fa; }
-.admin-page { max-width: 1120px; margin: 0 auto; padding: 40px 24px; }
-.admin-header { background: #fff; border-radius: 18px; padding: 30px; margin-bottom: 20px; border: 2px solid #E3E9F2; box-shadow: 0 4px 12px rgba(15, 36, 71, 0.08); }
-.admin-header h1 { color: #0F2447; font-size: 28px; font-weight: 700; margin-bottom: 6px; }
-.admin-header p { color: #5A6A80; font-size: 14px; }
-.admin-nav { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
-.admin-nav a { padding: 10px 18px; border-radius: 999px; background: #fff; border: 2px solid #E3E9F2; color: #0F2447; text-decoration: none; font-weight: 600; font-size: 13px; transition: all 0.2s; }
-.admin-nav a:hover { border-color: #F5B731; }
-.admin-nav a.active { background: #0F2447; color: #fff; border-color: #0F2447; }
-.flash-success { color: #2E8B57; background: #e8f5e9; border: 1px solid #2E8B57; border-radius: 12px; padding: 12px; margin-bottom: 12px; font-size: 14px; }
-.flash-error { color: #C0392B; background: #fdecea; border: 1px solid #C0392B; border-radius: 12px; padding: 12px; margin-bottom: 12px; font-size: 14px; }
-.ticket-card { background: #fff; border-radius: 18px; border: 2px solid #E3E9F2; padding: 20px; margin-bottom: 14px; box-shadow: 0 4px 12px rgba(15, 36, 71, 0.06); }
-.ticket-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
-.ticket-ref { font-family: monospace; font-weight: 700; color: #0F2447; font-size: 12px; }
-.ticket-title { font-weight: 700; color: #0F2447; font-size: 15px; margin: 2px 0; }
-.ticket-meta { font-size: 12px; color: #5A6A80; }
-.ticket-desc { font-size: 13px; color: #1A2332; background: #f8f9fa; border-radius: 10px; padding: 10px 12px; margin: 10px 0; }
-.priority { display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; }
-.priority-critical { background: #ffebee; color: #c0392b; }
-.priority-high { background: #fff3e0; color: #f57c00; }
-.priority-normal { background: #f5f5f5; color: #666; }
-.status-badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 999px; }
-.status-new { background: #e3f2fd; color: #1976d2; }
-.status-in_progress { background: #fff3e0; color: #f57c00; }
-.status-test { background: #fffbee; color: #ff9800; }
-.status-resolved { background: #e8f5e9; color: #2E8B57; }
-.inline-form { display: flex; gap: 8px; align-items: flex-start; flex-wrap: wrap; }
-.inline-form select { padding: 8px 10px; border: 2px solid #E3E9F2; border-radius: 10px; font-family: Poppins, sans-serif; font-size: 13px; }
-.inline-form textarea { flex: 1; min-width: 240px; min-height: 40px; padding: 8px 10px; border: 2px solid #E3E9F2; border-radius: 10px; font-family: Poppins, sans-serif; font-size: 13px; resize: vertical; }
-.btn-save { background: #F5B731; color: #0F2447; border: none; padding: 8px 16px; border-radius: 10px; font-weight: 700; font-size: 12px; cursor: pointer; font-family: Poppins, sans-serif; }
-.btn-save:hover { filter: brightness(1.06); }
-.empty { text-align: center; padding: 40px; color: #5A6A80; background: #fff; border-radius: 18px; border: 2px solid #E3E9F2; }
-</style>{% endblock %}
-{% block body %}
-<div class="admin-page">
-  <div class="admin-header">
-    <h1>Gestion des tickets</h1>
-    <p>Changez le statut et laissez une note — le client la voit dans son portail support.</p>
-  </div>
-  {% include 'admin/_nav.html.twig' %}
-  {% for message in app.flashes('success') %}<div class="flash-success">{{ message }}</div>{% endfor %}
-  {% for message in app.flashes('error') %}<div class="flash-error">{{ message }}</div>{% endfor %}
+{% block page_title %}Gestion des tickets{% endblock %}
+{% block page_subtitle %}Changez le statut et laissez une note — le client la voit dans son portail support.{% endblock %}
 
-  {% if tickets|length > 0 %}
-    {% for ticket in tickets %}
-    <div class="ticket-card">
-      <div class="ticket-top">
-        <div>
-          <span class="ticket-ref">{{ ticket.reference }}</span>
-          <div class="ticket-title">{{ ticket.title }}</div>
-          <div class="ticket-meta">{{ ticket.user.name }} · {{ {'bug': 'Bug', 'feature': 'Évolution', 'question': 'Question'}[ticket.type]|default(ticket.type) }} · {{ ticket.createdAt|date('d/m/Y') }}</div>
-        </div>
-        <div>
-          <span class="priority priority-{{ ticket.priority }}">● {{ {'critical': 'Critique', 'high': 'Haute', 'normal': 'Normale'}[ticket.priority]|default(ticket.priority) }}</span>
-          <span class="status-badge status-{{ ticket.status }}">{{ {'new': 'Nouveau', 'in_progress': 'En cours', 'test': 'En test', 'resolved': 'Résolu'}[ticket.status]|default(ticket.status) }}</span>
-        </div>
+{% block admin_styles %}<style>
+.ticket-card{background:#fff;border-radius:18px;border:2px solid #E3E9F2;padding:20px;margin-bottom:14px;box-shadow:0 4px 12px rgba(15,36,71,.06)}
+.ticket-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.ticket-ref{font-family:monospace;font-weight:700;color:#0F2447;font-size:12px}
+.ticket-title{font-weight:700;color:#0F2447;font-size:15px;margin:2px 0}
+.ticket-meta{font-size:12px;color:#5A6A80}
+.ticket-desc{font-size:13px;color:#1A2332;background:#f8f9fa;border-radius:10px;padding:10px 12px;margin:10px 0}
+.priority{display:inline-block;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:700}
+.priority-critical{background:#ffebee;color:#c0392b}
+.priority-high{background:#fff3e0;color:#f57c00}
+.priority-normal{background:#f5f5f5;color:#666}
+.status-new{background:#e3f2fd;color:#1976d2}
+.status-in_progress{background:#fff3e0;color:#f57c00}
+.status-test{background:#fffbee;color:#ff9800}
+.status-resolved{background:#e8f5e9;color:#2E8B57}
+.inline-form textarea{flex:1;min-width:240px;min-height:40px;resize:vertical}
+.inline-form{align-items:flex-start}
+</style>{% endblock %}
+
+{% block admin_content %}
+{% if tickets|length > 0 %}
+  {% for ticket in tickets %}
+  <div class="ticket-card">
+    <div class="ticket-top">
+      <div>
+        <span class="ticket-ref">{{ ticket.reference }}</span>
+        <div class="ticket-title">{{ ticket.title }}</div>
+        <div class="ticket-meta">{{ ticket.user.name }} · {{ {'bug': 'Bug', 'feature': 'Évolution', 'question': 'Question'}[ticket.type]|default(ticket.type) }} · {{ ticket.createdAt|date('d/m/Y') }}</div>
       </div>
-      <div class="ticket-desc">{{ ticket.description }}</div>
-      <form method="post" action="{{ path('admin_ticket_update', {id: ticket.id}) }}" class="inline-form">
-        <input type="hidden" name="_token" value="{{ csrf_token('ticket_update_' ~ ticket.id) }}">
-        <select name="status">
-          {% for s in statuses %}
-          <option value="{{ s }}" {{ ticket.status == s ? 'selected' }}>{{ {'new': 'Nouveau', 'in_progress': 'En cours', 'test': 'En test', 'resolved': 'Résolu'}[s] }}</option>
-          {% endfor %}
-        </select>
-        <textarea name="admin_note" placeholder="Note visible par le client…">{{ ticket.adminNote }}</textarea>
-        <button type="submit" class="btn-save">Enregistrer</button>
-      </form>
+      <div>
+        <span class="priority priority-{{ ticket.priority }}">● {{ {'critical': 'Critique', 'high': 'Haute', 'normal': 'Normale'}[ticket.priority]|default(ticket.priority) }}</span>
+        <span class="status-badge status-{{ ticket.status }}">{{ {'new': 'Nouveau', 'in_progress': 'En cours', 'test': 'En test', 'resolved': 'Résolu'}[ticket.status]|default(ticket.status) }}</span>
+      </div>
     </div>
-    {% endfor %}
-  {% else %}
-    <div class="empty">Aucun ticket pour le moment.</div>
-  {% endif %}
-</div>
+    <div class="ticket-desc">{{ ticket.description }}</div>
+    <form method="post" action="{{ path('admin_ticket_update', {id: ticket.id}) }}" class="inline-form">
+      <input type="hidden" name="_token" value="{{ csrf_token('ticket_update_' ~ ticket.id) }}">
+      <select name="status" aria-label="Statut du ticket">
+        {% for s in statuses %}
+        <option value="{{ s }}" {{ ticket.status == s ? 'selected' }}>{{ {'new': 'Nouveau', 'in_progress': 'En cours', 'test': 'En test', 'resolved': 'Résolu'}[s] }}</option>
+        {% endfor %}
+      </select>
+      <textarea name="admin_note" placeholder="Note visible par le client…" aria-label="Note visible par le client">{{ ticket.adminNote }}</textarea>
+      <button type="submit" class="btn-save">Enregistrer</button>
+    </form>
+  </div>
+  {% endfor %}
+{% else %}
+  <div class="empty">Aucun ticket pour le moment.</div>
+{% endif %}
 {% endblock %}

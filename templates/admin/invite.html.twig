@@ -1,84 +1,43 @@
-{% extends "base.html.twig" %}
-{% block title %}Générer Invitation - Admin{% endblock %}
-{% block styles %}<style>
-body { background: linear-gradient(135deg, #FDF9F0 0%, #f8f9fa 100%); min-height: 100vh; animation: bgShift 20s ease-in-out infinite; }
-@keyframes bgShift { 0%, 100% { background: linear-gradient(135deg, #FDF9F0 0%, #f8f9fa 100%); } 50% { background: linear-gradient(135deg, #f8f9fa 0%, #E3E9F2 100%); } }
-.admin-page { max-width: 1120px; margin: 0 auto; padding: 40px 24px; }
-.nav-back { margin-bottom: 24px; }
-.nav-back a { display: inline-flex; align-items: center; gap: 8px; color: #0F2447; text-decoration: none; font-weight: 600; font-size: 14px; padding: 8px 12px; border-radius: 8px; transition: all 0.3s; }
-.nav-back a:hover { background: rgba(15, 36, 71, 0.1); }
-.admin-header { background: #fff; border-radius: 18px; padding: 30px; margin-bottom: 30px; border: 2px solid #E3E9F2; animation: slideDown 0.6s ease-out; box-shadow: 0 4px 12px rgba(15, 36, 71, 0.08); }
-.admin-header h1 { color: #0F2447; font-size: 28px; font-weight: 700; margin-bottom: 8px; }
-.admin-header p { color: #5A6A80; font-size: 14px; }
-@keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
-.admin-nav { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
-.admin-nav a { padding: 10px 18px; border-radius: 999px; background: #fff; border: 2px solid #E3E9F2; color: #0F2447; text-decoration: none; font-weight: 600; font-size: 13px; transition: all 0.2s; }
-.admin-nav a:hover { border-color: #F5B731; }
-.admin-nav a.active { background: #0F2447; color: #fff; border-color: #0F2447; }
-.card { background: #fff; border-radius: 18px; padding: 30px; border: 2px solid #E3E9F2; margin-bottom: 20px; animation: fadeInUp 0.8s ease-out 0.2s both; box-shadow: 0 4px 12px rgba(15, 36, 71, 0.08); }
-.card h2 { color: #0F2447; font-size: 20px; font-weight: 700; margin-bottom: 20px; }
-.form-group { margin-bottom: 18px; }
-.form-group label { display: block; color: #0F2447; font-weight: 600; margin-bottom: 8px; font-size: 14px; }
-.form-group input, .form-group textarea, .form-group select { width: 100%; padding: 12px; border: 2px solid #E3E9F2; border-radius: 12px; font-family: Poppins, sans-serif; font-size: 14px; transition: all 0.3s; }
-.form-group input:focus, .form-group textarea:focus, .form-group select:focus { outline: none; border-color: #F5B731; box-shadow: 0 0 0 3px rgba(245, 183, 49, 0.1); }
-.btn { display: inline-block; padding: 12px 24px; border-radius: 12px; font-weight: 700; border: none; cursor: pointer; font-family: Poppins, sans-serif; transition: all 0.3s; }
-.btn-gold { background: #F5B731; color: #0F2447; }
-.btn-gold:hover { filter: brightness(1.06); transform: translateY(-2px); box-shadow: 0 6px 16px rgba(245, 183, 49, 0.3); }
-.success { background: #e8f5e9; border: 2px solid #2E8B57; border-radius: 12px; padding: 16px; margin-top: 20px; animation: slideInRight 0.6s ease-out; }
-.success p { color: #2E8B57; font-size: 14px; margin: 8px 0; }
-.copy-btn { background: #0F2447; color: #fff; padding: 8px 16px; border-radius: 8px; font-size: 12px; cursor: pointer; border: none; font-weight: 600; transition: all 0.3s; }
-.copy-btn:hover { filter: brightness(1.1); transform: scale(1.05); }
-.invite-link { background: #f8f9fa; padding: 12px; border-radius: 8px; font-family: monospace; font-size: 12px; word-break: break-all; color: #0F2447; border: 1px solid #E3E9F2; }
-@keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes slideInRight { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
+{% extends "admin/base_admin.html.twig" %}
+{% block title %}Invitations - Admin Klevup{% endblock %}
+{% block page_title %}Gestion des invitations{% endblock %}
+{% block page_subtitle %}Générez des liens d'invitation pour les nouveaux utilisateurs — valables 30 jours, à usage unique.{% endblock %}
+
+{% block admin_styles %}<style>
+.card{max-width:640px}
+.form-group{margin-bottom:18px}
+.success{background:#e8f5e9;border:2px solid #2E8B57;border-radius:12px;padding:16px;margin-top:20px}
+.success p{color:#2E8B57;font-size:14px;margin:8px 0}
+.invite-link{background:#f8f9fa;padding:12px;border-radius:8px;font-family:monospace;font-size:12px;word-break:break-all;color:#0F2447;border:1px solid #E3E9F2}
+.copy-btn{background:#0F2447;color:#fff;padding:8px 16px;border-radius:8px;font-size:12px;cursor:pointer;border:none;font-weight:600;font-family:Poppins,sans-serif;transition:all .15s}
+.copy-btn:hover{filter:brightness(1.1)}
 </style>{% endblock %}
-{% block body %}
-<div class="admin-page">
-  <div class="nav-back">
-    <a href="/">← Retour à l'accueil</a>
-  </div>
-  <div class="admin-header">
-    <h1>Gestion des invitations</h1>
-    <p>Générez des liens d'invitation pour les nouveaux utilisateurs</p>
-  </div>
 
-  {% include 'admin/_nav.html.twig' %}
-
-  <div class="card">
-    <h2>Créer un lien d'invitation</h2>
-    {% for message in app.flashes('success') %}
-      <p style="color: #2E8B57; background: #e8f5e9; border: 1px solid #2E8B57; border-radius: 12px; padding: 12px; margin-bottom: 16px; font-size: 14px;">{{ message }}</p>
-    {% endfor %}
-    {% for message in app.flashes('error') %}
-      <p style="color: #C0392B; background: #fdecea; border: 1px solid #C0392B; border-radius: 12px; padding: 12px; margin-bottom: 16px; font-size: 14px;">{{ message }}</p>
-    {% endfor %}
-    <form method="post">
-      <div class="form-group">
-        <label for="role">Rôle de l'invité</label>
-        <select name="role" id="role">
-          <option value="ROLE_APPORTEUR">Apporteur</option>
-          <option value="ROLE_CLIENT">Client</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label for="email">Email de l'invité (optionnel — envoie le lien directement)</label>
-        <input type="email" name="email" id="email" placeholder="prenom@entreprise.fr">
-      </div>
-      <button type="submit" class="btn btn-gold">Générer un lien d'invitation</button>
-    </form>
-
-    {% if inviteLink %}
-    <div class="success">
-      <p><strong>Lien d'invitation généré ✓</strong></p>
-      <div class="invite-link">{{ inviteLink }}</div>
-      <button class="copy-btn" onclick="navigator.clipboard.writeText('{{ inviteLink }}')">Copier le lien</button>
-      <p style="margin-top: 12px; font-size: 13px;">Partagez ce lien avec l'utilisateur invité. Il aura 30 jours pour s'inscrire.</p>
+{% block admin_content %}
+<div class="card">
+  <h2>Créer un lien d'invitation</h2>
+  <form method="post">
+    <div class="form-group">
+      <label for="role">Rôle de l'invité</label>
+      <select name="role" id="role">
+        <option value="ROLE_APPORTEUR">Apporteur</option>
+        <option value="ROLE_CLIENT">Client</option>
+      </select>
     </div>
-    {% endif %}
-  </div>
+    <div class="form-group">
+      <label for="email">Email de l'invité (optionnel — envoie le lien directement)</label>
+      <input type="email" name="email" id="email" placeholder="prenom@entreprise.fr">
+    </div>
+    <button type="submit" class="btn-save">Générer un lien d'invitation</button>
+  </form>
 
-  <div style="text-align: center; margin-top: 30px;">
-    <a href="{{ path('admin_users') }}" style="color: #F5B731; text-decoration: none; font-weight: 600;">Voir tous les utilisateurs</a>
+  {% if inviteLink %}
+  <div class="success">
+    <p><strong>Lien d'invitation généré ✓</strong></p>
+    <div class="invite-link">{{ inviteLink }}</div>
+    <button class="copy-btn" onclick="navigator.clipboard.writeText('{{ inviteLink }}')">Copier le lien</button>
+    <p style="margin-top:12px;font-size:13px">Partagez ce lien avec l'utilisateur invité. Il aura 30 jours pour s'inscrire.</p>
   </div>
+  {% endif %}
 </div>
 {% endblock %}

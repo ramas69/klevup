@@ -1,92 +1,55 @@
-{% extends "base.html.twig" %}
-{% block title %}Utilisateurs - Admin{% endblock %}
-{% block styles %}<style>
-body { background: linear-gradient(135deg, #FDF9F0 0%, #f8f9fa 100%); min-height: 100vh; animation: bgShift 20s ease-in-out infinite; }
-@keyframes bgShift { 0%, 100% { background: linear-gradient(135deg, #FDF9F0 0%, #f8f9fa 100%); } 50% { background: linear-gradient(135deg, #f8f9fa 0%, #E3E9F2 100%); } }
-.admin-page { max-width: 1120px; margin: 0 auto; padding: 40px 24px; }
-.nav-back { margin-bottom: 24px; }
-.nav-back a { display: inline-flex; align-items: center; gap: 8px; color: #0F2447; text-decoration: none; font-weight: 600; font-size: 14px; padding: 8px 12px; border-radius: 8px; transition: all 0.3s; }
-.nav-back a:hover { background: rgba(15, 36, 71, 0.1); }
-.admin-header { background: #fff; border-radius: 18px; padding: 30px; margin-bottom: 30px; border: 2px solid #E3E9F2; display: flex; justify-content: space-between; align-items: center; animation: slideDown 0.6s ease-out; box-shadow: 0 4px 12px rgba(15, 36, 71, 0.08); }
-.admin-header h1 { color: #0F2447; font-size: 28px; font-weight: 700; margin: 0; }
-@keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
-.btn { display: inline-block; padding: 12px 24px; border-radius: 12px; font-weight: 700; border: none; cursor: pointer; font-family: Poppins, sans-serif; text-decoration: none; transition: all 0.3s; }
-.btn-gold { background: #F5B731; color: #0F2447; }
-.btn-gold:hover { filter: brightness(1.06); transform: translateY(-2px); box-shadow: 0 6px 16px rgba(245, 183, 49, 0.3); }
-.users-table { background: #fff; border-radius: 18px; overflow: hidden; border: 2px solid #E3E9F2; animation: fadeInUp 0.8s ease-out 0.2s both; box-shadow: 0 4px 12px rgba(15, 36, 71, 0.08); }
-.table-header { background: linear-gradient(135deg, #0F2447 0%, #1D4E89 100%); color: #fff; padding: 16px 20px; font-weight: 700; display: grid; grid-template-columns: 2fr 2fr 1fr 1fr 1fr; gap: 16px; }
-.table-row { border-bottom: 1px solid #E3E9F2; padding: 16px 20px; display: grid; grid-template-columns: 2fr 2fr 1fr 1fr 1fr; gap: 16px; align-items: center; transition: all 0.3s; animation: fadeIn 0.6s ease-out both; }
-.table-row:nth-child(even) { background: #f8f9fa; }
-.table-row:hover { background: #E3E9F2; }
-.role-badge { display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; animation: popIn 0.4s ease-out both; }
-.role-apporteur { background: #fffbee; color: #ff9800; }
-.role-client { background: #e3f2fd; color: #1976d2; }
-.role-admin { background: #ffebee; color: #c0392b; }
-.admin-nav { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
-.admin-nav a { padding: 10px 18px; border-radius: 999px; background: #fff; border: 2px solid #E3E9F2; color: #0F2447; text-decoration: none; font-weight: 600; font-size: 13px; transition: all 0.2s; }
-.admin-nav a:hover { border-color: #F5B731; }
-.admin-nav a.active { background: #0F2447; color: #fff; border-color: #0F2447; }
-.btn-delete { background: #ff6b6b; color: #fff; padding: 6px 12px; border-radius: 6px; font-size: 12px; border: none; cursor: pointer; transition: all 0.3s; }
-.btn-delete:hover { background: #ff5252; transform: scale(1.05); }
-.empty { text-align: center; padding: 40px; color: #5A6A80; animation: fadeInUp 0.8s ease-out 0.2s both; }
-@keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-@keyframes popIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+{% extends "admin/base_admin.html.twig" %}
+{% block title %}Utilisateurs - Admin Klevup{% endblock %}
+{% block page_title %}Utilisateurs{% endblock %}
+{% block page_subtitle %}Comptes actifs sur la plateforme.{% endblock %}
+
+{% block topbar_action %}
+<a href="{{ path('admin_invite') }}" class="btn btn-gold">+ Nouvelle invitation</a>
+{% endblock %}
+
+{% block admin_styles %}<style>
+.role-badge{display:inline-block;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:700;margin-right:4px}
+.role-apporteur{background:#fffbee;color:#ff9800}
+.role-client{background:#e3f2fd;color:#1976d2}
+.role-admin{background:#ffebee;color:#c0392b}
+.status-active{background:#e8f5e9;color:#2E8B57}
+.btn-delete{background:#ff6b6b;color:#fff;padding:6px 12px;border-radius:6px;font-size:12px;border:none;cursor:pointer;font-family:Poppins,sans-serif;transition:all .15s}
+.btn-delete:hover{background:#ff5252}
 </style>{% endblock %}
-{% block body %}
-<div class="admin-page">
-  <div class="nav-back">
-    <a href="/">← Retour à l'accueil</a>
-  </div>
-  <div class="admin-header">
-    <h1>Utilisateurs</h1>
-    <a href="{{ path('admin_invite') }}" class="btn btn-gold">+ Nouvelle invitation</a>
-  </div>
 
-  {% include 'admin/_nav.html.twig' %}
-
-  {% for message in app.flashes('error') %}
-    <p style="color: #C0392B; background: #fdecea; border: 1px solid #C0392B; border-radius: 12px; padding: 12px; margin-bottom: 20px;">{{ message }}</p>
-  {% endfor %}
-
+{% block admin_content %}
+<div class="panel">
   {% if users|length > 0 %}
-  <div class="users-table">
-    <div class="table-header">
-      <div>Nom</div>
-      <div>Email</div>
-      <div>Rôle</div>
-      <div>Statut</div>
-      <div>Actions</div>
-    </div>
-    {% for user in users %}
-    <div class="table-row">
-      <div><strong>{{ user.name }}</strong></div>
-      <div style="font-size: 13px;">{{ user.email }}</div>
-      <div>
-        {% for role in user.roles %}
-          {% if role == 'ROLE_APPORTEUR' %}
-            <span class="role-badge role-apporteur">Apporteur</span>
-          {% elseif role == 'ROLE_CLIENT' %}
-            <span class="role-badge role-client">Client</span>
-          {% elseif role == 'ROLE_ADMIN' %}
-            <span class="role-badge role-admin">Admin</span>
-          {% endif %}
-        {% endfor %}
-      </div>
-      <div><span style="background: #e8f5e9; color: #2E8B57; padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 700;">{{ user.status }}</span></div>
-      <div>
-        <form method="post" action="{{ path('admin_user_delete', {id: user.id}) }}" style="display: inline;" onsubmit="return confirm('Supprimer cet utilisateur ?');">
-          <input type="hidden" name="_token" value="{{ csrf_token('delete_user_' ~ user.id) }}">
-          <button type="submit" class="btn-delete">Supprimer</button>
-        </form>
-      </div>
-    </div>
-    {% endfor %}
-  </div>
+  <table>
+    <thead><tr><th>Nom</th><th>Email</th><th>Rôle</th><th>Statut</th><th>Inscrit le</th><th>Actions</th></tr></thead>
+    <tbody>
+      {% for user in users %}
+      <tr>
+        <td><strong>{{ user.name }}</strong></td>
+        <td style="font-size:13px">{{ user.email }}</td>
+        <td>
+          {% for role in user.roles %}
+            {% if role == 'ROLE_APPORTEUR' %}<span class="role-badge role-apporteur">Apporteur</span>
+            {% elseif role == 'ROLE_CLIENT' %}<span class="role-badge role-client">Client</span>
+            {% elseif role == 'ROLE_ADMIN' %}<span class="role-badge role-admin">Admin</span>{% endif %}
+          {% endfor %}
+        </td>
+        <td><span class="status-badge status-active">{{ user.status }}</span></td>
+        <td>{{ user.createdAt|date('d/m/Y') }}</td>
+        <td>
+          <form method="post" action="{{ path('admin_user_delete', {id: user.id}) }}" style="display:inline" onsubmit="return confirm('Supprimer cet utilisateur ?');">
+            <input type="hidden" name="_token" value="{{ csrf_token('delete_user_' ~ user.id) }}">
+            <button type="submit" class="btn-delete">Supprimer</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
   {% else %}
   <div class="empty">
     <p>Aucun utilisateur pour le moment.</p>
-    <a href="{{ path('admin_invite') }}" class="btn btn-gold" style="margin-top: 20px;">Inviter un utilisateur</a>
+    <a href="{{ path('admin_invite') }}" class="btn btn-gold" style="margin-top:20px">Inviter un utilisateur</a>
   </div>
   {% endif %}
 </div>
