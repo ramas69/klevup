@@ -47,7 +47,7 @@ class SupportController extends AbstractController
             'date' => $t->getCreatedAt()->format('d/m/Y'),
             'priority' => $t->getPriority(),
             'status' => $t->getStatus(),
-            'note' => $t->getDescription(),
+            'note' => $t->getAdminNote() ?? $t->getDescription(),
         ], $tickets);
 
         return $this->render('support/index.html.twig', [

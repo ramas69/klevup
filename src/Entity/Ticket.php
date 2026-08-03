@@ -31,6 +31,9 @@ class Ticket
     #[ORM\Column(length: 50)]
     private string $status = 'new'; // new, in_progress, test, resolved
 
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $adminNote = null;
+
     #[ORM\Column]
     private \DateTimeImmutable $createdAt;
 
@@ -56,6 +59,8 @@ class Ticket
     public function setPriority(string $priority): self { $this->priority = $priority; return $this; }
     public function getStatus(): string { return $this->status; }
     public function setStatus(string $status): self { $this->status = $status; return $this; }
+    public function getAdminNote(): ?string { return $this->adminNote; }
+    public function setAdminNote(?string $note): self { $this->adminNote = $note; return $this; }
     public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
     public function getResolvedAt(): ?\DateTimeImmutable { return $this->resolvedAt; }
     public function setResolvedAt(?\DateTimeImmutable $date): self { $this->resolvedAt = $date; return $this; }

@@ -1,7 +1,10 @@
 <?php
 namespace App\Controller;
 
+use App\Entity\Commission;
 use App\Entity\Invitation;
+use App\Entity\Lead;
+use App\Entity\Ticket;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -16,6 +19,8 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class AdminController extends AbstractController
 {
     private const INVITABLE_ROLES = ['ROLE_APPORTEUR', 'ROLE_CLIENT'];
+    private const LEAD_STATUSES = ['new', 'meeting', 'devis', 'signed'];
+    private const TICKET_STATUSES = ['new', 'in_progress', 'test', 'resolved'];
 
     #[Route('/admin/invite', name: 'admin_invite')]
     public function invite(Request $request, EntityManagerInterface $em): Response
@@ -51,6 +56,109 @@ class AdminController extends AbstractController
         return $this->render('admin/users.html.twig', [
             'users' => $users,
         ]);
+    }
+
+    #[Route('/admin/leads', name: 'admin_leads')]
+    public function leads(EntityManagerInterface $em): Response
+    {
+        return $this->render('admin/leads.html.twig', [
+            'leads' => $em->getRepository(Lead::class)->findBy([], ['createdAt' => 'DESC']),
+            'statuses' => self::LEAD_STATUSES,
+        ]);
+    }
+
+    #[Route('/admin/lead/{id}/update', name: 'admin_lead_update', methods: ['POST'])]
+    public function updateLead(Lead $lead, Request $request, EntityManagerInterface $em): Response
+    {
+        if (!$this->isCsrfTokenValid('lead_update_' . $lead->getId(), (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Jeton CSRF invalide.');
+        }
+
+        $status = (string) $request->request->get('status');
+        if (!in_array($status, self::LEAD_STATUSES, true)) {
+            $this->addFlash('error', 'Statut invalide.');
+
+            return $this->redirectToRoute('admin_leads');
+        }
+
+        $lead->setStatus($status);
+        $lead->setCommission(max(0, (int) $request->request->get('commission', $lead->getCommission())));
+
+        // A signed lead generates its commission exactly once (unique lead_id).
+        if ($status === 'signed' && $em->getRepository(Commission::class)->findOneBy(['lead' => $lead]) === null) {
+            $commission = new Commission();
+            $commission->setCompanyName($lead->getContact());
+            $commission->setSolution($lead->getSolution());
+            $commission->setAmount($lead->getCommission());
+            $commission->setUser($lead->getApporteur());
+            $commission->setLead($lead);
+            $em->persist($commission);
+            $this->addFlash('success', sprintf('Commission de %d € créée pour %s.', $lead->getCommission(), $lead->getApporteur()->getName()));
+        }
+
+        $em->flush();
+        $this->addFlash('success', 'Lead mis à jour.');
+
+        return $this->redirectToRoute('admin_leads');
+    }
+
+    #[Route('/admin/tickets', name: 'admin_tickets')]
+    public function tickets(EntityManagerInterface $em): Response
+    {
+        return $this->render('admin/tickets.html.twig', [
+            'tickets' => $em->getRepository(Ticket::class)->findBy([], ['createdAt' => 'DESC']),
+            'statuses' => self::TICKET_STATUSES,
+        ]);
+    }
+
+    #[Route('/admin/ticket/{id}/update', name: 'admin_ticket_update', methods: ['POST'])]
+    public function updateTicket(Ticket $ticket, Request $request, EntityManagerInterface $em): Response
+    {
+        if (!$this->isCsrfTokenValid('ticket_update_' . $ticket->getId(), (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Jeton CSRF invalide.');
+        }
+
+        $status = (string) $request->request->get('status');
+        if (!in_array($status, self::TICKET_STATUSES, true)) {
+            $this->addFlash('error', 'Statut invalide.');
+
+            return $this->redirectToRoute('admin_tickets');
+        }
+
+        $ticket->setStatus($status);
+        $note = trim((string) $request->request->get('admin_note'));
+        $ticket->setAdminNote($note !== '' ? $note : null);
+        $ticket->setResolvedAt($status === 'resolved' ? ($ticket->getResolvedAt() ?? new \DateTimeImmutable()) : null);
+
+        $em->flush();
+        $this->addFlash('success', sprintf('Ticket %s mis à jour.', $ticket->getReference()));
+
+        return $this->redirectToRoute('admin_tickets');
+    }
+
+    #[Route('/admin/commissions', name: 'admin_commissions')]
+    public function commissions(EntityManagerInterface $em): Response
+    {
+        return $this->render('admin/commissions.html.twig', [
+            'commissions' => $em->getRepository(Commission::class)->findBy([], ['createdAt' => 'DESC']),
+        ]);
+    }
+
+    #[Route('/admin/commission/{id}/encash', name: 'admin_commission_encash', methods: ['POST'])]
+    public function encashCommission(Commission $commission, Request $request, EntityManagerInterface $em): Response
+    {
+        if (!$this->isCsrfTokenValid('commission_encash_' . $commission->getId(), (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Jeton CSRF invalide.');
+        }
+
+        if ($commission->getStatus() !== 'encashed') {
+            $commission->setStatus('encashed');
+            $commission->setEncashedAt(new \DateTimeImmutable());
+            $em->flush();
+            $this->addFlash('success', sprintf('Commission de %d € marquée encaissée.', $commission->getAmount()));
+        }
+
+        return $this->redirectToRoute('admin_commissions');
     }
 
     #[Route('/admin/user/{id}/delete', name: 'admin_user_delete', methods: ['POST'])]

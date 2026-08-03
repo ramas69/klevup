@@ -35,6 +35,11 @@ class Commission
     #[ORM\JoinColumn(nullable: false)]
     private User $user;
 
+    // One commission max per signed lead — prevents duplicates when re-saving a signed lead.
+    #[ORM\OneToOne(targetEntity: Lead::class)]
+    #[ORM\JoinColumn(nullable: true, unique: true)]
+    private ?Lead $lead = null;
+
     public function __construct() { $this->createdAt = new \DateTimeImmutable(); }
 
     public function getId(): ?int { return $this->id; }
@@ -51,4 +56,6 @@ class Commission
     public function setEncashedAt(?\DateTimeImmutable $date): self { $this->encashedAt = $date; return $this; }
     public function getUser(): User { return $this->user; }
     public function setUser(User $user): self { $this->user = $user; return $this; }
+    public function getLead(): ?Lead { return $this->lead; }
+    public function setLead(?Lead $lead): self { $this->lead = $lead; return $this; }
 }

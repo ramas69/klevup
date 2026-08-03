@@ -11,6 +11,10 @@ body { background: linear-gradient(135deg, #FDF9F0 0%, #f8f9fa 100%); min-height
 .admin-header h1 { color: #0F2447; font-size: 28px; font-weight: 700; margin-bottom: 8px; }
 .admin-header p { color: #5A6A80; font-size: 14px; }
 @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+.admin-nav { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+.admin-nav a { padding: 10px 18px; border-radius: 999px; background: #fff; border: 2px solid #E3E9F2; color: #0F2447; text-decoration: none; font-weight: 600; font-size: 13px; transition: all 0.2s; }
+.admin-nav a:hover { border-color: #F5B731; }
+.admin-nav a.active { background: #0F2447; color: #fff; border-color: #0F2447; }
 .card { background: #fff; border-radius: 18px; padding: 30px; border: 2px solid #E3E9F2; margin-bottom: 20px; animation: fadeInUp 0.8s ease-out 0.2s both; box-shadow: 0 4px 12px rgba(15, 36, 71, 0.08); }
 .card h2 { color: #0F2447; font-size: 20px; font-weight: 700; margin-bottom: 20px; }
 .form-group { margin-bottom: 18px; }
@@ -37,6 +41,8 @@ body { background: linear-gradient(135deg, #FDF9F0 0%, #f8f9fa 100%); min-height
     <h1>Gestion des invitations</h1>
     <p>Générez des liens d'invitation pour les nouveaux utilisateurs</p>
   </div>
+
+  {% include 'admin/_nav.html.twig' %}
 
   <div class="card">
     <h2>Créer un lien d'invitation</h2>
