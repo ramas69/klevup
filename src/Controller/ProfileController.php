@@ -19,67 +19,101 @@ class ProfileController extends AbstractController
         /** @var User $user */
         $user = $this->getUser();
 
-        if ($request->isMethod('POST')) {
-            if (!$this->isCsrfTokenValid('profile', (string) $request->request->get('_token'))) {
-                throw $this->createAccessDeniedException('Jeton CSRF invalide.');
-            }
+        if (!$request->isMethod('POST')) {
+            return $this->renderProfile($user);
+        }
 
-            $name = trim((string) $request->request->get('name'));
-            $email = trim((string) $request->request->get('email'));
-            $iban = strtoupper(str_replace(' ', '', (string) $request->request->get('iban')));
+        if (!$this->isCsrfTokenValid('profile', (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Jeton CSRF invalide.');
+        }
 
-            if ($name === '' || !filter_var($email, FILTER_VALIDATE_EMAIL) || mb_strlen($name) > 255 || mb_strlen($email) > 180) {
-                $this->addFlash('error', 'Nom ou email invalide.');
-
-                return $this->redirectToRoute('profile');
-            }
-
-            $existing = $em->getRepository(User::class)->findOneBy(['email' => $email]);
-            if ($existing !== null && $existing->getId() !== $user->getId()) {
-                $this->addFlash('error', 'Cet email est déjà utilisé par un autre compte.');
-
-                return $this->redirectToRoute('profile');
-            }
-
-            if ($iban !== '' && !preg_match('/^[A-Z]{2}[0-9]{2}[A-Z0-9]{10,30}$/', $iban)) {
-                $this->addFlash('error', 'IBAN invalide.');
-
-                return $this->redirectToRoute('profile');
-            }
-
-            $user->setName($name);
-            $user->setEmail($email);
-            if (in_array('ROLE_APPORTEUR', $user->getRoles(), true)) {
-                $user->setIban($iban !== '' ? $iban : null);
-            }
-
-            // Optional password change: requires the current password.
-            $newPassword = (string) $request->request->get('new_password');
-            if ($newPassword !== '') {
-                $current = (string) $request->request->get('current_password');
-                if (!$hasher->isPasswordValid($user, $current)) {
-                    $this->addFlash('error', 'Mot de passe actuel incorrect — les autres modifications ont été enregistrées.');
-                    $em->flush();
-
-                    return $this->redirectToRoute('profile');
-                }
-                if (strlen($newPassword) < 8) {
-                    $this->addFlash('error', 'Nouveau mot de passe trop court (8 caractères minimum) — les autres modifications ont été enregistrées.');
-                    $em->flush();
-
-                    return $this->redirectToRoute('profile');
-                }
-                $user->setPassword($hasher->hashPassword($user, $newPassword));
-            }
-
-            $em->flush();
-            $this->addFlash('success', 'Profil mis à jour.');
+        if ($error = $this->applyIdentity($user, $request, $em)) {
+            $this->addFlash('error', $error);
 
             return $this->redirectToRoute('profile');
         }
 
-        return $this->render('profile/edit.html.twig', [
-            'isApporteur' => in_array('ROLE_APPORTEUR', $user->getRoles(), true),
-        ]);
+        if ($error = $this->applyPasswordChange($user, $request, $hasher)) {
+            // Identity changes are still saved even when the password part fails.
+            $em->flush();
+            $this->addFlash('error', $error . ' — les autres modifications ont été enregistrées.');
+
+            return $this->redirectToRoute('profile');
+        }
+
+        $em->flush();
+        $this->addFlash('success', 'Profil mis à jour.');
+
+        return $this->redirectToRoute('profile');
+    }
+
+    private function applyIdentity(User $user, Request $request, EntityManagerInterface $em): ?string
+    {
+        $name = trim((string) $request->request->get('name'));
+        $email = trim((string) $request->request->get('email'));
+        $iban = strtoupper(str_replace(' ', '', (string) $request->request->get('iban')));
+
+        if ($name === '' || !filter_var($email, FILTER_VALIDATE_EMAIL) || mb_strlen($name) > 255 || mb_strlen($email) > 180) {
+            return 'Nom ou email invalide.';
+        }
+
+        $existing = $em->getRepository(User::class)->findOneBy(['email' => $email]);
+        if ($existing !== null && $existing->getId() !== $user->getId()) {
+            return 'Cet email est déjà utilisé par un autre compte.';
+        }
+
+        if ($iban !== '' && !preg_match('/^[A-Z]{2}\d{2}[A-Z0-9]{10,30}$/', $iban)) {
+            return 'IBAN invalide.';
+        }
+
+        $user->setName($name);
+        $user->setEmail($email);
+        if (in_array('ROLE_APPORTEUR', $user->getRoles(), true)) {
+            $user->setIban($iban !== '' ? $iban : null);
+        }
+
+        return null;
+    }
+
+    private function applyPasswordChange(User $user, Request $request, UserPasswordHasherInterface $hasher): ?string
+    {
+        $newPassword = (string) $request->request->get('new_password');
+        if ($newPassword === '') {
+            return null;
+        }
+
+        if (!$hasher->isPasswordValid($user, (string) $request->request->get('current_password'))) {
+            return 'Mot de passe actuel incorrect';
+        }
+
+        if (strlen($newPassword) < 8) {
+            return 'Nouveau mot de passe trop court (8 caractères minimum)';
+        }
+
+        $user->setPassword($hasher->hashPassword($user, $newPassword));
+
+        return null;
+    }
+
+    private function renderProfile(User $user): Response
+    {
+        $roles = $user->getRoles();
+
+        // Render inside the sidebar layout matching the user's space; clients keep the standalone card.
+        if (in_array('ROLE_ADMIN', $roles, true)) {
+            return $this->render('profile/edit_sidebar.html.twig', [
+                'layout' => 'admin/base_admin.html.twig',
+                'isApporteur' => false,
+            ]);
+        }
+
+        if (in_array('ROLE_APPORTEUR', $roles, true)) {
+            return $this->render('profile/edit_sidebar.html.twig', [
+                'layout' => 'apporteur/base_apporteur.html.twig',
+                'isApporteur' => true,
+            ]);
+        }
+
+        return $this->render('profile/edit.html.twig', ['isApporteur' => false]);
     }
 }
