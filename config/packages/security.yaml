@@ -17,6 +17,9 @@ security:
                 login_path: login
                 check_path: login
                 success_handler: App\Security\LoginSuccessHandler
+            login_throttling:
+                max_attempts: 5
+                interval: '15 minutes'
             logout:
                 path: logout
                 target: home

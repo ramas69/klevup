@@ -1,0 +1,15 @@
+framework:
+    rate_limiter:
+        # Password reset requests: 3 per hour per IP.
+        forgot_password:
+            policy: 'fixed_window'
+            limit: 3
+            interval: '1 hour'
+
+when@test:
+    framework:
+        rate_limiter:
+            forgot_password:
+                policy: 'fixed_window'
+                limit: 10000
+                interval: '1 hour'

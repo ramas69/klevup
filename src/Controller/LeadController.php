@@ -21,17 +21,15 @@ class LeadController extends AbstractController
         );
 
         $signed = array_filter($leads, fn(Lead $l) => $l->getStatus() === 'signed');
+        $active = array_filter($leads, fn(Lead $l) => !in_array($l->getStatus(), ['signed', 'lost'], true));
 
         return $this->render('lead/list.html.twig', [
             'leads' => $leads,
             'stats' => [
                 'total' => count($leads),
-                'in_progress' => count($leads) - count($signed),
+                'in_progress' => count($active),
                 'signed' => count($signed),
-                'potential' => array_sum(array_map(
-                    fn(Lead $l) => $l->getCommission(),
-                    array_filter($leads, fn(Lead $l) => $l->getStatus() !== 'signed')
-                )),
+                'potential' => array_sum(array_map(fn(Lead $l) => $l->getCommission(), $active)),
             ],
         ]);
     }

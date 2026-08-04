@@ -33,7 +33,7 @@ class DashboardController extends AbstractController
         $apporteur = [
             'name' => $user->getName(),
             'commissions_month' => $commissionsMonth,
-            'leads_in_progress' => count($leads) - count($signedLeads),
+            'leads_in_progress' => count(array_filter($leads, fn(Lead $l) => !in_array($l->getStatus(), ['signed', 'lost'], true))),
             'sales_signed' => count($signedLeads),
             'total_generated' => array_sum(array_map(fn(Lead $l) => $l->getCommission(), $signedLeads)),
             'sales_trimestre' => count(array_filter($signedLeads, fn(Lead $l) => $l->getCreatedAt() >= $quarterStart)),

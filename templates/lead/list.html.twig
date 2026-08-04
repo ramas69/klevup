@@ -21,6 +21,7 @@
 .status-meeting{background:#fff3e0;color:#f57c00}
 .status-devis{background:#fffbee;color:#ff9800}
 .status-signed{background:#e8f5e9;color:#2E8B57}
+.status-lost{background:#f5f5f5;color:#888;text-decoration:line-through}
 .amount{font-weight:700;color:#0F2447}
 .amount.green{color:#2E8B57}
 @media(max-width:768px){.stats-row{grid-template-columns:repeat(2,1fr)}}
@@ -42,6 +43,7 @@
   <button type="button" class="filter-btn" data-filter="meeting">RDV planifié</button>
   <button type="button" class="filter-btn" data-filter="devis">Devis envoyé</button>
   <button type="button" class="filter-btn" data-filter="signed">Signés</button>
+  <button type="button" class="filter-btn" data-filter="lost">Sans suite</button>
 </div>
 
 <div class="panel">
@@ -55,8 +57,8 @@
         <td><strong>{{ lead.contact }}</strong></td>
         <td>{{ lead.solution }}</td>
         <td>{{ lead.createdAt|date('d/m/Y') }}</td>
-        <td><span class="status-badge status-{{ lead.status }}">{{ {'new': 'Nouveau', 'meeting': 'RDV planifié', 'devis': 'Devis envoyé', 'signed': 'Signé 🎉'}[lead.status]|default(lead.status) }}</span></td>
-        <td class="amount {{ lead.status == 'signed' ? 'green' }}">{{ lead.status == 'signed' ? '' : '~' }}{{ lead.commission }} €</td>
+        <td><span class="status-badge status-{{ lead.status }}">{{ {'new': 'Nouveau', 'meeting': 'RDV planifié', 'devis': 'Devis envoyé', 'signed': 'Signé 🎉', 'lost': 'Sans suite'}[lead.status]|default(lead.status) }}</span></td>
+        <td class="amount {{ lead.status == 'signed' ? 'green' }}">{% if lead.status == 'lost' %}—{% else %}{{ lead.status == 'signed' ? '' : '~' }}{{ lead.commission }} €{% endif %}</td>
       </tr>
       {% endfor %}
     </tbody>

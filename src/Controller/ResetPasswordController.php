@@ -9,17 +9,24 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 class ResetPasswordController extends AbstractController
 {
     #[Route('/forgot-password', name: 'forgot_password', methods: ['GET', 'POST'])]
-    public function request(Request $request, EntityManagerInterface $em, MailerInterface $mailer): Response
+    public function request(Request $request, EntityManagerInterface $em, MailerInterface $mailer, RateLimiterFactory $forgotPasswordLimiter): Response
     {
         if ($request->isMethod('POST')) {
             if (!$this->isCsrfTokenValid('forgot_password', (string) $request->request->get('_token'))) {
                 throw $this->createAccessDeniedException('Jeton CSRF invalide.');
+            }
+
+            if (!$forgotPasswordLimiter->create($request->getClientIp())->consume()->isAccepted()) {
+                $this->addFlash('success', 'Si un compte existe avec cet email, un lien de réinitialisation vient d\'être envoyé.');
+
+                return $this->redirectToRoute('forgot_password');
             }
 
             $email = trim((string) $request->request->get('email'));

@@ -16,7 +16,9 @@ class ResetPasswordTest extends WebTestCase
     {
         $this->client = static::createClient();
         $this->em = static::getContainer()->get(EntityManagerInterface::class);
-        $this->em->getConnection()->executeStatement('DELETE FROM user');
+        foreach (['commission', 'ticket_message', 'ticket', '`lead`', 'invitation', 'user'] as $table) {
+            $this->em->getConnection()->executeStatement("DELETE FROM $table");
+        }
 
         $hasher = static::getContainer()->get(UserPasswordHasherInterface::class);
         $user = new User();

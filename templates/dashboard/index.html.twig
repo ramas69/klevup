@@ -31,6 +31,7 @@
 .status-meeting{background:#fff3e0;color:#f57c00}
 .status-devis{background:#fffbee;color:#ff9800}
 .status-signed{background:#e8f5e9;color:#2E8B57}
+.status-lost{background:#f5f5f5;color:#888;text-decoration:line-through}
 .amount{font-weight:700;color:#0F2447}
 .amount.green{color:#2E8B57}
 .comm-item{border-bottom:1px solid #E3E9F2;padding:14px 18px;display:flex;justify-content:space-between;align-items:center}
@@ -85,7 +86,7 @@
         <tr>
           <td><strong>{{ lead.contact }}</strong></td>
           <td>{{ lead.solution }}</td>
-          <td><span class="status-badge status-{{ lead.status }}">{{ {'new': 'Nouveau', 'meeting': 'RDV planifié', 'devis': 'Devis envoyé', 'signed': 'Signé 🎉'}[lead.status]|default(lead.status) }}</span></td>
+          <td><span class="status-badge status-{{ lead.status }}">{{ {'new': 'Nouveau', 'meeting': 'RDV planifié', 'devis': 'Devis envoyé', 'signed': 'Signé 🎉', 'lost': 'Sans suite'}[lead.status]|default(lead.status) }}</span></td>
           <td class="amount {{ lead.status == 'signed' ? 'green' }}">~{{ lead.commission }} €</td>
         </tr>
         {% else %}

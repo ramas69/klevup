@@ -24,7 +24,8 @@ class AdminController extends AbstractController
 {
     private const INVITABLE_ROLES = ['ROLE_APPORTEUR', 'ROLE_CLIENT'];
     private const CSRF_ERROR = 'Jeton CSRF invalide.';
-    private const LEAD_STATUSES = ['new', 'meeting', 'devis', 'signed'];
+    private const LEAD_STATUSES = ['new', 'meeting', 'devis', 'signed', 'lost'];
+    private const LEAD_LABELS = ['new' => 'Nouveau', 'meeting' => 'RDV planifié', 'devis' => 'Devis envoyé', 'signed' => 'Signé', 'lost' => 'Sans suite'];
     private const TICKET_STATUSES = ['new', 'in_progress', 'test', 'resolved'];
 
     #[Route('/admin/invite', name: 'admin_invite')]
@@ -98,21 +99,42 @@ class AdminController extends AbstractController
     }
 
     #[Route('/admin/users', name: 'admin_users')]
-    public function users(EntityManagerInterface $em): Response
+    public function users(Request $request, EntityManagerInterface $em): Response
     {
-        $users = $em->getRepository(User::class)->findAll();
+        $repo = $em->getRepository(User::class);
+        [$page, $pages, $offset] = $this->paginate($request, $repo->count([]));
 
         return $this->render('admin/users.html.twig', [
-            'users' => $users,
+            'users' => $repo->findBy([], ['createdAt' => 'DESC'], self::PER_PAGE, $offset),
+            'page' => $page,
+            'pages' => $pages,
         ]);
     }
 
-    #[Route('/admin/leads', name: 'admin_leads')]
-    public function leads(EntityManagerInterface $em): Response
+    private const PER_PAGE = 25;
+
+    /**
+     * @return array{0: int, 1: int, 2: int} [page, pages, offset]
+     */
+    private function paginate(Request $request, int $total): array
     {
+        $pages = max(1, (int) ceil($total / self::PER_PAGE));
+        $page = min(max(1, $request->query->getInt('page', 1)), $pages);
+
+        return [$page, $pages, ($page - 1) * self::PER_PAGE];
+    }
+
+    #[Route('/admin/leads', name: 'admin_leads')]
+    public function leads(Request $request, EntityManagerInterface $em): Response
+    {
+        $repo = $em->getRepository(Lead::class);
+        [$page, $pages, $offset] = $this->paginate($request, $repo->count([]));
+
         return $this->render('admin/leads.html.twig', [
-            'leads' => $em->getRepository(Lead::class)->findBy([], ['createdAt' => 'DESC']),
+            'leads' => $repo->findBy([], ['createdAt' => 'DESC'], self::PER_PAGE, $offset),
             'statuses' => self::LEAD_STATUSES,
+            'page' => $page,
+            'pages' => $pages,
         ]);
     }
 
@@ -130,8 +152,27 @@ class AdminController extends AbstractController
             return $this->redirectToRoute('admin_leads');
         }
 
+        $previousStatus = $lead->getStatus();
         $lead->setStatus($status);
         $lead->setCommission(max(0, (int) $request->request->get('commission', $lead->getCommission())));
+
+        // Keep the apporteur informed of every progress change (signed has its own richer email below).
+        if ($previousStatus !== $status && $status !== 'signed') {
+            $this->notify(
+                $mailer,
+                $lead->getApporteur()->getEmail(),
+                sprintf('[Klevup] Lead %s — %s', $lead->getContact(), self::LEAD_LABELS[$status]),
+                sprintf(
+                    "Bonjour %s,\n\nVotre lead « %s » (%s) vient de passer au statut : %s.\n%s\nSuivez vos leads : %s",
+                    $lead->getApporteur()->getName(),
+                    $lead->getContact(),
+                    $lead->getSolution(),
+                    self::LEAD_LABELS[$status],
+                    $status === 'lost' ? "Ce contact n'a pas abouti cette fois — merci pour la mise en relation, le prochain sera le bon !\n" : '',
+                    $this->generateUrl('leads', [], UrlGeneratorInterface::ABSOLUTE_URL)
+                )
+            );
+        }
 
         // A signed lead generates its commission exactly once (unique lead_id).
         if ($status === 'signed' && $em->getRepository(Commission::class)->findOneBy(['lead' => $lead]) === null) {
@@ -165,11 +206,16 @@ class AdminController extends AbstractController
     }
 
     #[Route('/admin/tickets', name: 'admin_tickets')]
-    public function tickets(EntityManagerInterface $em): Response
+    public function tickets(Request $request, EntityManagerInterface $em): Response
     {
+        $repo = $em->getRepository(Ticket::class);
+        [$page, $pages, $offset] = $this->paginate($request, $repo->count([]));
+
         return $this->render('admin/tickets.html.twig', [
-            'tickets' => $em->getRepository(Ticket::class)->findBy([], ['createdAt' => 'DESC']),
+            'tickets' => $repo->findBy([], ['createdAt' => 'DESC'], self::PER_PAGE, $offset),
             'statuses' => self::TICKET_STATUSES,
+            'page' => $page,
+            'pages' => $pages,
         ]);
     }
 
@@ -260,10 +306,22 @@ class AdminController extends AbstractController
     }
 
     #[Route('/admin/commissions', name: 'admin_commissions')]
-    public function commissions(EntityManagerInterface $em): Response
+    public function commissions(Request $request, EntityManagerInterface $em): Response
     {
+        $repo = $em->getRepository(Commission::class);
+        [$page, $pages, $offset] = $this->paginate($request, $repo->count([]));
+
+        // Totals over ALL commissions, not just the current page.
+        $conn = $em->getConnection();
+        $totalPending = (int) $conn->fetchOne("SELECT COALESCE(SUM(amount), 0) FROM commission WHERE status != 'encashed'");
+        $totalEncashed = (int) $conn->fetchOne("SELECT COALESCE(SUM(amount), 0) FROM commission WHERE status = 'encashed'");
+
         return $this->render('admin/commissions.html.twig', [
-            'commissions' => $em->getRepository(Commission::class)->findBy([], ['createdAt' => 'DESC']),
+            'commissions' => $repo->findBy([], ['createdAt' => 'DESC'], self::PER_PAGE, $offset),
+            'totalPending' => $totalPending,
+            'totalEncashed' => $totalEncashed,
+            'page' => $page,
+            'pages' => $pages,
         ]);
     }
 

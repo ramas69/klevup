@@ -17,9 +17,10 @@ class RegistrationSecurityTest extends WebTestCase
         $this->client = static::createClient();
         $this->em = static::getContainer()->get(EntityManagerInterface::class);
 
-        // Isolate each test run.
-        $this->em->getConnection()->executeStatement('DELETE FROM user');
-        $this->em->getConnection()->executeStatement('DELETE FROM invitation');
+        // Isolate each test run — FK order matters.
+        foreach (['commission', 'ticket_message', 'ticket', '`lead`', 'invitation', 'user'] as $table) {
+            $this->em->getConnection()->executeStatement("DELETE FROM $table");
+        }
     }
 
     private function createInvitation(string $code, string $role = 'ROLE_APPORTEUR', bool $expired = false): Invitation

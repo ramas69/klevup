@@ -38,9 +38,10 @@
       {% endfor %}
     </tbody>
   </table>
-  <div class="total-bar">Total en attente : {{ commissions|filter(c => c.status != 'encashed')|map(c => c.amount)|reduce((a, b) => a + b, 0) }} € · Total versé : {{ commissions|filter(c => c.status == 'encashed')|map(c => c.amount)|reduce((a, b) => a + b, 0) }} €</div>
+  <div class="total-bar">Total en attente : {{ totalPending }} € · Total versé : {{ totalEncashed }} €</div>
   {% else %}
   <div class="empty">Aucune commission — elles apparaissent quand un lead passe « Signé ».</div>
   {% endif %}
 </div>
+{% include 'admin/_pagination.html.twig' %}
 {% endblock %}
