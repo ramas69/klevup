@@ -44,8 +44,9 @@ class AdminController extends AbstractController
         $open = "CASE WHEN l.status NOT IN ('signed', 'lost') THEN 1 ELSE 0 END";
         $revenue = "CASE WHEN l.status = 'signed' THEN COALESCE(l.dealAmount, 0) ELSE 0 END";
         $pipeline = "CASE WHEN l.status NOT IN ('signed', 'lost') THEN COALESCE(l.dealAmount, 0) ELSE 0 END";
+        $monthly = "CASE WHEN l.status = 'signed' THEN COALESCE(l.monthlyAmount, 0) ELSE 0 END";
 
-        $byProduct = $em->createQuery("SELECT l.solution AS name, COUNT(l.id) AS total, SUM($open) AS open, SUM($signed) AS signed, SUM($revenue) AS revenue, SUM($pipeline) AS pipeline FROM App\Entity\Lead l GROUP BY l.solution ORDER BY revenue DESC, total DESC")->getArrayResult();
+        $byProduct = $em->createQuery("SELECT l.solution AS name, COUNT(l.id) AS total, SUM($open) AS open, SUM($signed) AS signed, SUM($revenue) AS revenue, SUM($pipeline) AS pipeline, SUM($monthly) AS monthly FROM App\Entity\Lead l GROUP BY l.solution ORDER BY revenue DESC, total DESC")->getArrayResult();
         $bySource = $em->createQuery("SELECT l.source AS source, COUNT(l.id) AS total, SUM($signed) AS signed, SUM($revenue) AS revenue FROM App\Entity\Lead l GROUP BY l.source")->getArrayResult();
         $byApporteur = $em->createQuery("SELECT a.id, a.name, a.iban, COUNT(l.id) AS total, SUM($signed) AS signed, SUM($revenue) AS revenue FROM App\Entity\Lead l JOIN l.apporteur a GROUP BY a.id, a.name, a.iban ORDER BY revenue DESC, total DESC")->getArrayResult();
 
@@ -55,8 +56,12 @@ class AdminController extends AbstractController
         }
 
         $now = new \DateTimeImmutable('today');
-        $expiring = $em->createQuery('SELECT a FROM App\Entity\Application a WHERE a.maintenanceUntil IS NOT NULL AND a.maintenanceUntil <= :limit ORDER BY a.maintenanceUntil ASC')
-            ->setParameter('limit', $now->modify('+60 days'))
+        $activeSubscription = 'a.subscriptionEndsAt IS NULL OR a.subscriptionEndsAt >= :today';
+        $mrr = (int) $em->createQuery("SELECT COALESCE(SUM(a.monthlyPrice), 0) FROM App\Entity\Application a WHERE $activeSubscription")->setParameter('today', $now)->getSingleScalarResult();
+        $subscribers = (int) $em->createQuery("SELECT COUNT(a.id) FROM App\Entity\Application a WHERE a.monthlyPrice > 0 AND ($activeSubscription)")->setParameter('today', $now)->getSingleScalarResult();
+        // Cancelled subscriptions still running (end date ahead) — churn to watch.
+        $ending = $em->createQuery('SELECT a FROM App\Entity\Application a WHERE a.subscriptionEndsAt >= :today ORDER BY a.subscriptionEndsAt ASC')
+            ->setParameter('today', $now)
             ->getResult();
 
         $quarterStart = CommissionCalculator::quarterStart($now);
@@ -66,13 +71,15 @@ class AdminController extends AbstractController
             'bySource' => $bySource,
             'byApporteur' => $byApporteur,
             'pendingByUser' => $pendingByUser,
-            'expiring' => $expiring,
+            'ending' => $ending,
             'today' => $now,
             'kpi' => [
                 'new_leads' => $em->getRepository(Lead::class)->count(['status' => 'new']),
                 'open_tickets' => (int) $em->createQuery("SELECT COUNT(t.id) FROM App\Entity\Ticket t WHERE t.status != 'resolved'")->getSingleScalarResult(),
                 'to_pay' => array_sum($pendingByUser),
                 'requests' => $em->getRepository(ApporteurRequest::class)->count(['handledAt' => null]),
+                'mrr' => $mrr,
+                'subscribers' => $subscribers,
                 'revenue_quarter' => (int) $em->createQuery("SELECT COALESCE(SUM(l.dealAmount), 0) FROM App\Entity\Lead l WHERE l.status = 'signed' AND l.signedAt >= :from")->setParameter('from', $quarterStart)->getSingleScalarResult(),
             ],
         ]);
@@ -216,7 +223,7 @@ class AdminController extends AbstractController
         $rawAmount = trim((string) $request->request->get('deal_amount'));
         $dealAmount = $rawAmount === '' ? null : max(0, (int) $rawAmount);
         if ($status === 'signed' && !$dealAmount) {
-            $this->addFlash('error', sprintf('« %s » : renseignez le montant de la vente pour le passer en Signé.', $lead->getContact()));
+            $this->addFlash('error', sprintf('« %s » : renseignez le montant du setup pour le passer en Signé.', $lead->getContact()));
 
             return $this->redirectToRoute('admin_leads');
         }
@@ -246,6 +253,8 @@ class AdminController extends AbstractController
         $lead->setStatus($status);
         $lead->setDealAmount($dealAmount);
         $lead->setLostReason($status === 'lost' ? $lostReason : null);
+        $rawMonthly = trim($request->request->getString('monthly_amount'));
+        $lead->setMonthlyAmount($rawMonthly === '' ? null : max(0, (int) $rawMonthly));
         if ($status === 'signed') {
             $lead->setSignedAt($lead->getSignedAt() ?? new \DateTimeImmutable());
         } else {
@@ -598,8 +607,7 @@ class AdminController extends AbstractController
         }
 
         $launched = $this->parseDate($request->request->get('launched_at'));
-        $maintenance = $this->parseDate($request->request->get('maintenance_until'));
-        if ($launched === false || $maintenance === false) {
+        if ($launched === false) {
             $this->addFlash('error', 'Date invalide (format attendu : AAAA-MM-JJ).');
 
             return $this->redirectToRoute('admin_applications');
@@ -613,7 +621,8 @@ class AdminController extends AbstractController
         $app->setClient($client);
         $app->setProduct($em->getRepository(Product::class)->find((int) $request->request->get('product_id')));
         $app->setLaunchedAt($launched);
-        $app->setMaintenanceUntil($maintenance);
+        $monthly = trim($request->request->getString('monthly_price'));
+        $app->setMonthlyPrice($monthly === '' ? $app->getProduct()?->getMonthlyFrom() ?: null : max(0, (int) $monthly));
 
         $em->persist($app);
         $em->flush();
@@ -629,8 +638,8 @@ class AdminController extends AbstractController
             throw $this->createAccessDeniedException(self::CSRF_ERROR);
         }
 
-        $maintenance = $this->parseDate($request->request->get('maintenance_until'));
-        if ($maintenance === false) {
+        $endsAt = $this->parseDate($request->request->get('subscription_ends_at'));
+        if ($endsAt === false) {
             $this->addFlash('error', 'Date invalide (format attendu : AAAA-MM-JJ).');
 
             return $this->redirectToRoute('admin_applications');
@@ -640,7 +649,9 @@ class AdminController extends AbstractController
         if ($version !== '') {
             $app->setVersion($version);
         }
-        $app->setMaintenanceUntil($maintenance);
+        $monthly = trim($request->request->getString('monthly_price'));
+        $app->setMonthlyPrice($monthly === '' ? null : max(0, (int) $monthly));
+        $app->setSubscriptionEndsAt($endsAt);
 
         $em->flush();
         $this->addFlash('success', sprintf('Application « %s » mise à jour.', $app->getName()));
@@ -691,6 +702,7 @@ class AdminController extends AbstractController
         $product->setName($name);
         $product->setDescription(mb_substr(trim((string) $request->request->get('description')), 0, 500));
         $product->setPriceFrom(max(0, (int) $request->request->get('price_from')));
+        $product->setMonthlyFrom(max(0, $request->request->getInt('monthly_from')));
         $product->setTarget(mb_substr(trim($request->request->getString('target')), 0, 255) ?: null);
         $product->setPitch(trim($request->request->getString('pitch')) ?: null);
         $resource = trim($request->request->getString('resource_url'));

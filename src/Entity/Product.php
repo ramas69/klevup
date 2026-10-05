@@ -30,8 +30,13 @@ class Product
     #[ORM\Column(length: 500, nullable: true)]
     private ?string $resourceUrl = null;
 
+    // One-off setup fee "from" price — the commission basis.
     #[ORM\Column(type: 'integer')]
     private int $priceFrom = 0;
+
+    // Monthly subscription "from" price (hosting, maintenance, updates, support). 0 = not shown.
+    #[ORM\Column(type: 'integer', options: ['default' => 0])]
+    private int $monthlyFrom = 0;
 
     #[ORM\Column(type: 'integer')]
     private int $commissionRate = 15;
@@ -58,6 +63,8 @@ class Product
     public function setResourceUrl(?string $resourceUrl): self { $this->resourceUrl = $resourceUrl; return $this; }
     public function getPriceFrom(): int { return $this->priceFrom; }
     public function setPriceFrom(int $priceFrom): self { $this->priceFrom = $priceFrom; return $this; }
+    public function getMonthlyFrom(): int { return $this->monthlyFrom; }
+    public function setMonthlyFrom(int $monthlyFrom): self { $this->monthlyFrom = $monthlyFrom; return $this; }
     public function getCommissionRate(): int { return $this->commissionRate; }
     public function setCommissionRate(int $commissionRate): self { $this->commissionRate = $commissionRate; return $this; }
     public function isActive(): bool { return $this->active; }

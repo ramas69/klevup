@@ -32,9 +32,9 @@
   <div class="kit-head">
     <div>
       <h2>{{ p.name }}</h2>
-      <div class="meta">Dès {{ p.priceFrom|number_format(0, ',', ' ') }} € · paiement unique</div>
+      <div class="meta">Mise en place dès {{ p.priceFrom|number_format(0, ',', ' ') }} €{% if p.monthlyFrom %} + {{ p.monthlyFrom|number_format(0, ',', ' ') }} €/mois tout compris (hébergement, maintenance, support){% endif %}</div>
     </div>
-    <span class="rate">{{ p.commissionRate }} % pour vous · ~{{ (p.priceFrom * p.commissionRate / 100)|round|number_format(0, ',', ' ') }} € mini</span>
+    <span class="rate">{{ p.commissionRate }} % du setup · ~{{ (p.priceFrom * p.commissionRate / 100)|round|number_format(0, ',', ' ') }} € mini</span>
   </div>
   <p>{{ p.description }}</p>
   {% if p.target %}<h3>Qui cibler</h3><p>{{ p.target }}</p>{% endif %}

@@ -136,14 +136,14 @@ class SalesFlowTest extends WebTestCase
         $client = $this->makeUser('client@test.fr', 'ROLE_CLIENT');
         $owned = $this->product();
         foreach (['App Une', 'App Deux'] as $name) {
-            $this->em->persist((new Application())->setName($name)->setClient($client)->setProduct($owned)->setMaintenanceUntil(new \DateTimeImmutable('+10 days')));
+            $this->em->persist((new Application())->setName($name)->setClient($client)->setProduct($owned)->setMonthlyPrice(150));
         }
         $this->em->flush();
         $this->client->loginUser($client);
 
         $crawler = $this->client->request('GET', '/support');
         self::assertCount(2, $crawler->filter('.app-card'));
-        self::assertSelectorTextContains('.app-card', 'Renouveler ma maintenance');
+        self::assertSelectorTextContains('.app-card', 'Abonnement actif — 150 €/mois');
         self::assertStringNotContainsString(sprintf('/support/interest/%d"', $owned->getId()), $this->client->getResponse()->getContent());
 
         $other = $this->em->getRepository(Product::class)->findOneBy(['active' => true, 'position' => 2]);
@@ -233,18 +233,20 @@ class SalesFlowTest extends WebTestCase
         self::assertNull($this->em->find(User::class, $user->getId())->getIban());
     }
 
-    public function testMaintenanceReminderCommandFindsExpiringContracts(): void
+    public function testEndedSubscriptionIsShownAndLeavesTheMrr(): void
     {
         $client = $this->makeUser('client@test.fr', 'ROLE_CLIENT');
-        $this->em->persist((new Application())->setName('J30')->setClient($client)->setMaintenanceUntil(new \DateTimeImmutable('today +30 days')));
-        $this->em->persist((new Application())->setName('J12')->setClient($client)->setMaintenanceUntil(new \DateTimeImmutable('today +12 days')));
+        $this->em->persist((new Application())->setName('Active')->setClient($client)->setMonthlyPrice(150));
+        $this->em->persist((new Application())->setName('Partie')->setClient($client)->setMonthlyPrice(90)->setSubscriptionEndsAt(new \DateTimeImmutable('-1 day')));
         $this->em->flush();
 
-        $tester = new CommandTester((new ConsoleApplication(self::$kernel))->find('app:maintenance-reminders'));
-        $tester->execute([]);
+        $this->client->loginUser($client);
+        $this->client->request('GET', '/support');
+        self::assertSelectorTextContains('body', 'Abonnement terminé');
 
-        $tester->assertCommandIsSuccessful();
-        self::assertStringContainsString('1 relance', $tester->getDisplay());
+        $this->client->loginUser($this->makeUser('admin@test.fr', 'ROLE_ADMIN'));
+        $crawler = $this->client->request('GET', '/admin');
+        self::assertStringContainsString('150 €', $crawler->filter('.kpi')->eq(4)->text());
     }
 
     public function testEveryAdminPageRendersWithData(): void
@@ -253,7 +255,7 @@ class SalesFlowTest extends WebTestCase
         $client = $this->makeUser('client@test.fr', 'ROLE_CLIENT');
         $this->em->persist((new Lead())->setContact('Signée SA')->setSolution($this->product()->getName())->setProduct($this->product())->setApporteur($apporteur)->setStatus('signed')->setDealAmount(3000)->setCommission(450)->setSignedAt(new \DateTimeImmutable()));
         $this->em->persist((new Lead())->setContact('Site SARL')->setSolution('Autre / sur-mesure')->setSource(Lead::SOURCE_SITE)->setEmail('a@b.fr'));
-        $this->em->persist((new Application())->setName('App')->setClient($client)->setMaintenanceUntil(new \DateTimeImmutable('-3 days')));
+        $this->em->persist((new Application())->setName('App')->setClient($client)->setMonthlyPrice(150)->setSubscriptionEndsAt(new \DateTimeImmutable('+10 days')));
         $this->em->persist((new ApporteurRequest())->setName('Candidat')->setEmail('c@d.fr'));
         $this->em->flush();
         $this->client->loginUser($this->makeUser('admin@test.fr', 'ROLE_ADMIN'));
@@ -265,7 +267,7 @@ class SalesFlowTest extends WebTestCase
 
         $this->client->request('GET', '/admin');
         self::assertSelectorTextContains('body', '3 000 €');
-        self::assertSelectorTextContains('body', 'expirée');
+        self::assertSelectorTextContains('body', 'Abonnements résiliés');
 
         $this->client->loginUser($apporteur);
         foreach (['/leads', '/lead/new', '/commissions', '/dashboard'] as $page) {

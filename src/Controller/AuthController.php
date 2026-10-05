@@ -110,7 +110,7 @@ class AuthController extends AbstractController
                 . "1. Repérez un contact qui a besoin d'un outil métier (gestion de formation, e-learning, prospection, commande en ligne…).\n"
                 . "2. Avec son accord, transmettez-le en 2 minutes : %s\n"
                 . "3. On le rappelle sous 24 h, on fait la démo et le devis. Vous suivez tout depuis votre espace et êtes prévenu à chaque étape.\n"
-                . "4. À la signature, votre commission est calculée automatiquement (%d %% puis +%d points dès votre %dᵉ vente du trimestre), avec une date de versement annoncée.\n\n"
+                . "4. À la signature, votre commission est calculée automatiquement sur le montant de mise en place (%d %% puis +%d points dès votre %dᵉ vente du trimestre), avec une date de versement annoncée.\n\n"
                 . "Pour bien démarrer :\n- Le kit de vente (qui cibler, quoi dire) : %s\n- Renseignez votre IBAN pour être payé : %s\n- Parrainez d'autres apporteurs (%d € par filleul actif) : %s",
                 $user->getName(),
                 $url('lead_new'),

@@ -1,7 +1,7 @@
 {% extends "admin/base_admin.html.twig" %}
 {% block title %}Applications - Admin Klevup{% endblock %}
 {% block page_title %}Applications clients{% endblock %}
-{% block page_subtitle %}Chaque client voit ses applications dans son portail — et les autres solutions du catalogue qu'il n'a pas encore.{% endblock %}
+{% block page_subtitle %}Une application = un abonnement (hébergement, maintenance, mises à jour, support inclus). En cas de résiliation, saisissez la date de fin.{% endblock %}
 
 {% block admin_styles %}<style>
 .grid-form{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
@@ -50,8 +50,8 @@
         <input type="date" id="app-launched" name="launched_at">
       </div>
       <div class="form-group">
-        <label for="app-maint">Maintenance jusqu'au</label>
-        <input type="date" id="app-maint" name="maintenance_until">
+        <label for="app-monthly">Abonnement (€/mois)</label>
+        <input type="number" id="app-monthly" name="monthly_price" min="0" step="1" placeholder="Vide = prix du catalogue">
       </div>
     </div>
     <button type="submit" class="btn-save btn-create">Créer l'application</button>
@@ -61,19 +61,20 @@
 <div class="panel">
   {% if applications|length > 0 %}
   <table>
-    <thead><tr><th>Application</th><th>Client</th><th>URL</th><th>Livrée</th><th>Version / Maintenance / Action</th></tr></thead>
+    <thead><tr><th>Application</th><th>Client</th><th>URL</th><th>Livrée</th><th>Version · €/mois · fin si résilié</th></tr></thead>
     <tbody>
       {% for a in applications %}
       <tr>
         <td><strong>{{ a.name }}</strong>{% if a.product %} <span style="font-size:11px;color:#1D4E89;font-weight:600">· {{ a.product.name }}</span>{% endif %}<br><span style="font-size:12px;color:#5A6A80">{{ a.description }}</span></td>
-        <td>{{ a.client.name }}</td>
+        <td>{{ a.client.name }}{% if not a.subscriptionActive %}<br><span style="font-size:11px;color:#C0392B;font-weight:700">Abonnement terminé</span>{% elseif a.subscriptionEndsAt %}<br><span style="font-size:11px;color:#f57c00;font-weight:700">Résilié · fin {{ a.subscriptionEndsAt|date('d/m/Y') }}</span>{% endif %}</td>
         <td style="font-size:12px">{{ a.url }}</td>
         <td>{{ a.launchedAt ? a.launchedAt|date('d/m/Y') : '—' }}</td>
         <td>
           <form method="post" action="{{ path('admin_application_update', {id: a.id}) }}" class="inline-form">
             <input type="hidden" name="_token" value="{{ csrf_token('application_update_' ~ a.id) }}">
             <input type="text" name="version" value="{{ a.version }}" title="Version" aria-label="Version">
-            <input type="date" name="maintenance_until" value="{{ a.maintenanceUntil ? a.maintenanceUntil|date('Y-m-d') : '' }}" title="Maintenance jusqu'au" aria-label="Maintenance jusqu'au">
+            <input type="number" name="monthly_price" min="0" step="1" value="{{ a.monthlyPrice }}" title="Abonnement €/mois" aria-label="Abonnement en euros par mois" style="width:80px">
+            <input type="date" name="subscription_ends_at" value="{{ a.subscriptionEndsAt ? a.subscriptionEndsAt|date('Y-m-d') : '' }}" title="Fin d'abonnement (si résilié)" aria-label="Fin d'abonnement si résilié">
             <button type="submit" class="btn-save">Enregistrer</button>
           </form>
         </td>

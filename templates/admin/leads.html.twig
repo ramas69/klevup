@@ -1,7 +1,7 @@
 {% extends "admin/base_admin.html.twig" %}
 {% block title %}Leads - Admin Klevup{% endblock %}
 {% block page_title %}Gestion des leads{% endblock %}
-{% block page_subtitle %}Faites avancer les leads — saisissez le montant de la vente : la commission de l'apporteur est calculée et créée automatiquement à la signature.{% endblock %}
+{% block page_subtitle %}Faites avancer les leads — saisissez le setup et l'abonnement : la commission de l'apporteur (sur le setup) est calculée et créée automatiquement à la signature.{% endblock %}
 
 {% block admin_styles %}<style>
 .inline-form input[type=number]{width:110px}
@@ -25,7 +25,7 @@
   {% if leads|length > 0 %}
   <table>
     <thead>
-      <tr><th>Prospect</th><th>Solution</th><th>Origine</th><th>Reçu le</th><th>Statut</th><th>Vente (€) / Action</th></tr>
+      <tr><th>Prospect</th><th>Solution</th><th>Origine</th><th>Reçu le</th><th>Statut</th><th>Setup · Abo / Action</th></tr>
     </thead>
     <tbody>
       {% for lead in leads %}
@@ -61,7 +61,8 @@
               <option value="">Motif si sans suite…</option>
               {% for key, label in lostReasons %}<option value="{{ key }}" {{ lead.lostReason == key ? 'selected' }}>{{ label }}</option>{% endfor %}
             </select>
-            <input type="number" name="deal_amount" min="0" step="1" value="{{ lead.dealAmount }}" placeholder="Montant HT" aria-label="Montant de la vente en euros">
+            <input type="number" name="deal_amount" min="0" step="1" value="{{ lead.dealAmount }}" placeholder="Setup €" title="Montant du setup HT (base de la commission)" aria-label="Montant du setup en euros">
+            <input type="number" name="monthly_amount" min="0" step="1" value="{{ lead.monthlyAmount }}" placeholder="€/mois" title="Abonnement mensuel HT" aria-label="Abonnement mensuel en euros" style="width:80px">
             <button type="submit" class="btn-save">Enregistrer</button>
           </form>
           {% if lead.apporteur %}<div class="comm">Commission apporteur : {{ lead.commission > 0 ? lead.commission ~ ' €' : '—' }}</div>{% endif %}

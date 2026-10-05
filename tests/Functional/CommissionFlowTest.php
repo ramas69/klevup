@@ -313,4 +313,15 @@ class CommissionFlowTest extends WebTestCase
         $this->client->request('GET', '/commissions/releve/' . date('Y-m'));
         self::assertSelectorTextContains('.sheet', 'Aucune commission versée');
     }
+
+    public function testCommissionIsOnSetupOnlyNotOnTheSubscription(): void
+    {
+        $this->client->loginUser($this->admin);
+        $crawler = $this->client->request('GET', '/admin/leads');
+        $token = $crawler->filter(sprintf('form[action="/admin/lead/%d/update"] input[name="_token"]', $this->lead->getId()))->attr('value');
+        $this->client->request('POST', sprintf('/admin/lead/%d/update', $this->lead->getId()), ['_token' => $token, 'status' => 'signed', 'deal_amount' => '2000', 'monthly_amount' => '150']);
+
+        self::assertSame(300, $this->commissions()[0]->getAmount());
+        self::assertSame(150, $this->em->find(Lead::class, $this->lead->getId())->getMonthlyAmount());
+    }
 }

@@ -64,7 +64,7 @@ body { background: #f8f9fa; }
         <label for="product_id">Solution envisagée *</label>
         <select id="product_id" name="product_id" required>
           {% for p in products %}
-          <option value="{{ p.id }}" {{ (form.product_id ?? '') == p.id ? 'selected' }}>{{ p.name }} — dès {{ p.priceFrom|number_format(0, ',', ' ') }} € · {{ p.commissionRate }} % pour toi</option>
+          <option value="{{ p.id }}" {{ (form.product_id ?? '') == p.id ? 'selected' }}>{{ p.name }} — setup dès {{ p.priceFrom|number_format(0, ',', ' ') }} € · {{ p.commissionRate }} % pour toi</option>
           {% endfor %}
           <option value="0" {{ (form.product_id ?? '') == '0' ? 'selected' }}>Autre / sur-mesure</option>
         </select>
@@ -93,7 +93,7 @@ body { background: #f8f9fa; }
         <input type="checkbox" name="consent" value="1" required>
         <span>Mon contact est informé et d'accord pour être recontacté par Klevup au sujet de ce projet. *</span>
       </label>
-      <p style="font-size:12.5px;color:#5A6A80;margin:16px 0">Besoin d'arguments ? <a href="{{ path('kit') }}" style="color:#1D4E89;font-weight:600">Kit de vente →</a> · Ta commission est calculée automatiquement sur le montant signé, au taux indiqué pour la solution — +5 points dès ta 4ᵉ vente signée du trimestre.</p>
+      <p style="font-size:12.5px;color:#5A6A80;margin:16px 0">Besoin d'arguments ? <a href="{{ path('kit') }}" style="color:#1D4E89;font-weight:600">Kit de vente →</a> · Ta commission est calculée automatiquement sur le montant de mise en place signé, au taux indiqué pour la solution — +5 points dès ta 4ᵉ vente signée du trimestre.</p>
       <button type="submit" class="btn btn-gold" style="width:100%">Envoyer le lead</button>
     </form>
     <script>

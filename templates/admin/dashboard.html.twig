@@ -4,7 +4,7 @@
 {% block page_subtitle %}Ce qui se vend, qui apporte, ce qu'il reste à faire.{% endblock %}
 
 {% block admin_styles %}<style>
-.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:24px}
+.kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-bottom:24px}
 .kpi{background:#fff;border:2px solid #E3E9F2;border-radius:16px;padding:18px;text-decoration:none;color:inherit;display:block}
 a.kpi:hover{border-color:#F5B731}
 .kpi-l{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#5A6A80;margin-bottom:6px}
@@ -15,6 +15,7 @@ a.kpi:hover{border-color:#F5B731}
 .num{text-align:right;font-variant-numeric:tabular-nums}
 .muted{color:#5A6A80;font-size:12px}
 .warn{color:#C0392B;font-weight:700}
+@media(max-width:1300px){.kpis{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:1100px){.kpis{grid-template-columns:repeat(2,1fr)}.grid2{grid-template-columns:1fr}}
 </style>{% endblock %}
 
@@ -24,13 +25,14 @@ a.kpi:hover{border-color:#F5B731}
   <a class="kpi" href="{{ path('admin_tickets') }}"><div class="kpi-l">Tickets ouverts</div><div class="kpi-v">{{ kpi.open_tickets }}</div></a>
   <a class="kpi" href="{{ path('admin_commissions') }}"><div class="kpi-l">Commissions à verser</div><div class="kpi-v">{{ kpi.to_pay|number_format(0, ',', ' ') }} €</div></a>
   <a class="kpi" href="{{ path('admin_invite') }}"><div class="kpi-l">Candidatures apporteurs</div><div class="kpi-v {{ kpi.requests > 0 ? 'alert' }}">{{ kpi.requests }}</div></a>
-  <div class="kpi"><div class="kpi-l">CA signé ce trimestre</div><div class="kpi-v">{{ kpi.revenue_quarter|number_format(0, ',', ' ') }} €</div></div>
+  <a class="kpi" href="{{ path('admin_applications') }}"><div class="kpi-l">Revenu mensuel (MRR)</div><div class="kpi-v">{{ kpi.mrr|number_format(0, ',', ' ') }} €</div><div class="muted">{{ kpi.subscribers }} abonné{{ kpi.subscribers > 1 ? 's' }}</div></a>
+  <div class="kpi"><div class="kpi-l">Setups signés ce trimestre</div><div class="kpi-v">{{ kpi.revenue_quarter|number_format(0, ',', ' ') }} €</div></div>
 </div>
 
 <div class="panel" style="margin-bottom:20px">
   <h2>Ventes par solution</h2>
   <table>
-    <thead><tr><th>Solution</th><th class="num">Leads</th><th class="num">En cours</th><th class="num">Signés</th><th class="num">Conversion</th><th class="num">Pipeline</th><th class="num">CA signé</th></tr></thead>
+    <thead><tr><th>Solution</th><th class="num">Leads</th><th class="num">En cours</th><th class="num">Signés</th><th class="num">Conversion</th><th class="num">Pipeline setup</th><th class="num">Setups signés</th><th class="num">Abos signés</th></tr></thead>
     <tbody>
       {% for row in byProduct %}
       <tr>
@@ -41,9 +43,10 @@ a.kpi:hover{border-color:#F5B731}
         <td class="num">{{ row.total > 0 ? ((row.signed / row.total) * 100)|round ~ ' %' : '—' }}</td>
         <td class="num">{{ row.pipeline|number_format(0, ',', ' ') }} €</td>
         <td class="num"><strong>{{ row.revenue|number_format(0, ',', ' ') }} €</strong></td>
+        <td class="num">{{ row.monthly|number_format(0, ',', ' ') }} €/mois</td>
       </tr>
       {% else %}
-      <tr><td colspan="7" class="muted" style="text-align:center;padding:24px">Aucun lead pour le moment.</td></tr>
+      <tr><td colspan="8" class="muted" style="text-align:center;padding:24px">Aucun lead pour le moment.</td></tr>
       {% endfor %}
     </tbody>
   </table>
@@ -91,18 +94,19 @@ a.kpi:hover{border-color:#F5B731}
     </div>
 
     <div class="panel">
-      <h2>Maintenances à renouveler (60 jours)</h2>
+      <h2>Abonnements résiliés en cours</h2>
       <table>
-        <thead><tr><th>Application</th><th>Client</th><th>Fin</th></tr></thead>
+        <thead><tr><th>Application</th><th>Client</th><th class="num">€/mois</th><th>Fin</th></tr></thead>
         <tbody>
-          {% for app in expiring %}
+          {% for app in ending %}
           <tr>
             <td><strong>{{ app.name }}</strong></td>
             <td>{{ app.client.name }}</td>
-            <td class="{{ app.maintenanceUntil < today ? 'warn' }}">{{ app.maintenanceUntil|date('d/m/Y') }}{{ app.maintenanceUntil < today ? ' — expirée' }}</td>
+            <td class="num">{{ app.monthlyPrice ?? '—' }}</td>
+            <td class="warn">{{ app.subscriptionEndsAt|date('d/m/Y') }}</td>
           </tr>
           {% else %}
-          <tr><td colspan="3" class="muted" style="text-align:center;padding:24px">Aucune échéance proche.</td></tr>
+          <tr><td colspan="4" class="muted" style="text-align:center;padding:24px">Aucune résiliation en cours.</td></tr>
           {% endfor %}
         </tbody>
       </table>

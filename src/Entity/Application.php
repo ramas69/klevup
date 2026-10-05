@@ -28,8 +28,13 @@ class Application
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $launchedAt = null;
 
+    // Subscription: hosting, maintenance, updates and support included.
+    #[ORM\Column(type: 'integer', nullable: true)]
+    private ?int $monthlyPrice = null;
+
+    // Set when the client cancels; the subscription stays active until that date.
     #[ORM\Column(nullable: true)]
-    private ?\DateTimeImmutable $maintenanceUntil = null;
+    private ?\DateTimeImmutable $subscriptionEndsAt = null;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(nullable: false)]
@@ -53,8 +58,14 @@ class Application
     public function setUrl(string $url): self { $this->url = $url; return $this; }
     public function getLaunchedAt(): ?\DateTimeImmutable { return $this->launchedAt; }
     public function setLaunchedAt(?\DateTimeImmutable $date): self { $this->launchedAt = $date; return $this; }
-    public function getMaintenanceUntil(): ?\DateTimeImmutable { return $this->maintenanceUntil; }
-    public function setMaintenanceUntil(?\DateTimeImmutable $date): self { $this->maintenanceUntil = $date; return $this; }
+    public function getMonthlyPrice(): ?int { return $this->monthlyPrice; }
+    public function setMonthlyPrice(?int $monthlyPrice): self { $this->monthlyPrice = $monthlyPrice; return $this; }
+    public function getSubscriptionEndsAt(): ?\DateTimeImmutable { return $this->subscriptionEndsAt; }
+    public function setSubscriptionEndsAt(?\DateTimeImmutable $date): self { $this->subscriptionEndsAt = $date; return $this; }
+    public function isSubscriptionActive(): bool
+    {
+        return $this->subscriptionEndsAt === null || $this->subscriptionEndsAt >= new \DateTimeImmutable('today');
+    }
     public function getClient(): User { return $this->client; }
     public function setClient(User $client): self { $this->client = $client; return $this; }
 }

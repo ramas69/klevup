@@ -107,13 +107,17 @@ footer a{color:var(--gold);text-decoration:none;font-weight:600}
   <div class="wrap">
     <div>
       <span class="eyebrow">Applications métier clés en main</span>
-      <h1>Votre application professionnelle, <em>prête en quelques jours</em>, à vous pour toujours.</h1>
-      <p>Gestion de formation, e-learning, prospection, prise de commande — nos développeurs livrent votre outil personnalisé, sans abonnement imposé, dès 2 000 €.</p>
+      {% set setupPrices = products|map(p => p.priceFrom)|filter(v => v > 0) %}
+      {% set setupFrom = setupPrices|length ? min(setupPrices) : 0 %}
+      {% set monthlyPrices = products|map(p => p.monthlyFrom)|filter(v => v > 0) %}
+      {% set monthlyFrom = monthlyPrices|length ? min(monthlyPrices) : 0 %}
+      <h1>Votre application professionnelle, <em>prête en quelques jours</em>, entretenue pour vous.</h1>
+      <p>Gestion de formation, e-learning, prospection, prise de commande — nos développeurs livrent votre outil personnalisé à votre marque{% if setupFrom %}, mise en place dès {{ setupFrom|number_format(0, ',', ' ') }} €{% endif %}. Ensuite, un abonnement mensuel couvre l'hébergement, la maintenance, les mises à jour et le support.</p>
       <div class="hero-ctas">
         <a class="btn btn-gold" href="#contact">Demander une démo gratuite</a>
         <a class="btn btn-ghost" href="#solutions">Voir les solutions</a>
       </div>
-      <div class="hero-note">✓ Vous êtes propriétaire de votre outil &nbsp; ✓ Livraison rapide &nbsp; ✓ Équipe française</div>
+      <div class="hero-note">✓ Hébergement, mises à jour et support inclus &nbsp; ✓ Livraison rapide &nbsp; ✓ Équipe française</div>
     </div>
     <div class="hero-card">
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px">
@@ -124,22 +128,23 @@ footer a{color:var(--gold);text-decoration:none;font-weight:600}
       <div class="hc-row"><span>Personnalisation à votre marque</span><span class="hc-badge">Fait</span></div>
       <div class="hc-row"><span>Formation de votre équipe</span><span class="hc-badge">En cours</span></div>
       <div class="hc-row"><span>Mise en ligne</span><span style="color:var(--gray);font-size:13px">J+10</span></div>
-      <div class="hc-row"><span style="font-weight:700;color:var(--navy)">Investissement unique</span><span class="hc-price">2 990 €</span></div>
+      <div class="hc-row"><span style="font-weight:700;color:var(--navy)">Mise en place</span><span class="hc-price">{{ setupFrom ? 'dès ' ~ setupFrom|number_format(0, ',', ' ') ~ ' €' : 'sur devis' }}</span></div>
+      <div class="hc-row"><span style="font-weight:700;color:var(--navy)">Abonnement tout compris</span><span class="hc-price">{{ monthlyFrom ? 'dès ' ~ monthlyFrom|number_format(0, ',', ' ') ~ ' €/mois' : 'mensuel' }}</span></div>
     </div>
   </div>
 </header>
 
-<div class="proof"><div class="wrap">Déjà choisi par des <b>organismes de formation</b>, des <b>formateurs indépendants</b> et des <b>TPE</b> qui voulaient un outil à eux — pas un abonnement de plus.</div></div>
+<div class="proof"><div class="wrap">Déjà choisi par des <b>organismes de formation</b>, des <b>formateurs indépendants</b> et des <b>TPE</b> qui voulaient un outil fait pour leur métier — pas un logiciel générique de plus.</div></div>
 
 <section id="solutions">
   <div class="wrap">
     <div class="sec-head">
       <h2>Une solution pour chaque métier</h2>
-      <p>Des applications éprouvées, personnalisées à votre activité et livrées à votre marque. Vous payez une fois, l'outil est à vous.</p>
+      <p>Des applications éprouvées, personnalisées à votre activité et livrées à votre marque. Une mise en place, puis un abonnement mensuel qui inclut hébergement, maintenance, mises à jour et support.</p>
     </div>
     <div class="grid">
       {% for p in products %}
-      <div class="card {{ p.featured ? 'hl' }}">{% if p.featured %}<span class="tag">La plus demandée</span>{% endif %}<h3><span class="arr">↗</span> {{ p.name }}</h3><p>{{ p.description }}</p><div class="price">À partir de {{ p.priceFrom|number_format(0, ',', ' ') }} € <span>· paiement unique</span></div></div>
+      <div class="card {{ p.featured ? 'hl' }}">{% if p.featured %}<span class="tag">La plus demandée</span>{% endif %}<h3><span class="arr">↗</span> {{ p.name }}</h3><p>{{ p.description }}</p><div class="price">Mise en place dès {{ p.priceFrom|number_format(0, ',', ' ') }} €{% if p.monthlyFrom %} <span>+ {{ p.monthlyFrom|number_format(0, ',', ' ') }} €/mois tout compris</span>{% endif %}</div></div>
       {% endfor %}
     </div>
     <p style="text-align:center;margin-top:28px;color:var(--gray);font-size:15px">Un besoin spécifique ? <a href="#contact" style="color:var(--blue);font-weight:600">Notre équipe développe aussi sur mesure →</a></p>
@@ -152,7 +157,7 @@ footer a{color:var(--gold);text-decoration:none;font-weight:600}
     <div class="steps-grid">
       <div class="step"><div class="n">1</div><h3>On échange 30 minutes</h3><p>Vous nous expliquez votre activité et vos irritants. On vous montre la solution en démo, avec un devis ferme sous 48 h.</p></div>
       <div class="step"><div class="n">2</div><h3>On personnalise et on livre</h3><p>Votre logo, vos couleurs, vos spécificités métier. Votre application est prête en quelques jours, pas en quelques mois.</p></div>
-      <div class="step"><div class="n">3</div><h3>Vous êtes autonome</h3><p>On forme votre équipe à la prise en main. L'outil vous appartient : pas d'abonnement imposé, pas de mauvaise surprise.</p></div>
+      <div class="step"><div class="n">3</div><h3>On s'occupe du reste</h3><p>On forme votre équipe à la prise en main. Ensuite, hébergement, maintenance, mises à jour et support sont inclus dans votre abonnement : rien d'autre à gérer.</p></div>
     </div>
   </div>
 </section>
@@ -161,7 +166,7 @@ footer a{color:var(--gold);text-decoration:none;font-weight:600}
   <div class="wrap">
     <div>
       <h2>Vous connaissez des entreprises qui en ont besoin ? <em>Devenez apporteur.</em></h2>
-      <p>Consultants, formateurs, commerciaux, entrepreneurs : recommandez Klevup autour de vous. Vous transmettez le contact, on s'occupe de tout — démo, devis, livraison — et vous touchez votre commission à chaque vente.</p>
+      <p>Consultants, formateurs, commerciaux, entrepreneurs : recommandez Klevup autour de vous. Vous transmettez le contact, on s'occupe de tout — démo, devis, livraison — et vous touchez une commission sur chaque mise en place signée.</p>
       {% for m in app.flashes('apporteur_success') %}<div class="flash ok">{{ m }}</div>{% endfor %}
       {% for m in app.flashes('apporteur_error') %}<div class="flash ko">{{ m }}</div>{% endfor %}
       <form method="post" action="{{ path('apporteur_request') }}" class="lead-form dark">
@@ -178,7 +183,7 @@ footer a{color:var(--gold);text-decoration:none;font-weight:600}
       </form>
     </div>
     <div class="stat-cards">
-      <div class="stat"><div class="v">15 %</div><div class="l">de commission sur chaque vente</div></div>
+      <div class="stat"><div class="v">15 %</div><div class="l">de commission sur chaque mise en place</div></div>
       <div class="stat"><div class="v">20 %</div><div class="l">dès la 4ᵉ vente du trimestre</div></div>
       <div class="stat"><div class="v">≈ 1 000 €</div><div class="l">par mois à 2 ventes/mois</div></div>
       <div class="stat"><div class="v">24 h</div><div class="l">pour prendre en charge vos leads</div></div>

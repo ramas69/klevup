@@ -73,9 +73,13 @@ class Lead
     #[ORM\Column(length: 20)]
     private string $source = self::SOURCE_APPORTEUR;
 
-    // Signed (or quoted) sale amount in €, set by the admin — basis of the commission.
+    // Setup fee in € (quoted, then signed), set by the admin — the only basis of the commission.
     #[ORM\Column(type: 'integer', nullable: true)]
     private ?int $dealAmount = null;
+
+    // Monthly subscription in € — tracked for recurring revenue, not commissioned.
+    #[ORM\Column(type: 'integer', nullable: true)]
+    private ?int $monthlyAmount = null;
 
     // Computed commission in € (estimate until signed, final once signed).
     #[ORM\Column(type: 'integer')]
@@ -130,6 +134,8 @@ class Lead
     public function setSource(string $source): self { $this->source = $source; return $this; }
     public function getDealAmount(): ?int { return $this->dealAmount; }
     public function setDealAmount(?int $dealAmount): self { $this->dealAmount = $dealAmount; return $this; }
+    public function getMonthlyAmount(): ?int { return $this->monthlyAmount; }
+    public function setMonthlyAmount(?int $monthlyAmount): self { $this->monthlyAmount = $monthlyAmount; return $this; }
     public function getCommission(): int { return $this->commission; }
     public function setCommission(int $commission): self { $this->commission = $commission; return $this; }
     public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }

@@ -84,7 +84,5 @@ APP_ENV=prod php bin/console cache:clear
 
 - `var/` (cache, logs) doit être accessible en écriture par PHP — c'est le cas par défaut en mutualisé (même utilisateur).
 - **Cron quotidien** — cPanel → « Tâches Cron », une fois par jour (ex. 8 h) :
-  `cd ~/klevup && php bin/console app:maintenance-reminders --env=prod && php bin/console app:apporteur-reminders --env=prod`
-  - relance les clients dont la maintenance se termine dans 30 et 7 jours ;
-  - relance les apporteurs sans nouveau lead depuis 30 et 90 jours.
-  Sans ce cron, aucune de ces relances ne part.
+  `cd ~/klevup && php bin/console app:apporteur-reminders --env=prod`
+  Relance les apporteurs sans nouveau lead depuis 30 et 90 jours. Sans ce cron, aucune relance ne part.

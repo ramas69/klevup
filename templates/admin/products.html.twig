@@ -4,7 +4,7 @@
 {% block page_subtitle %}Une solution active apparaît sur le site, dans le formulaire et le kit de vente des apporteurs, et dans le portail des clients qui ne l'ont pas encore.{% endblock %}
 
 {% block admin_styles %}<style>
-.product-form{display:grid;grid-template-columns:2fr 3fr 110px 90px 80px auto;gap:10px;align-items:end}
+.product-form{display:grid;grid-template-columns:2fr 3fr 110px 110px 100px 70px auto;gap:10px;align-items:end}
 .product-form .form-group{margin:0}
 .checks{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:#0F2447;font-weight:600;white-space:nowrap}
 .checks input{width:auto}
@@ -20,8 +20,9 @@
   <input type="hidden" name="_token" value="{{ csrf_token('product_save_' ~ (p ? p.id : 'new')) }}">
   <div class="form-group"><label>Nom</label><input type="text" name="name" required maxlength="255" value="{{ p ? p.name }}"></div>
   <div class="form-group"><label>Description (site public)</label><textarea name="description" rows="2" maxlength="500">{{ p ? p.description }}</textarea></div>
-  <div class="form-group"><label>Prix dès (€)</label><input type="number" name="price_from" min="0" step="100" value="{{ p ? p.priceFrom : 2000 }}"></div>
-  <div class="form-group"><label>Commission %</label><input type="number" name="commission_rate" min="0" max="50" value="{{ p ? p.commissionRate : 15 }}"></div>
+  <div class="form-group"><label>Setup dès (€)</label><input type="number" name="price_from" min="0" step="100" value="{{ p ? p.priceFrom : 2000 }}"></div>
+  <div class="form-group"><label>Abo dès (€/mois)</label><input type="number" name="monthly_from" min="0" step="1" value="{{ p ? p.monthlyFrom : 0 }}"></div>
+  <div class="form-group"><label>Commission % (setup)</label><input type="number" name="commission_rate" min="0" max="50" value="{{ p ? p.commissionRate : 15 }}"></div>
   <div class="form-group"><label>Ordre</label><input type="number" name="position" value="{{ p ? p.position : 0 }}"></div>
   <details class="kit-fields">
     <summary>Kit de vente apporteurs</summary>

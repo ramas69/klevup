@@ -19,8 +19,6 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_CLIENT')]
 class SupportController extends AbstractController
 {
-    public const MAINTENANCE_WARNING_DAYS = 30;
-
     #[Route('/support', name: 'support')]
     public function index(EntityManagerInterface $em, ProductRepository $products): Response
     {
@@ -41,7 +39,6 @@ class SupportController extends AbstractController
         ];
 
         $apps = $em->getRepository(Application::class)->findBy(['client' => $user], ['id' => 'ASC']);
-        $warnLimit = new \DateTimeImmutable('today +' . self::MAINTENANCE_WARNING_DAYS . ' days');
         $owned = array_filter(array_map(fn(Application $a) => $a->getProduct()?->getId(), $apps));
 
         $ticketsData = array_map(fn(Ticket $t) => [
@@ -64,9 +61,9 @@ class SupportController extends AbstractController
                 'launch_date' => $a->getLaunchedAt()?->format('d/m/Y') ?? '—',
                 'version' => $a->getVersion(),
                 'url' => $a->getUrl(),
-                'maintenance_until' => $a->getMaintenanceUntil()?->format('d/m/Y'),
-                'maintenance_expiring' => $a->getMaintenanceUntil() !== null && $a->getMaintenanceUntil() <= $warnLimit,
-                'maintenance_expired' => $a->getMaintenanceUntil() !== null && $a->getMaintenanceUntil() < new \DateTimeImmutable('today'),
+                'monthly_price' => $a->getMonthlyPrice(),
+                'subscription_active' => $a->isSubscriptionActive(),
+                'subscription_ends' => $a->getSubscriptionEndsAt()?->format('d/m/Y'),
             ], $apps),
             'suggestions' => array_values(array_filter($products->findActive(), fn(Product $p) => !in_array($p->getId(), $owned, true))),
             'tickets' => $ticketsData,
@@ -82,27 +79,6 @@ class SupportController extends AbstractController
 
         $this->createClientLead($em, $leads, $notifier, $product->getName(), $product, 'Client existant intéressé par une nouvelle solution.');
         $this->addFlash('success', sprintf('Merci ! Nous vous recontactons très vite au sujet de « %s ».', $product->getName()));
-
-        return $this->redirectToRoute('support');
-    }
-
-    #[Route('/support/application/{id}/renew', name: 'client_renew', methods: ['POST'], requirements: ['id' => '\d+'])]
-    public function renew(Application $app, Request $request, EntityManagerInterface $em, LeadRepository $leads, Notifier $notifier): Response
-    {
-        if ($app->getClient()->getId() !== $this->getUser()?->getId()) {
-            throw $this->createNotFoundException();
-        }
-        if (!$this->isCsrfTokenValid('client_renew_' . $app->getId(), (string) $request->request->get('_token'))) {
-            throw $this->createAccessDeniedException('Jeton CSRF invalide.');
-        }
-
-        $this->createClientLead(
-            $em, $leads, $notifier,
-            'Maintenance — ' . $app->getName(),
-            null,
-            sprintf('Renouvellement de maintenance demandé (fin actuelle : %s).', $app->getMaintenanceUntil()?->format('d/m/Y') ?? '—')
-        );
-        $this->addFlash('success', 'Demande de renouvellement envoyée — nous vous adressons une proposition sous 48 h.');
 
         return $this->redirectToRoute('support');
     }
