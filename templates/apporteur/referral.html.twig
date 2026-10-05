@@ -1,0 +1,43 @@
+{% extends "apporteur/base_apporteur.html.twig" %}
+{% block title %}Parrainage - Klevup{% endblock %}
+{% block page_title %}Parrainage{% endblock %}
+{% block page_subtitle %}Faites grandir le réseau : {{ bonus }} € pour vous dès la première vente signée de chaque apporteur que vous parrainez.{% endblock %}
+
+{% block apporteur_styles %}<style>
+.share{background:linear-gradient(135deg,#0F2447 0%,#1D4E89 70%,#2A6DB5 100%);color:#fff;border-radius:18px;padding:24px;margin-bottom:24px}
+.share h2{font-size:17px;margin-bottom:6px}
+.share p{color:#CFE0F5;font-size:14px;margin-bottom:14px}
+.share-row{display:flex;gap:10px;flex-wrap:wrap}
+.share-row input{flex:1;min-width:240px;padding:12px;border-radius:12px;border:none;font-family:monospace;font-size:13px;color:#0F2447}
+.muted{color:#5A6A80;font-size:13px}
+</style>{% endblock %}
+
+{% block apporteur_content %}
+<div class="share">
+  <h2>Votre lien de parrainage</h2>
+  <p>Partagez-le à des consultants, formateurs ou commerciaux de votre réseau. Ils candidatent, Klevup valide leur profil, et ils deviennent vos filleuls.</p>
+  <div class="share-row">
+    <input type="text" id="ref-link" value="{{ link }}" readonly aria-label="Lien de parrainage">
+    <button type="button" class="btn btn-gold" data-link="{{ link }}" onclick="navigator.clipboard.writeText(this.dataset.link);this.textContent='Copié ✓'">Copier</button>
+  </div>
+</div>
+
+<div class="panel">
+  <table>
+    <thead><tr><th>Filleul</th><th>Inscrit le</th><th>Prime</th></tr></thead>
+    <tbody>
+      {% for r in referees %}
+      {% set b = bonuses[r.id] ?? null %}
+      <tr>
+        <td><strong>{{ r.name }}</strong></td>
+        <td>{{ r.createdAt|date('d/m/Y') }}</td>
+        <td>{% if b is null %}<span class="muted">À sa 1ʳᵉ vente signée</span>{% elseif b.status == 'encashed' %}<strong style="color:#2E8B57">+{{ b.amount }} € versés</strong>{% else %}<strong>{{ b.amount }} €</strong> <span class="muted">— prévu le {{ b.dueAt ? b.dueAt|date('d/m/Y') : '—' }}</span>{% endif %}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="3" class="muted" style="text-align:center;padding:24px">Aucun filleul pour le moment{% if pendingRequests > 0 %} — {{ pendingRequests }} candidature{{ pendingRequests > 1 ? 's' }} en cours de validation{% endif %}.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% if referees|length > 0 and pendingRequests > 0 %}<p class="muted" style="margin-top:12px">+ {{ pendingRequests }} candidature{{ pendingRequests > 1 ? 's' }} en cours de validation.</p>{% endif %}
+{% endblock %}

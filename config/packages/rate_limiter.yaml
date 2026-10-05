@@ -5,11 +5,20 @@ framework:
             policy: 'fixed_window'
             limit: 3
             interval: '1 hour'
+        # Public site forms (demo request, apporteur application): 5 per hour per IP.
+        public_form:
+            policy: 'fixed_window'
+            limit: 5
+            interval: '1 hour'
 
 when@test:
     framework:
         rate_limiter:
             forgot_password:
+                policy: 'fixed_window'
+                limit: 10000
+                interval: '1 hour'
+            public_form:
                 policy: 'fixed_window'
                 limit: 10000
                 interval: '1 hour'

@@ -2,7 +2,7 @@
 {% block title %}Nouveau lead - Klevup{% endblock %}
 {% block styles %}<style>
 body { background: #f8f9fa; }
-.page { max-width: 640px; margin: 0 auto; padding: 40px 24px; }
+.page { max-width: 760px; margin: 0 auto; padding: 40px 24px; }
 .nav-back { margin-bottom: 24px; }
 .nav-back a { display: inline-flex; align-items: center; gap: 8px; color: #0F2447; text-decoration: none; font-weight: 600; font-size: 14px; padding: 8px 12px; border-radius: 8px; transition: all 0.3s; }
 .nav-back a:hover { background: rgba(15, 36, 71, 0.1); }
@@ -11,8 +11,14 @@ body { background: #f8f9fa; }
 .card p.sub { color: #5A6A80; font-size: 14px; margin-bottom: 24px; }
 .form-group { margin-bottom: 18px; }
 .form-group label { display: block; color: #0F2447; font-weight: 600; margin-bottom: 8px; font-size: 14px; }
-.form-group input, .form-group select { width: 100%; padding: 12px; border: 2px solid #E3E9F2; border-radius: 12px; font-family: Poppins, sans-serif; font-size: 14px; transition: all 0.3s; }
-.form-group input:focus, .form-group select:focus { outline: none; border-color: #F5B731; box-shadow: 0 0 0 3px rgba(245, 183, 49, 0.1); }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.form-row.three { grid-template-columns: 1fr 1fr 1fr; }
+.consent { display: flex; gap: 10px; align-items: flex-start; font-size: 13.5px; color: #0F2447; background: #FDF9F0; border: 2px solid #F5B731; border-radius: 12px; padding: 12px 14px; cursor: pointer; }
+.consent input { margin-top: 3px; width: 18px; height: 18px; flex-shrink: 0; }
+@media (max-width: 720px) { .form-row.three { grid-template-columns: 1fr; } }
+@media (max-width: 520px) { .form-row { grid-template-columns: 1fr; } }
+.form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px; border: 2px solid #E3E9F2; border-radius: 12px; font-family: Poppins, sans-serif; font-size: 14px; transition: all 0.3s; }
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: #F5B731; box-shadow: 0 0 0 3px rgba(245, 183, 49, 0.1); }
 .form-group small { color: #5A6A80; font-size: 12px; display: block; margin-top: 6px; }
 .error { color: #C0392B; background: #fdecea; border: 1px solid #C0392B; border-radius: 12px; padding: 12px; margin-bottom: 20px; font-size: 14px; }
 </style>{% endblock %}
@@ -30,26 +36,73 @@ body { background: #f8f9fa; }
     <form method="post">
       <input type="hidden" name="_token" value="{{ csrf_token('lead_new') }}">
       <div class="form-group">
-        <label for="contact">Contact / Entreprise</label>
-        <input type="text" id="contact" name="contact" required placeholder="Ex : Cabinet Morel">
+        <label for="contact">Entreprise *</label>
+        <input type="text" id="contact" name="contact" required maxlength="255" value="{{ form.contact ?? '' }}" placeholder="Ex : Cabinet Morel">
       </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="contact_name">Interlocuteur</label>
+          <input type="text" id="contact_name" name="contact_name" maxlength="255" value="{{ form.contact_name ?? '' }}" placeholder="Ex : Julie Morel">
+        </div>
+        <div class="form-group">
+          <label for="contact_role">Sa fonction</label>
+          <input type="text" id="contact_role" name="contact_role" maxlength="100" value="{{ form.contact_role ?? '' }}" placeholder="Ex : gérante, resp. formation">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" maxlength="180" value="{{ form.email ?? '' }}" placeholder="julie@cabinet-morel.fr">
+        </div>
+        <div class="form-group">
+          <label for="phone">Téléphone</label>
+          <input type="tel" id="phone" name="phone" maxlength="30" value="{{ form.phone ?? '' }}" placeholder="06 12 34 56 78">
+        </div>
+      </div>
+      <small style="display:block;margin:-8px 0 18px;color:#5A6A80;font-size:12px">Au moins un email ou un téléphone.</small>
       <div class="form-group">
-        <label for="solution">Solution envisagée</label>
-        <select id="solution" name="solution" required>
-          <option value="Gestion OF">Gestion OF</option>
-          <option value="Prospection">Prospection</option>
-          <option value="Site vitrine">Site vitrine</option>
-          <option value="Application métier">Application métier</option>
-          <option value="Autre">Autre</option>
+        <label for="product_id">Solution envisagée *</label>
+        <select id="product_id" name="product_id" required>
+          {% for p in products %}
+          <option value="{{ p.id }}" {{ (form.product_id ?? '') == p.id ? 'selected' }}>{{ p.name }} — dès {{ p.priceFrom|number_format(0, ',', ' ') }} € · {{ p.commissionRate }} % pour toi</option>
+          {% endfor %}
+          <option value="0" {{ (form.product_id ?? '') == '0' ? 'selected' }}>Autre / sur-mesure</option>
         </select>
       </div>
-      <div class="form-group">
-        <label for="commission">Commission estimée (€)</label>
-        <input type="number" id="commission" name="commission" min="0" step="1" value="0">
-        <small>Estimation indicative — le montant final est confirmé par Klevup à la signature.</small>
+      <div class="form-row three">
+        {% for field, conf in {
+          timeline: {label: 'Échéance du projet *', choices: constant('App\\Entity\\Lead::TIMELINES')},
+          budget: {label: 'Budget envisagé *', choices: constant('App\\Entity\\Lead::BUDGETS')},
+          relationship: {label: 'Votre lien avec lui *', choices: constant('App\\Entity\\Lead::RELATIONSHIPS')}
+        } %}
+        <div class="form-group">
+          <label for="{{ field }}">{{ conf.label }}</label>
+          <select id="{{ field }}" name="{{ field }}" required>
+            <option value="">Choisir…</option>
+            {% for key, label in conf.choices %}<option value="{{ key }}" {{ (form[field] ?? '') == key ? 'selected' }}>{{ label }}</option>{% endfor %}
+          </select>
+        </div>
+        {% endfor %}
       </div>
+      <div class="form-group">
+        <label for="notes" id="notes-label">Contexte (besoin, outil actuel, déclencheur…)</label>
+        <textarea id="notes" name="notes" maxlength="2000" rows="4" placeholder="Ex : 3 formateurs, gère tout sur Excel, audit Qualiopi en juin.">{{ form.notes ?? '' }}</textarea>
+        <small id="notes-help">Facultatif pour une solution du catalogue — obligatoire pour un besoin sur-mesure.</small>
+      </div>
+      <label class="consent">
+        <input type="checkbox" name="consent" value="1" required>
+        <span>Mon contact est informé et d'accord pour être recontacté par Klevup au sujet de ce projet. *</span>
+      </label>
+      <p style="font-size:12.5px;color:#5A6A80;margin:16px 0">Besoin d'arguments ? <a href="{{ path('kit') }}" style="color:#1D4E89;font-weight:600">Kit de vente →</a> · Ta commission est calculée automatiquement sur le montant signé, au taux indiqué pour la solution — +5 points dès ta 4ᵉ vente signée du trimestre.</p>
       <button type="submit" class="btn btn-gold" style="width:100%">Envoyer le lead</button>
     </form>
+    <script>
+    (function () {
+      var product = document.getElementById('product_id'), notes = document.getElementById('notes');
+      function sync() { notes.required = product.value === '0'; notes.minLength = product.value === '0' ? 20 : 0; }
+      product.addEventListener('change', sync); sync();
+    })();
+    </script>
   </div>
 </div>
 {% endblock %}

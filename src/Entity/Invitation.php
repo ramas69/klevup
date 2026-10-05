@@ -31,6 +31,14 @@ class Invitation
     #[ORM\Column]
     private \DateTimeImmutable $createdAt;
 
+    // Apporteur who shared the referral link (earns the referral bonus).
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?User $referrer = null;
+
+    public function getReferrer(): ?User { return $this->referrer; }
+    public function setReferrer(?User $referrer): self { $this->referrer = $referrer; return $this; }
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();

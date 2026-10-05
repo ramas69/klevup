@@ -1,0 +1,48 @@
+{% extends "apporteur/base_apporteur.html.twig" %}
+{% block title %}Kit de vente - Klevup{% endblock %}
+{% block page_title %}Kit de vente{% endblock %}
+{% block page_subtitle %}Qui cibler, quoi dire, et comment passer le relais à Klevup.{% endblock %}
+
+{% block apporteur_styles %}<style>
+.how{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:28px}
+.how div{background:#fff;border:2px solid #E3E9F2;border-radius:16px;padding:18px;font-size:14px;color:#1A2332;line-height:1.55}
+.how strong{display:block;color:#0F2447;margin-bottom:6px}
+.kit{background:#fff;border:2px solid #E3E9F2;border-radius:18px;padding:24px;margin-bottom:18px}
+.kit-head{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;align-items:flex-start;margin-bottom:12px}
+.kit h2{color:#0F2447;font-size:18px}
+.kit .meta{font-size:13px;color:#5A6A80;margin-top:4px}
+.kit .rate{background:#FDF9F0;border:2px solid #F5B731;color:#0F2447;font-weight:800;border-radius:999px;padding:6px 14px;font-size:13px;white-space:nowrap}
+.kit h3{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#5A6A80;margin:14px 0 6px}
+.kit p,.kit .pitch{font-size:14px;line-height:1.6;color:#1A2332}
+.kit .pitch{white-space:pre-line;background:#f8f9fa;border-radius:12px;padding:14px}
+.kit-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px;align-items:center}
+.kit-actions a.res{color:#1D4E89;font-weight:600;font-size:14px}
+@media(max-width:860px){.how{grid-template-columns:1fr}}
+</style>{% endblock %}
+
+{% block apporteur_content %}
+<div class="how">
+  <div><strong>1. Repérez</strong>Un contact qui perd du temps sur un outil bricolé, ou qui paie un abonnement ou des commissions chaque mois.</div>
+  <div><strong>2. Posez la question « déclic »</strong>Pas de vente forcée : une question, et proposez une démo de 30 minutes sans engagement.</div>
+  <div><strong>3. Transmettez</strong>Avec son accord, envoyez le lead : on le rappelle sous 24 h et vous suivez tout ici. {{ palierSales + 1 }}ᵉ vente du trimestre et suivantes : +{{ palierBonus }} points.</div>
+</div>
+
+{% for p in products %}
+<div class="kit" id="produit-{{ p.id }}">
+  <div class="kit-head">
+    <div>
+      <h2>{{ p.name }}</h2>
+      <div class="meta">Dès {{ p.priceFrom|number_format(0, ',', ' ') }} € · paiement unique</div>
+    </div>
+    <span class="rate">{{ p.commissionRate }} % pour vous · ~{{ (p.priceFrom * p.commissionRate / 100)|round|number_format(0, ',', ' ') }} € mini</span>
+  </div>
+  <p>{{ p.description }}</p>
+  {% if p.target %}<h3>Qui cibler</h3><p>{{ p.target }}</p>{% endif %}
+  {% if p.pitch %}<h3>Quoi dire</h3><div class="pitch">{{ p.pitch }}</div>{% endif %}
+  <div class="kit-actions">
+    <a class="btn btn-gold" href="{{ path('lead_new', {product: p.id}) }}">Envoyer un lead pour cette solution</a>
+    {% if p.resourceUrl %}<a class="res" href="{{ p.resourceUrl }}" target="_blank" rel="noopener">Plaquette / démo à partager →</a>{% endif %}
+  </div>
+</div>
+{% endfor %}
+{% endblock %}

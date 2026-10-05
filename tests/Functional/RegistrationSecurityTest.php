@@ -18,7 +18,7 @@ class RegistrationSecurityTest extends WebTestCase
         $this->em = static::getContainer()->get(EntityManagerInterface::class);
 
         // Isolate each test run — FK order matters.
-        foreach (['commission', 'ticket_message', 'ticket', '`lead`', 'invitation', 'user'] as $table) {
+        foreach (['commission', 'ticket_message', 'ticket', '`lead`', 'invitation', 'application', 'apporteur_request', 'user'] as $table) {
             $this->em->getConnection()->executeStatement("DELETE FROM $table");
         }
     }

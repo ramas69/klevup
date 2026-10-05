@@ -3,13 +3,15 @@ namespace App\Entity;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use App\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Security\Core\User\EquatableInterface;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
-#[ORM\Entity]
+#[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: 'user')]
-class User implements UserInterface, PasswordAuthenticatedUserInterface
+class User implements UserInterface, PasswordAuthenticatedUserInterface, EquatableInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -36,6 +38,21 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(length: 34, nullable: true)]
     private ?string $iban = null;
+
+    // Apporteur billing identity, printed on commission statements.
+    #[ORM\Column(length: 14, nullable: true)]
+    private ?string $siret = null;
+
+    #[ORM\Column(length: 500, nullable: true)]
+    private ?string $billingAddress = null;
+
+    // Personal code in the apporteur's referral link.
+    #[ORM\Column(length: 20, unique: true, nullable: true)]
+    private ?string $referralCode = null;
+
+    #[ORM\ManyToOne(targetEntity: self::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?User $referredBy = null;
 
     #[ORM\Column(length: 100, nullable: true)]
     private ?string $resetToken = null;
@@ -86,6 +103,24 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getLeads(): Collection { return $this->leads; }
     public function getCommissions(): Collection { return $this->commissions; }
     public function getTickets(): Collection { return $this->tickets; }
+    public function getSiret(): ?string { return $this->siret; }
+    public function setSiret(?string $siret): self { $this->siret = $siret; return $this; }
+    public function getBillingAddress(): ?string { return $this->billingAddress; }
+    public function setBillingAddress(?string $billingAddress): self { $this->billingAddress = $billingAddress; return $this; }
+    public function getReferralCode(): ?string { return $this->referralCode; }
+    public function setReferralCode(?string $referralCode): self { $this->referralCode = $referralCode; return $this; }
+    public function getReferredBy(): ?User { return $this->referredBy; }
+    public function setReferredBy(?User $referredBy): self { $this->referredBy = $referredBy; return $this; }
+
     public function eraseCredentials(): void {}
+
+    // $this = user stored in the session, $user = fresh DB copy: a disabled account or a changed password ends open sessions.
+    public function isEqualTo(UserInterface $user): bool
+    {
+        return $user instanceof self
+            && $user->getStatus() !== 'disabled'
+            && $user->getId() === $this->id
+            && $user->getPassword() === $this->password;
+    }
     public function getUserIdentifier(): string { return $this->email; }
 }

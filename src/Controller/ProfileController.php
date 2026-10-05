@@ -27,7 +27,7 @@ class ProfileController extends AbstractController
             throw $this->createAccessDeniedException('Jeton CSRF invalide.');
         }
 
-        if ($error = $this->applyIdentity($user, $request, $em)) {
+        if ($error = $this->applyIdentity($user, $request, $em, $hasher)) {
             $this->addFlash('error', $error);
 
             return $this->redirectToRoute('profile');
@@ -47,7 +47,7 @@ class ProfileController extends AbstractController
         return $this->redirectToRoute('profile');
     }
 
-    private function applyIdentity(User $user, Request $request, EntityManagerInterface $em): ?string
+    private function applyIdentity(User $user, Request $request, EntityManagerInterface $em, UserPasswordHasherInterface $hasher): ?string
     {
         $name = trim((string) $request->request->get('name'));
         $email = trim((string) $request->request->get('email'));
@@ -66,10 +66,27 @@ class ProfileController extends AbstractController
             return 'IBAN invalide.';
         }
 
+        $siret = str_replace(' ', '', $request->request->getString('siret'));
+        $address = trim($request->request->getString('billing_address'));
+        if (($siret !== '' && !preg_match('/^\d{14}$/', $siret)) || mb_strlen($address) > 500) {
+            return 'SIRET invalide (14 chiffres) ou adresse trop longue.';
+        }
+
+        $isApporteur = in_array('ROLE_APPORTEUR', $user->getRoles(), true);
+        $newIban = $iban !== '' ? $iban : null;
+
+        // Login email and payout IBAN are sensitive: an unattended open session must not be enough to change them.
+        $sensitiveChange = $email !== $user->getEmail() || ($isApporteur && $newIban !== $user->getIban());
+        if ($sensitiveChange && !$hasher->isPasswordValid($user, (string) $request->request->get('current_password'))) {
+            return 'Saisissez votre mot de passe actuel pour modifier votre email ou votre IBAN.';
+        }
+
         $user->setName($name);
         $user->setEmail($email);
-        if (in_array('ROLE_APPORTEUR', $user->getRoles(), true)) {
-            $user->setIban($iban !== '' ? $iban : null);
+        if ($isApporteur) {
+            $user->setIban($newIban);
+            $user->setSiret($siret !== '' ? $siret : null);
+            $user->setBillingAddress($address !== '' ? $address : null);
         }
 
         return null;

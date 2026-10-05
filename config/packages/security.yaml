@@ -13,6 +13,7 @@ security:
         main:
             lazy: true
             provider: app_user_provider
+            user_checker: App\Security\UserChecker
             form_login:
                 login_path: login
                 check_path: login
@@ -29,3 +30,11 @@ security:
         - { path: ^/admin, roles: ROLE_ADMIN }
         - { path: ^/dashboard, roles: ROLE_APPORTEUR }
         - { path: ^/support, roles: ROLE_CLIENT }
+
+when@test:
+    security:
+        firewalls:
+            main:
+                # Throttling state is cached between runs; keep it out of the way of functional tests.
+                login_throttling:
+                    max_attempts: 10000

@@ -1,10 +1,18 @@
 {% extends "admin/base_admin.html.twig" %}
 {% block title %}Leads - Admin Klevup{% endblock %}
 {% block page_title %}Gestion des leads{% endblock %}
-{% block page_subtitle %}Faites avancer les leads — le passage à « Signé » crée automatiquement la commission de l'apporteur.{% endblock %}
+{% block page_subtitle %}Faites avancer les leads — saisissez le montant de la vente : la commission de l'apporteur est calculée et créée automatiquement à la signature.{% endblock %}
 
 {% block admin_styles %}<style>
-.inline-form input[type=number]{width:90px}
+.inline-form input[type=number]{width:110px}
+.lead-meta{font-size:12px;color:#5A6A80;line-height:1.5}
+.lead-meta a{color:#1D4E89}
+.lead-notes{font-size:12px;color:#1A2332;background:#f8f9fa;border-radius:8px;padding:6px 8px;margin-top:6px;max-width:320px;white-space:pre-line}
+.src{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:999px;text-transform:uppercase;letter-spacing:.5px}
+.src-apporteur{background:#fffbee;color:#b9770e}
+.src-site{background:#e3f2fd;color:#1976d2}
+.src-client{background:#e8f5e9;color:#2E8B57}
+.comm{font-size:12px;color:#5A6A80;margin-top:4px}
 .status-new{background:#e3f2fd;color:#1976d2}
 .status-meeting{background:#fff3e0;color:#f57c00}
 .status-devis{background:#fffbee;color:#ff9800}
@@ -17,27 +25,46 @@
   {% if leads|length > 0 %}
   <table>
     <thead>
-      <tr><th>Contact</th><th>Solution</th><th>Apporteur</th><th>Reçu le</th><th>Statut</th><th>Commission (€) / Action</th></tr>
+      <tr><th>Prospect</th><th>Solution</th><th>Origine</th><th>Reçu le</th><th>Statut</th><th>Vente (€) / Action</th></tr>
     </thead>
     <tbody>
       {% for lead in leads %}
       <tr>
-        <td><strong>{{ lead.contact }}</strong></td>
+        <td>
+          <strong>{{ lead.contact }}</strong>
+          <div class="lead-meta">
+            {% if lead.contactName %}{{ lead.contactName }}<br>{% endif %}
+            {% if lead.email %}<a href="mailto:{{ lead.email }}">{{ lead.email }}</a><br>{% endif %}
+            {% if lead.phone %}<a href="tel:{{ lead.phone|replace({' ': ''}) }}">{{ lead.phone }}</a>{% endif %}
+          </div>
+          {% if lead.contactRole %}<div class="lead-meta">{{ lead.contactRole }}</div>{% endif %}
+          {% if lead.timeline %}<div class="lead-meta"><strong>{{ constant('App\\Entity\\Lead::TIMELINES')[lead.timeline]|default('') }}</strong> · {{ constant('App\\Entity\\Lead::BUDGETS')[lead.budget]|default('') }} · {{ constant('App\\Entity\\Lead::RELATIONSHIPS')[lead.relationship]|default('') }}</div>{% endif %}
+          {% if lead.notes %}<div class="lead-notes">{{ lead.notes }}</div>{% endif %}
+          <div class="lead-meta" style="font-size:11px">{{ lead.consentAt ? 'Accord de contact : ' ~ lead.consentAt|date('d/m/Y') : 'Accord de contact non recueilli' }}</div>
+        </td>
         <td>{{ lead.solution }}</td>
-        <td>{{ lead.apporteur.name }}</td>
-        <td>{{ lead.createdAt|date('d/m/Y') }}</td>
-        <td><span class="status-badge status-{{ lead.status }}">{{ {'new': 'Nouveau', 'meeting': 'RDV planifié', 'devis': 'Devis envoyé', 'signed': 'Signé', 'lost': 'Sans suite'}[lead.status]|default(lead.status) }}</span></td>
+        <td>
+          <span class="src src-{{ lead.source }}">{{ {'apporteur': 'Apporteur', 'site': 'Site web', 'client': 'Client'}[lead.source]|default(lead.source) }}</span>
+          {% if lead.apporteur %}<div class="lead-meta">{{ lead.apporteur.name }}</div>{% endif %}
+        </td>
+        <td>{{ lead.createdAt|date('d/m/Y') }}{% if lead.signedAt %}<div class="lead-meta">Signé le {{ lead.signedAt|date('d/m/Y') }}</div>{% endif %}</td>
+        <td><span class="status-badge status-{{ lead.status }}">{{ labels[lead.status]|default(lead.status) }}</span>{% if lead.lostReason %}<div class="lead-meta">{{ lostReasons[lead.lostReason]|default('') }}</div>{% endif %}</td>
         <td>
           <form method="post" action="{{ path('admin_lead_update', {id: lead.id}) }}" class="inline-form">
             <input type="hidden" name="_token" value="{{ csrf_token('lead_update_' ~ lead.id) }}">
             <select name="status" aria-label="Statut du lead">
               {% for s in statuses %}
-              <option value="{{ s }}" {{ lead.status == s ? 'selected' }}>{{ {'new': 'Nouveau', 'meeting': 'RDV planifié', 'devis': 'Devis envoyé', 'signed': 'Signé', 'lost': 'Sans suite'}[s] }}</option>
+              <option value="{{ s }}" {{ lead.status == s ? 'selected' }}>{{ labels[s] }}</option>
               {% endfor %}
             </select>
-            <input type="number" name="commission" min="0" step="1" value="{{ lead.commission }}" aria-label="Montant commission en euros">
+            <select name="lost_reason" aria-label="Motif si sans suite" title="Motif (obligatoire si « Sans suite »)">
+              <option value="">Motif si sans suite…</option>
+              {% for key, label in lostReasons %}<option value="{{ key }}" {{ lead.lostReason == key ? 'selected' }}>{{ label }}</option>{% endfor %}
+            </select>
+            <input type="number" name="deal_amount" min="0" step="1" value="{{ lead.dealAmount }}" placeholder="Montant HT" aria-label="Montant de la vente en euros">
             <button type="submit" class="btn-save">Enregistrer</button>
           </form>
+          {% if lead.apporteur %}<div class="comm">Commission apporteur : {{ lead.commission > 0 ? lead.commission ~ ' €' : '—' }}</div>{% endif %}
         </td>
       </tr>
       {% endfor %}

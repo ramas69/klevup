@@ -30,7 +30,7 @@ class LoginSuccessHandler implements AuthenticationSuccessHandlerInterface
         // Otherwise, land on the home page of the user's role.
         $roles = $token->getRoleNames();
         $route = match (true) {
-            in_array('ROLE_ADMIN', $roles, true) => 'admin_users',
+            in_array('ROLE_ADMIN', $roles, true) => 'admin_dashboard',
             in_array('ROLE_APPORTEUR', $roles, true) => 'dashboard',
             in_array('ROLE_CLIENT', $roles, true) => 'support',
             default => 'home',

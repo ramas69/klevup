@@ -14,9 +14,37 @@
 </style>{% endblock %}
 
 {% block admin_content %}
+{% if requests|length > 0 %}
+<div class="card" style="max-width:none">
+  <h2>Candidatures apporteurs ({{ requests|length }})</h2>
+  <table>
+    <thead><tr><th>Candidat</th><th>Message</th><th>Reçue le</th><th>Action</th></tr></thead>
+    <tbody>
+      {% for r in requests %}
+      <tr>
+        <td><strong>{{ r.name }}</strong><br><span style="font-size:12px;color:#5A6A80">{{ r.email }}{% if r.phone %} · {{ r.phone }}{% endif %}</span></td>
+        <td style="font-size:12.5px;max-width:360px;white-space:pre-line">{{ r.message ?? '—' }}{% if r.referrer %}<div style="color:#1D4E89;font-weight:600;margin-top:4px">Parrainé par {{ r.referrer.name }}</div>{% endif %}</td>
+        <td>{{ r.createdAt|date('d/m/Y') }}</td>
+        <td>
+          <form method="post" action="{{ path('admin_apporteur_request', {id: r.id, action: 'invite'}) }}" style="display:inline">
+            <input type="hidden" name="_token" value="{{ csrf_token('apporteur_request_' ~ r.id) }}">
+            <button type="submit" class="btn-save">Inviter</button>
+          </form>
+          <form method="post" action="{{ path('admin_apporteur_request', {id: r.id, action: 'dismiss'}) }}" style="display:inline">
+            <input type="hidden" name="_token" value="{{ csrf_token('apporteur_request_' ~ r.id) }}">
+            <button type="submit" class="copy-btn" style="background:#B8C4D4">Archiver</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
 <div class="card">
   <h2>Créer un lien d'invitation</h2>
   <form method="post">
+    <input type="hidden" name="_token" value="{{ csrf_token('invite') }}">
     <div class="form-group">
       <label for="role">Rôle de l'invité</label>
       <select name="role" id="role">
@@ -35,7 +63,7 @@
   <div class="success">
     <p><strong>Lien d'invitation généré ✓</strong></p>
     <div class="invite-link">{{ inviteLink }}</div>
-    <button class="copy-btn" onclick="navigator.clipboard.writeText('{{ inviteLink }}')">Copier le lien</button>
+    <button type="button" class="copy-btn" data-link="{{ inviteLink }}" onclick="navigator.clipboard.writeText(this.dataset.link)">Copier le lien</button>
     <p style="margin-top:12px;font-size:13px">Partagez ce lien avec l'utilisateur invité. Il aura 30 jours pour s'inscrire.</p>
   </div>
   {% endif %}

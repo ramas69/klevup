@@ -58,13 +58,28 @@ section{padding:84px 0}
 .final{text-align:center}
 .final h2{font-size:34px;font-weight:700;color:var(--navy);letter-spacing:-.5px}
 .final p{color:var(--gray);margin:14px auto 30px;max-width:520px;font-size:16.5px}
+.lead-form{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:12px;text-align:left}
+.lead-form .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.lead-form input,.lead-form select,.lead-form textarea{width:100%;padding:13px 14px;border:2px solid var(--border);border-radius:12px;font-family:inherit;font-size:15px;background:#fff;color:var(--ink)}
+.lead-form input:focus,.lead-form select:focus,.lead-form textarea:focus{outline:none;border-color:var(--gold)}
+.lead-form.dark{margin:0}
+.lead-form.dark input,.lead-form.dark textarea{border-color:rgba(255,255,255,.25)}
+.lead-form .btn{align-self:flex-start}
+.final .lead-form .btn{align-self:center}
+.lead-form .rgpd{font-size:12.5px;margin:0;text-align:center}
+.lead-form .rgpd a{color:var(--blue)}
+.hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
+.flash{max-width:560px;margin:0 auto 14px;border-radius:12px;padding:12px 14px;font-size:14.5px;font-weight:600;text-align:left}
+.flash.ok{background:#E2EFDA;color:var(--success)}
+.flash.ko{background:#fdecea;color:#C0392B}
+.apporteur .flash{margin:0 0 14px}
 footer{background:var(--navy);color:#9FB6D6;padding:40px 0;font-size:14px}
 footer .wrap{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}
 footer .fl{display:flex;align-items:center;gap:10px;color:#fff;font-weight:700;font-size:19px}
 footer a{color:var(--gold);text-decoration:none;font-weight:600}
 @media(max-width:860px){
   .hero .wrap,.apporteur .wrap{grid-template-columns:1fr}
-  .grid,.steps-grid{grid-template-columns:1fr}
+  .grid,.steps-grid,.lead-form .row2{grid-template-columns:1fr}
   h1{font-size:38px}
   .nav-links a:not(.btn){display:none}
 }
@@ -123,10 +138,9 @@ footer a{color:var(--gold);text-decoration:none;font-weight:600}
       <p>Des applications éprouvées, personnalisées à votre activité et livrées à votre marque. Vous payez une fois, l'outil est à vous.</p>
     </div>
     <div class="grid">
-      <div class="card hl"><span class="tag">La plus demandée</span><h3><span class="arr">↗</span> Gestion d'organisme de formation</h3><p>Inscriptions, émargements, convocations, documents Qualiopi : la plateforme tout-en-un qui remplace Excel et les outils à 300 €/mois.</p><div class="price">À partir de 3 000 € <span>· paiement unique</span></div></div>
-      <div class="card"><h3><span class="arr">↗</span> Plateforme e-learning (LMS)</h3><p>Vendez et diffusez vos formations en ligne sur votre propre plateforme, à votre marque, sans commission ni dépendance.</p><div class="price">À partir de 2 500 € <span>· paiement unique</span></div></div>
-      <div class="card"><h3><span class="arr">↗</span> Prospection + emailing</h3><p>Trouvez vos prospects et automatisez vos campagnes : votre machine commerciale interne, simple et efficace.</p><div class="price">À partir de 2 000 € <span>· paiement unique</span></div></div>
-      <div class="card"><h3><span class="arr">↗</span> Prise de commande en ligne</h3><p>Vos clients commandent en ligne, vous encaissez 100 %. Zéro commission par transaction, contrairement aux grandes plateformes.</p><div class="price">À partir de 2 000 € <span>· paiement unique</span></div></div>
+      {% for p in products %}
+      <div class="card {{ p.featured ? 'hl' }}">{% if p.featured %}<span class="tag">La plus demandée</span>{% endif %}<h3><span class="arr">↗</span> {{ p.name }}</h3><p>{{ p.description }}</p><div class="price">À partir de {{ p.priceFrom|number_format(0, ',', ' ') }} € <span>· paiement unique</span></div></div>
+      {% endfor %}
     </div>
     <p style="text-align:center;margin-top:28px;color:var(--gray);font-size:15px">Un besoin spécifique ? <a href="#contact" style="color:var(--blue);font-weight:600">Notre équipe développe aussi sur mesure →</a></p>
   </div>
@@ -148,7 +162,20 @@ footer a{color:var(--gold);text-decoration:none;font-weight:600}
     <div>
       <h2>Vous connaissez des entreprises qui en ont besoin ? <em>Devenez apporteur.</em></h2>
       <p>Consultants, formateurs, commerciaux, entrepreneurs : recommandez Klevup autour de vous. Vous transmettez le contact, on s'occupe de tout — démo, devis, livraison — et vous touchez votre commission à chaque vente.</p>
-      <a class="btn btn-gold" href="#contact">Rejoindre le réseau apporteurs</a>
+      {% for m in app.flashes('apporteur_success') %}<div class="flash ok">{{ m }}</div>{% endfor %}
+      {% for m in app.flashes('apporteur_error') %}<div class="flash ko">{{ m }}</div>{% endfor %}
+      <form method="post" action="{{ path('apporteur_request') }}" class="lead-form dark">
+        <input type="hidden" name="_token" value="{{ csrf_token('apporteur_request') }}">
+        <input type="hidden" name="ref" value="{{ ref }}">
+        <input type="text" name="website" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <div class="row2">
+          <input type="text" name="name" required maxlength="255" placeholder="Nom et prénom" aria-label="Nom et prénom">
+          <input type="email" name="email" required maxlength="180" placeholder="Email" aria-label="Email">
+        </div>
+        <input type="tel" name="phone" maxlength="30" placeholder="Téléphone (optionnel)" aria-label="Téléphone">
+        <textarea name="message" rows="2" maxlength="2000" placeholder="Votre réseau en deux mots (secteur, type de contacts…)" aria-label="Votre réseau"></textarea>
+        <button type="submit" class="btn btn-gold">Rejoindre le réseau apporteurs</button>
+      </form>
     </div>
     <div class="stat-cards">
       <div class="stat"><div class="v">15 %</div><div class="l">de commission sur chaque vente</div></div>
@@ -163,7 +190,27 @@ footer a{color:var(--gold);text-decoration:none;font-weight:600}
   <div class="wrap">
     <h2>Parlons de votre projet</h2>
     <p>30 minutes, sans engagement. On vous montre l'outil adapté à votre métier et on vous donne un prix ferme.</p>
-    <a class="btn btn-gold" href="mailto:contact@klevup.fr" style="font-size:17px;padding:16px 34px">Demander une démo gratuite</a>
+    {% for m in app.flashes('demo_success') %}<div class="flash ok">{{ m }}</div>{% endfor %}
+    {% for m in app.flashes('demo_error') %}<div class="flash ko">{{ m }}</div>{% endfor %}
+    <form method="post" action="{{ path('demo_request') }}" class="lead-form">
+      <input type="hidden" name="_token" value="{{ csrf_token('demo') }}">
+      <input type="text" name="website" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <div class="row2">
+        <input type="text" name="contact" required maxlength="255" placeholder="Entreprise *" aria-label="Entreprise">
+        <input type="text" name="contact_name" maxlength="255" placeholder="Votre nom" aria-label="Votre nom">
+      </div>
+      <div class="row2">
+        <input type="email" name="email" required maxlength="180" placeholder="Email *" aria-label="Email">
+        <input type="tel" name="phone" maxlength="30" placeholder="Téléphone" aria-label="Téléphone">
+      </div>
+      <select name="product_id" aria-label="Solution qui vous intéresse">
+        {% for p in products %}<option value="{{ p.id }}">{{ p.name }}</option>{% endfor %}
+        <option value="0">Autre besoin / sur-mesure</option>
+      </select>
+      <textarea name="notes" rows="3" maxlength="2000" placeholder="Votre besoin en quelques mots" aria-label="Votre besoin"></textarea>
+      <button type="submit" class="btn btn-gold" style="font-size:17px;padding:16px 34px">Demander une démo gratuite</button>
+      <p class="rgpd">Vos coordonnées servent uniquement à vous recontacter au sujet de votre demande. <a href="{{ path('legal_privacy') }}">Confidentialité</a></p>
+    </form>
     <p style="margin-top:16px;font-size:13.5px">ou écrivez-nous : <a href="mailto:contact@klevup.fr" style="color:var(--blue);font-weight:600">contact@klevup.fr</a></p>
   </div>
 </section>

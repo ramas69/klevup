@@ -3,6 +3,7 @@ namespace App\Controller;
 
 use App\Entity\Commission;
 use App\Entity\Lead;
+use App\Service\CommissionCalculator;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -21,9 +22,7 @@ class DashboardController extends AbstractController
 
         $signedLeads = array_filter($leads, fn(Lead $l) => $l->getStatus() === 'signed');
         $monthStart = new \DateTimeImmutable('first day of this month midnight');
-        $quarterStart = new \DateTimeImmutable('first day of january midnight');
-        $month = (int) (new \DateTimeImmutable())->format('n');
-        $quarterStart = $quarterStart->modify('+' . (intdiv($month - 1, 3) * 3) . ' months');
+        $quarterStart = CommissionCalculator::quarterStart(new \DateTimeImmutable());
 
         $commissionsMonth = array_sum(array_map(
             fn(Commission $c) => $c->getAmount(),
@@ -32,12 +31,15 @@ class DashboardController extends AbstractController
 
         $apporteur = [
             'name' => $user->getName(),
+            'has_iban' => $user->getIban() !== null,
             'commissions_month' => $commissionsMonth,
             'leads_in_progress' => count(array_filter($leads, fn(Lead $l) => !in_array($l->getStatus(), ['signed', 'lost'], true))),
             'sales_signed' => count($signedLeads),
-            'total_generated' => array_sum(array_map(fn(Lead $l) => $l->getCommission(), $signedLeads)),
-            'sales_trimestre' => count(array_filter($signedLeads, fn(Lead $l) => $l->getCreatedAt() >= $quarterStart)),
-            'palier_target' => 3,
+            'total_generated' => array_sum(array_map(fn(Commission $c) => $c->getAmount(), $commissions)),
+            'sales_trimestre' => count(array_filter($signedLeads, fn(Lead $l) => $l->getSignedAt() !== null && $l->getSignedAt() >= $quarterStart)),
+            'palier_target' => CommissionCalculator::PALIER_SALES,
+            'base_rate' => CommissionCalculator::DEFAULT_RATE,
+            'bonus_rate' => CommissionCalculator::DEFAULT_RATE + CommissionCalculator::PALIER_BONUS,
         ];
 
         $leadsData = array_map(fn(Lead $l) => [

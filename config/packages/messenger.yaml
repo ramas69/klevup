@@ -18,7 +18,8 @@ framework:
             messenger.bus.default: []
 
         routing:
-            Symfony\Component\Mailer\Messenger\SendEmailMessage: async
+            # Emails are sent synchronously: shared hosting runs no messenger worker, so an async
+            # route would leave every email queued in the database forever.
             Symfony\Component\Notifier\Message\ChatMessage: async
             Symfony\Component\Notifier\Message\SmsMessage: async
 

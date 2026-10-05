@@ -54,11 +54,11 @@
     <tbody>
       {% for lead in leads %}
       <tr data-status="{{ lead.status }}">
-        <td><strong>{{ lead.contact }}</strong></td>
+        <td><strong>{{ lead.contact }}</strong>{% if lead.contactName %}<br><span style="font-size:12px;color:#5A6A80">{{ lead.contactName }}</span>{% endif %}</td>
         <td>{{ lead.solution }}</td>
         <td>{{ lead.createdAt|date('d/m/Y') }}</td>
-        <td><span class="status-badge status-{{ lead.status }}">{{ {'new': 'Nouveau', 'meeting': 'RDV planifié', 'devis': 'Devis envoyé', 'signed': 'Signé 🎉', 'lost': 'Sans suite'}[lead.status]|default(lead.status) }}</span></td>
-        <td class="amount {{ lead.status == 'signed' ? 'green' }}">{% if lead.status == 'lost' %}—{% else %}{{ lead.status == 'signed' ? '' : '~' }}{{ lead.commission }} €{% endif %}</td>
+        <td><span class="status-badge status-{{ lead.status }}">{{ {'new': 'Nouveau', 'meeting': 'RDV planifié', 'devis': 'Devis envoyé', 'signed': 'Signé 🎉', 'lost': 'Sans suite'}[lead.status]|default(lead.status) }}</span>{% if lead.lostReason %}<div style="font-size:12px;color:#5A6A80;margin-top:4px">{{ constant('App\\Entity\\Lead::LOST_REASONS')[lead.lostReason]|default('') }}</div>{% endif %}</td>
+        <td class="amount {{ lead.status == 'signed' ? 'green' }}">{% if lead.status == 'lost' %}—{% elseif lead.commission > 0 %}{{ lead.status == 'signed' ? '' : '~' }}{{ lead.commission }} €{% else %}<span style="font-weight:500;color:#5A6A80;font-size:12px">calculée au devis</span>{% endif %}</td>
       </tr>
       {% endfor %}
     </tbody>

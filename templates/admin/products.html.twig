@@ -1,0 +1,48 @@
+{% extends "admin/base_admin.html.twig" %}
+{% block title %}Catalogue - Admin Klevup{% endblock %}
+{% block page_title %}Catalogue des solutions{% endblock %}
+{% block page_subtitle %}Une solution active apparaît sur le site, dans le formulaire et le kit de vente des apporteurs, et dans le portail des clients qui ne l'ont pas encore.{% endblock %}
+
+{% block admin_styles %}<style>
+.product-form{display:grid;grid-template-columns:2fr 3fr 110px 90px 80px auto;gap:10px;align-items:end}
+.product-form .form-group{margin:0}
+.checks{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:#0F2447;font-weight:600;white-space:nowrap}
+.checks input{width:auto}
+.card.off{opacity:.6}
+.kit-fields{grid-column:1/-2;font-size:13px}
+.kit-fields summary{cursor:pointer;color:#1D4E89;font-weight:600;margin-bottom:8px}
+.kit-fields .form-group{margin-bottom:10px}
+@media(max-width:1100px){.product-form{grid-template-columns:1fr 1fr}}
+</style>{% endblock %}
+
+{% macro product_form(p) %}
+<form method="post" action="{{ p ? path('admin_product_save', {id: p.id}) : path('admin_product_save') }}" class="product-form">
+  <input type="hidden" name="_token" value="{{ csrf_token('product_save_' ~ (p ? p.id : 'new')) }}">
+  <div class="form-group"><label>Nom</label><input type="text" name="name" required maxlength="255" value="{{ p ? p.name }}"></div>
+  <div class="form-group"><label>Description (site public)</label><textarea name="description" rows="2" maxlength="500">{{ p ? p.description }}</textarea></div>
+  <div class="form-group"><label>Prix dès (€)</label><input type="number" name="price_from" min="0" step="100" value="{{ p ? p.priceFrom : 2000 }}"></div>
+  <div class="form-group"><label>Commission %</label><input type="number" name="commission_rate" min="0" max="50" value="{{ p ? p.commissionRate : 15 }}"></div>
+  <div class="form-group"><label>Ordre</label><input type="number" name="position" value="{{ p ? p.position : 0 }}"></div>
+  <details class="kit-fields">
+    <summary>Kit de vente apporteurs</summary>
+    <div class="form-group"><label>Qui cibler</label><input type="text" name="target" maxlength="255" value="{{ p ? p.target }}"></div>
+    <div class="form-group"><label>Quoi dire (une idée par ligne)</label><textarea name="pitch" rows="5">{{ p ? p.pitch }}</textarea></div>
+    <div class="form-group"><label>Lien plaquette / vidéo démo (https://…)</label><input type="url" name="resource_url" maxlength="500" value="{{ p ? p.resourceUrl }}"></div>
+  </details>
+  <div class="checks">
+    <label><input type="checkbox" name="active" value="1" {{ not p or p.active ? 'checked' }}> Active</label>
+    <label><input type="checkbox" name="featured" value="1" {{ p and p.featured ? 'checked' }}> Mise en avant</label>
+    <button type="submit" class="btn-save">{{ p ? 'Enregistrer' : 'Ajouter' }}</button>
+  </div>
+</form>
+{% endmacro %}
+
+{% block admin_content %}
+{% for p in products %}
+<div class="card {{ p.active ? '' : 'off' }}">{{ _self.product_form(p) }}</div>
+{% endfor %}
+<div class="card">
+  <h2>Nouvelle solution</h2>
+  {{ _self.product_form(null) }}
+</div>
+{% endblock %}

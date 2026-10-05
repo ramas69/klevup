@@ -1,7 +1,7 @@
 {% extends "apporteur/base_apporteur.html.twig" %}
 {% block title %}Mes commissions - Klevup{% endblock %}
 {% block page_title %}Mes commissions{% endblock %}
-{% block page_subtitle %}Chaque vente signée génère votre commission — versée après encaissement par Klevup.{% endblock %}
+{% block page_subtitle %}Chaque vente signée génère votre commission, avec sa date de versement prévue.{% endblock %}
 
 {% block apporteur_styles %}<style>
 .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
@@ -32,6 +32,14 @@
   <div class="stat"><div class="stat-label">Commissions</div><div class="stat-val">{{ stats.count }}</div></div>
 </div>
 
+{% if periods|length > 0 %}
+<div class="panel" style="padding:16px 20px;margin-bottom:20px;font-size:14px">
+  <strong style="color:#0F2447">Relevés mensuels :</strong>
+  {% for p in periods %}<a href="{{ path('commission_statement', {period: p}) }}" style="color:#1D4E89;font-weight:600;margin-left:10px">{{ (p ~ '-01')|date('m/Y') }}</a>{% endfor %}
+  <span style="color:#5A6A80;font-size:12.5px;margin-left:10px">— à joindre à votre facture</span>
+</div>
+{% endif %}
+
 {% if commissions|length > 0 %}
 <div class="filters">
   <button type="button" class="filter-btn active" data-filter="all">Toutes</button>
@@ -42,15 +50,15 @@
 <div class="panel">
   <table id="commissions-table">
     <thead>
-      <tr><th>Entreprise</th><th>Solution</th><th>Créée le</th><th>Statut</th><th>Montant</th></tr>
+      <tr><th>Entreprise</th><th>Solution</th><th>Créée le</th><th>Versement</th><th>Montant</th></tr>
     </thead>
     <tbody>
       {% for c in commissions %}
       <tr data-status="{{ c.status }}">
         <td><strong>{{ c.companyName }}</strong></td>
-        <td>{{ c.solution }}</td>
+        <td>{{ c.solution }}{% if c.referralBonus %} 🤝{% endif %}</td>
         <td>{{ c.createdAt|date('d/m/Y') }}</td>
-        <td><span class="status-badge status-{{ c.status }}">{{ c.status == 'encashed' ? 'Versée le ' ~ c.encashedAt|date('d/m/Y') : 'En attente de versement' }}</span></td>
+        <td><span class="status-badge status-{{ c.status }}">{% if c.status == 'encashed' %}Versée le {{ c.encashedAt|date('d/m/Y') }}{% elseif c.dueAt %}Prévu le {{ c.dueAt|date('d/m/Y') }}{% else %}En attente{% endif %}</span></td>
         <td class="amount {{ c.status == 'encashed' ? 'green' }}">{{ c.status == 'encashed' ? '+' : '' }}{{ c.amount }} €</td>
       </tr>
       {% endfor %}

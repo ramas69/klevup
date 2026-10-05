@@ -1,0 +1,65 @@
+{% extends "base.html.twig" %}
+{% block title %}Relevé de commissions {{ period|date('m/Y') }} - Klevup{% endblock %}
+{% block styles %}<style>
+body{background:#f4f6fa}
+.sheet{max-width:820px;margin:32px auto;background:#fff;border:1px solid var(--border);border-radius:14px;padding:48px}
+.head{display:flex;justify-content:space-between;gap:24px;margin-bottom:36px}
+.brand{font-weight:800;font-size:24px;color:var(--navy)}
+.brand small{display:block;font-size:12px;font-weight:500;color:var(--gray);margin-top:4px}
+h1{font-size:20px;color:var(--navy);margin-bottom:4px}
+.who{font-size:13.5px;line-height:1.6;color:var(--ink)}
+.who strong{color:var(--navy)}
+table{width:100%;border-collapse:collapse;font-size:13.5px;margin:24px 0}
+th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--gray);border-bottom:2px solid var(--navy);padding:8px}
+td{padding:10px 8px;border-bottom:1px solid var(--border)}
+.num{text-align:right;font-variant-numeric:tabular-nums}
+.total td{font-weight:800;color:var(--navy);border-bottom:none;font-size:15px}
+.note{font-size:12px;color:var(--gray);line-height:1.6;margin-top:24px}
+.actions{max-width:820px;margin:24px auto 0;display:flex;gap:12px;justify-content:flex-end;padding:0 16px}
+.actions a{color:var(--blue);font-weight:600;font-size:14px;align-self:center}
+@media(max-width:640px){.sheet{padding:24px 16px;margin:16px}.head{flex-direction:column}}
+@media print{body{background:#fff}.actions{display:none}.sheet{border:none;margin:0;padding:0;max-width:none}}
+</style>{% endblock %}
+
+{% block body %}
+<div class="actions">
+  <a href="{{ is_granted('ROLE_ADMIN') ? path('admin_commissions') : path('commissions') }}">← Retour</a>
+  <button type="button" class="btn btn-gold" onclick="window.print()">Imprimer / PDF</button>
+</div>
+<div class="sheet">
+  <div class="head">
+    <div>
+      <div class="brand">klevup<small>contact@klevup.fr</small></div>
+    </div>
+    <div class="who">
+      <h1>Relevé de commissions — {{ period|date('m/Y') }}</h1>
+      <strong>{{ apporteur.name }}</strong><br>
+      {{ apporteur.email }}<br>
+      {% if apporteur.billingAddress %}{{ apporteur.billingAddress|nl2br }}<br>{% endif %}
+      {% if apporteur.siret %}SIRET {{ apporteur.siret }}<br>{% endif %}
+      {% if apporteur.iban %}IBAN •••• {{ apporteur.iban|slice(-4) }}{% endif %}
+    </div>
+  </div>
+
+  {% if lines|length > 0 %}
+  <table>
+    <thead><tr><th>Versée le</th><th>Client / objet</th><th>Solution</th><th class="num">Montant</th></tr></thead>
+    <tbody>
+      {% for c in lines %}
+      <tr>
+        <td>{{ c.encashedAt|date('d/m/Y') }}</td>
+        <td>{{ c.companyName }}</td>
+        <td>{{ c.solution }}</td>
+        <td class="num">{{ c.amount|number_format(2, ',', ' ') }} €</td>
+      </tr>
+      {% endfor %}
+      <tr class="total"><td colspan="3">Total versé sur la période</td><td class="num">{{ total|number_format(2, ',', ' ') }} €</td></tr>
+    </tbody>
+  </table>
+  {% else %}
+  <p class="note">Aucune commission versée sur cette période.</p>
+  {% endif %}
+
+  <p class="note">Relevé établi par Klevup à titre récapitulatif des commissions d'apport d'affaires versées sur la période. Si vous exercez en entreprise individuelle ou micro-entreprise, établissez votre facture à Klevup du même montant en y joignant ce relevé{% if not apporteur.siret %} — pensez à renseigner votre SIRET dans votre profil{% endif %}.</p>
+</div>
+{% endblock %}

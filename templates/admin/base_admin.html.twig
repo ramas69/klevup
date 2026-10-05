@@ -63,10 +63,12 @@ thead th,tbody td{padding:8px}
   <aside class="sidebar">
     <div class="sidebar-logo">K Klevup<small>Administration</small></div>
     <ul class="sidebar-nav">
+      <li><a href="{{ path('admin_dashboard') }}" class="{{ app.current_route == 'admin_dashboard' ? 'active' }}">Tableau de bord</a></li>
       <li><a href="{{ path('admin_leads') }}" class="{{ app.current_route == 'admin_leads' ? 'active' }}">Leads</a></li>
       <li><a href="{{ path('admin_commissions') }}" class="{{ app.current_route == 'admin_commissions' ? 'active' }}">Commissions</a></li>
       <li><a href="{{ path('admin_tickets') }}" class="{{ app.current_route == 'admin_tickets' ? 'active' }}">Tickets</a></li>
       <li><a href="{{ path('admin_applications') }}" class="{{ app.current_route == 'admin_applications' ? 'active' }}">Applications</a></li>
+      <li><a href="{{ path('admin_products') }}" class="{{ app.current_route == 'admin_products' ? 'active' }}">Catalogue</a></li>
       <li><a href="{{ path('admin_users') }}" class="{{ app.current_route == 'admin_users' ? 'active' }}">Utilisateurs</a></li>
       <li><a href="{{ path('admin_invite') }}" class="{{ app.current_route == 'admin_invite' ? 'active' }}">Invitations</a></li>
       <li><a href="{{ path('profile') }}">Mon profil</a></li>

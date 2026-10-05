@@ -1,12 +1,14 @@
 {% extends "admin/base_admin.html.twig" %}
 {% block title %}Commissions - Admin Klevup{% endblock %}
 {% block page_title %}Commissions{% endblock %}
-{% block page_subtitle %}Créées automatiquement à la signature d'un lead. Marquez-les encaissées une fois versées.{% endblock %}
+{% block page_subtitle %}Créées automatiquement à la signature (et primes de parrainage). Ajustez la date prévue, puis marquez « versée » après le virement.{% endblock %}
 
 {% block admin_styles %}<style>
 .amount{font-weight:700;color:#0F2447}
 .status-pending{background:#fffbee;color:#ff9800}
 .status-encashed{background:#e8f5e9;color:#2E8B57}
+.overdue{color:#C0392B;font-weight:700}
+.inline-form input[type=date]{padding:6px 8px;border:2px solid #E3E9F2;border-radius:8px;font-family:Poppins,sans-serif;font-size:12px}
 .total-bar{background:#FDF9F0;border-top:1px solid #E3E9F2;padding:14px 18px;text-align:right;font-weight:700;color:#0F2447;font-size:14px}
 </style>{% endblock %}
 
@@ -15,7 +17,7 @@
   {% if commissions|length > 0 %}
   <table>
     <thead>
-      <tr><th>Entreprise</th><th>Solution</th><th>Apporteur</th><th>Créée le</th><th>Montant</th><th>Statut</th><th>Action</th></tr>
+      <tr><th>Entreprise</th><th>Solution</th><th>Apporteur</th><th>Créée le</th><th>Montant</th><th>Versement prévu</th><th>Action</th></tr>
     </thead>
     <tbody>
       {% for c in commissions %}
@@ -25,12 +27,24 @@
         <td>{{ c.user.name }}<br><span style="font-size:11px;color:#5A6A80;font-family:monospace">{{ c.user.iban ?? 'IBAN manquant' }}</span></td>
         <td>{{ c.createdAt|date('d/m/Y') }}</td>
         <td class="amount">{{ c.amount }} €</td>
-        <td><span class="status-badge status-{{ c.status }}">{{ c.status == 'encashed' ? 'Encaissée le ' ~ c.encashedAt|date('d/m/Y') : 'En attente' }}</span></td>
+        <td>
+          {% if c.status == 'encashed' %}
+          <span class="status-badge status-encashed">Versée le {{ c.encashedAt|date('d/m/Y') }}</span>
+          <a href="{{ path('admin_statement', {id: c.user.id, period: c.encashedAt|date('Y-m')}) }}" style="font-size:11px;color:#1D4E89;display:block;margin-top:4px">Relevé du mois</a>
+          {% else %}
+          <form method="post" action="{{ path('admin_commission_due', {id: c.id}) }}" class="inline-form">
+            <input type="hidden" name="_token" value="{{ csrf_token('commission_due_' ~ c.id) }}">
+            <input type="date" name="due_at" value="{{ c.dueAt ? c.dueAt|date('Y-m-d') }}" aria-label="Date de versement prévue" class="{{ c.dueAt and c.dueAt|date('Y-m-d') < 'now'|date('Y-m-d') ? 'overdue' }}">
+            <button type="submit" class="btn-save" style="padding:6px 10px">OK</button>
+          </form>
+          {% if c.dueAt and c.dueAt|date('Y-m-d') < 'now'|date('Y-m-d') %}<span class="overdue" style="font-size:11px">En retard</span>{% endif %}
+          {% endif %}
+        </td>
         <td>
           {% if c.status != 'encashed' %}
           <form method="post" action="{{ path('admin_commission_encash', {id: c.id}) }}">
             <input type="hidden" name="_token" value="{{ csrf_token('commission_encash_' ~ c.id) }}">
-            <button type="submit" class="btn-save">Marquer encaissée</button>
+            <button type="submit" class="btn-save">Marquer versée</button>
           </form>
           {% else %}—{% endif %}
         </td>

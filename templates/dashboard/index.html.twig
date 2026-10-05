@@ -60,17 +60,24 @@
   </div>
 </div>
 
+{% if not apporter.has_iban %}
+<div class="palier" style="border-color:#C0392B;padding:16px 24px">
+  <strong style="color:#0F2447">Renseigne ton IBAN</strong> pour recevoir tes commissions par virement — <a href="{{ path('profile') }}" style="color:#1D4E89;font-weight:700">compléter mon profil →</a>
+</div>
+{% endif %}
+
+{% set remaining = apporter.palier_target - apporter.sales_trimestre %}
 <div class="palier">
   <div class="palier-head">
     <div class="palier-icon">K</div>
     <div class="palier-text">
-      <h3>{% if apporter.sales_trimestre >= apporter.palier_target %}Taux Performance 20 % activé 🎉{% else %}Plus que {{ apporter.palier_target - apporter.sales_trimestre }} vente{{ apporter.palier_target - apporter.sales_trimestre > 1 ? 's' }} pour passer à 20 %{% endif %}</h3>
-      <p>Ta {{ apporter.palier_target }}ᵉ vente du trimestre déclenche le taux Performance sur toutes les suivantes.</p>
+      <h3>{% if remaining <= 0 %}Taux Performance {{ apporter.bonus_rate }} % activé 🎉{% else %}Plus que {{ remaining }} vente{{ remaining > 1 ? 's' }} avant le taux {{ apporter.bonus_rate }} %{% endif %}</h3>
+      <p>Commission de {{ apporter.base_rate }} % sur chaque vente, puis {{ apporter.bonus_rate }} % dès ta {{ apporter.palier_target + 1 }}ᵉ vente signée du trimestre.</p>
     </div>
-    <div class="palier-badge">★ 20 %</div>
+    <div class="palier-badge">★ {{ apporter.bonus_rate }} %</div>
   </div>
   <div style="display:flex;gap:16px;font-size:13px;font-weight:700;color:#0F2447;margin-bottom:8px">
-    <span>{{ apporter.sales_trimestre }} vente{{ apporter.sales_trimestre > 1 ? 's' }} ce trimestre</span>
+    <span>{{ apporter.sales_trimestre }} vente{{ apporter.sales_trimestre > 1 ? 's' }} signée{{ apporter.sales_trimestre > 1 ? 's' }} ce trimestre</span>
     <span>Palier : {{ apporter.palier_target }}</span>
   </div>
   <div class="progress-bar"><div class="progress-fill" style="width:{{ min(100, (apporter.sales_trimestre / apporter.palier_target * 100)|round) }}%"></div></div>
@@ -87,7 +94,7 @@
           <td><strong>{{ lead.contact }}</strong></td>
           <td>{{ lead.solution }}</td>
           <td><span class="status-badge status-{{ lead.status }}">{{ {'new': 'Nouveau', 'meeting': 'RDV planifié', 'devis': 'Devis envoyé', 'signed': 'Signé 🎉', 'lost': 'Sans suite'}[lead.status]|default(lead.status) }}</span></td>
-          <td class="amount {{ lead.status == 'signed' ? 'green' }}">~{{ lead.commission }} €</td>
+          <td class="amount {{ lead.status == 'signed' ? 'green' }}">{% if lead.status == 'lost' %}—{% elseif lead.commission > 0 %}{{ lead.status == 'signed' ? '' : '~' }}{{ lead.commission }} €{% else %}<span style="font-weight:500;color:#5A6A80;font-size:12px">au devis</span>{% endif %}</td>
         </tr>
         {% else %}
         <tr><td colspan="4" style="text-align:center;color:#5A6A80;padding:24px">Aucun lead — <a href="{{ path('lead_new') }}" style="color:#F5B731;font-weight:600">envoyez le premier</a></td></tr>

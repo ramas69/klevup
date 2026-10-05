@@ -8,6 +8,8 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Table(name: 'commission')]
 class Commission
 {
+    public const REFERRAL_LABEL = 'Prime de parrainage';
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -30,6 +32,15 @@ class Commission
 
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $encashedAt = null;
+
+    // Announced payment date.
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $dueAt = null;
+
+    // Referral bonus: the referred apporteur it rewards (one bonus per referee).
+    #[ORM\OneToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(nullable: true, unique: true, onDelete: 'SET NULL')]
+    private ?User $referralOf = null;
 
     #[ORM\ManyToOne(inversedBy: 'commissions')]
     #[ORM\JoinColumn(nullable: false)]
@@ -54,6 +65,11 @@ class Commission
     public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
     public function getEncashedAt(): ?\DateTimeImmutable { return $this->encashedAt; }
     public function setEncashedAt(?\DateTimeImmutable $date): self { $this->encashedAt = $date; return $this; }
+    public function getDueAt(): ?\DateTimeImmutable { return $this->dueAt; }
+    public function setDueAt(?\DateTimeImmutable $dueAt): self { $this->dueAt = $dueAt; return $this; }
+    public function getReferralOf(): ?User { return $this->referralOf; }
+    public function setReferralOf(?User $referralOf): self { $this->referralOf = $referralOf; return $this; }
+    public function isReferralBonus(): bool { return $this->lead === null && $this->solution === self::REFERRAL_LABEL; }
     public function getUser(): User { return $this->user; }
     public function setUser(User $user): self { $this->user = $user; return $this; }
     public function getLead(): ?Lead { return $this->lead; }

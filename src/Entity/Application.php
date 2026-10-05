@@ -35,6 +35,13 @@ class Application
     #[ORM\JoinColumn(nullable: false)]
     private User $client;
 
+    #[ORM\ManyToOne(targetEntity: Product::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?Product $product = null;
+
+    public function getProduct(): ?Product { return $this->product; }
+    public function setProduct(?Product $product): self { $this->product = $product; return $this; }
+
     public function getId(): ?int { return $this->id; }
     public function getName(): string { return $this->name; }
     public function setName(string $name): self { $this->name = $name; return $this; }

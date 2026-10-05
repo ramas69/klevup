@@ -36,6 +36,8 @@ class SmokeTest extends WebTestCase
     {
         yield 'dashboard' => ['/dashboard'];
         yield 'support' => ['/support'];
+        yield 'admin dashboard' => ['/admin'];
+        yield 'admin products' => ['/admin/products'];
         yield 'admin users' => ['/admin/users'];
         yield 'admin leads' => ['/admin/leads'];
         yield 'admin tickets' => ['/admin/tickets'];

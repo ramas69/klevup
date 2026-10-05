@@ -31,6 +31,7 @@ APP_DEBUG=0
 APP_SECRET=CHANGEZ_MOI          # générez-en un : php -r "echo bin2hex(random_bytes(16));"
 DATABASE_URL="mysql://UTILISATEUR:MOTDEPASSE@localhost:3306/NOM_BASE?serverVersion=8.0&charset=utf8mb4"
 MAILER_DSN=smtp://UTILISATEUR:MOTDEPASSE@HOTE_SMTP:465   # SMTP o2switch/OVH ou Brevo
+DEFAULT_URI=https://votre-domaine.fr                     # liens des emails envoyés par le cron
 ```
 
 - **APP_SECRET** : obligatoirement une nouvelle valeur, jamais celle du dépôt.
@@ -82,5 +83,8 @@ APP_ENV=prod php bin/console cache:clear
 ## Notes
 
 - `var/` (cache, logs) doit être accessible en écriture par PHP — c'est le cas par défaut en mutualisé (même utilisateur).
-- Les crons ne sont pas nécessaires pour l'instant (pas de messenger worker : le transport doctrine n'est utilisé par aucun handler).
-- Google Fonts est chargé depuis le CDN ; pour une conformité RGPD stricte, auto-hébergez la police Poppins.
+- **Cron quotidien** — cPanel → « Tâches Cron », une fois par jour (ex. 8 h) :
+  `cd ~/klevup && php bin/console app:maintenance-reminders --env=prod && php bin/console app:apporteur-reminders --env=prod`
+  - relance les clients dont la maintenance se termine dans 30 et 7 jours ;
+  - relance les apporteurs sans nouveau lead depuis 30 et 90 jours.
+  Sans ce cron, aucune de ces relances ne part.
