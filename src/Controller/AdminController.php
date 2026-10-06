@@ -26,7 +26,8 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_ADMIN')]
 class AdminController extends AbstractController
 {
-    private const INVITABLE_ROLES = ['ROLE_APPORTEUR', 'ROLE_CLIENT'];
+    private const INVITABLE_ROLES = ['ROLE_APPORTEUR', 'ROLE_CLIENT', 'ROLE_ADMIN'];
+    public const ROLE_LABELS = ['ROLE_APPORTEUR' => 'Apporteur', 'ROLE_CLIENT' => 'Client', 'ROLE_ADMIN' => 'Admin'];
     private const CSRF_ERROR = 'Jeton CSRF invalide.';
     public const LEAD_STATUSES = ['new', 'meeting', 'devis', 'signed', 'lost'];
     public const LEAD_LABELS = ['new' => 'Nouveau', 'meeting' => 'RDV planifié', 'devis' => 'Devis envoyé', 'signed' => 'Signé', 'lost' => 'Sans suite'];
@@ -104,10 +105,17 @@ class AdminController extends AbstractController
             if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 $this->addFlash('error', 'Email invalide — invitation non créée.');
 
-                return $this->redirectToRoute('admin_invite');
+                return $request->request->getString('_back') === 'users' ? $this->redirectToRoute('admin_users') : $this->redirectToRoute('admin_invite');
             }
 
             $inviteLink = $this->createInvitation($em, $role, $email !== '' ? $email : null);
+
+            // Invited from the Users page: stay there and show the link.
+            if ($request->request->getString('_back') === 'users') {
+                $this->addFlash('invite_link', $inviteLink);
+
+                return $this->redirectToRoute('admin_users');
+            }
         }
 
         return $this->render('admin/invite.html.twig', [
@@ -155,7 +163,7 @@ class AdminController extends AbstractController
         if ($email !== null) {
             $sent = $this->notifier->send($email, 'Votre invitation Klevup', sprintf(
                 "Bonjour,\n\nVous êtes invité à rejoindre Klevup en tant que %s.\n\nCréez votre compte ici (lien valable 30 jours) :\n%s",
-                $role === 'ROLE_APPORTEUR' ? 'apporteur d\'affaires' : 'client',
+                ['ROLE_APPORTEUR' => 'apporteur d\'affaires', 'ROLE_CLIENT' => 'client', 'ROLE_ADMIN' => 'administrateur'][$role],
                 $link
             ));
             $sent
@@ -169,14 +177,60 @@ class AdminController extends AbstractController
     #[Route('/admin/users', name: 'admin_users')]
     public function users(Request $request, EntityManagerInterface $em): Response
     {
-        $repo = $em->getRepository(User::class);
-        [$page, $pages, $offset] = $this->paginate($request, $repo->count([]));
+        $q = trim($request->query->getString('q'));
+        $role = array_key_exists($request->query->getString('role'), self::ROLE_LABELS) ? $request->query->getString('role') : null;
+
+        $qb = $em->getRepository(User::class)->createQueryBuilder('u');
+        if ($q !== '') {
+            $qb->andWhere('u.name LIKE :q OR u.email LIKE :q')->setParameter('q', '%' . addcslashes($q, '%_') . '%');
+        }
+        if ($role !== null) {
+            $qb->andWhere('u.roles LIKE :role')->setParameter('role', '%"' . $role . '"%');
+        }
+
+        [$page, $pages, $offset] = $this->paginate($request, (int) (clone $qb)->select('COUNT(u.id)')->getQuery()->getSingleScalarResult());
+
+        $counts = ['all' => $em->getRepository(User::class)->count([])];
+        foreach (array_keys(self::ROLE_LABELS) as $r) {
+            $counts[$r] = (int) $em->createQuery('SELECT COUNT(u.id) FROM App\Entity\User u WHERE u.roles LIKE :r')->setParameter('r', '%"' . $r . '"%')->getSingleScalarResult();
+        }
 
         return $this->render('admin/users.html.twig', [
-            'users' => $repo->findBy([], ['createdAt' => 'DESC'], self::PER_PAGE, $offset),
+            'users' => $qb->orderBy('u.createdAt', 'DESC')->setFirstResult($offset)->setMaxResults(self::PER_PAGE)->getQuery()->getResult(),
+            'q' => $q,
+            'role' => $role,
+            'roleLabels' => self::ROLE_LABELS,
+            'counts' => $counts,
             'page' => $page,
             'pages' => $pages,
         ]);
+    }
+
+    #[Route('/admin/user/{id}/role', name: 'admin_user_role', methods: ['POST'])]
+    public function changeRole(User $user, Request $request, EntityManagerInterface $em): Response
+    {
+        if (!$this->isCsrfTokenValid('role_user_' . $user->getId(), $request->request->getString('_token'))) {
+            throw $this->createAccessDeniedException(self::CSRF_ERROR);
+        }
+
+        $role = $request->request->getString('role');
+        if (!array_key_exists($role, self::ROLE_LABELS)) {
+            $this->addFlash('error', 'Rôle invalide.');
+        } elseif ($user->getId() === $this->getUser()?->getId()) {
+            // Never let an admin lock themselves out of the back-office.
+            $this->addFlash('error', 'Vous ne pouvez pas modifier votre propre rôle.');
+        } else {
+            $user->setRoles([$role]);
+            $em->flush();
+            $this->addFlash('success', sprintf('%s est maintenant %s.', $user->getName(), mb_strtolower(self::ROLE_LABELS[$role])));
+        }
+
+        // Back to the same filtered list.
+        return $this->redirectToRoute('admin_users', array_filter([
+            'q' => $request->request->getString('q'),
+            'role' => $request->request->getString('filter_role'),
+            'page' => $request->request->getInt('page') ?: null,
+        ]));
     }
 
     /**

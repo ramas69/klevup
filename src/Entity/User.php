@@ -114,13 +114,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, Equatab
 
     public function eraseCredentials(): void {}
 
-    // $this = user stored in the session, $user = fresh DB copy: a disabled account or a changed password ends open sessions.
+    // $this = user stored in the session, $user = fresh DB copy: a disabled account, a changed password
+    // or a changed role ends open sessions (the user logs in again with the new rights).
     public function isEqualTo(UserInterface $user): bool
     {
         return $user instanceof self
             && $user->getStatus() !== 'disabled'
             && $user->getId() === $this->id
-            && $user->getPassword() === $this->password;
+            && $user->getPassword() === $this->password
+            && $user->getRoles() === $this->getRoles();
     }
     public function getUserIdentifier(): string { return $this->email; }
 }

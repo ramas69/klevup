@@ -396,4 +396,65 @@ class SalesFlowTest extends WebTestCase
 
         self::assertStringContainsString('1 relance', $tester->getDisplay());
     }
+
+    public function testUsersCanBeSearchedFilteredAndCounted(): void
+    {
+        $this->makeUser('julie@test.fr', 'ROLE_APPORTEUR');
+        $this->makeUser('marc@test.fr', 'ROLE_APPORTEUR');
+        $this->makeUser('formapro@test.fr', 'ROLE_CLIENT');
+        $this->client->loginUser($this->makeUser('admin@test.fr', 'ROLE_ADMIN'));
+
+        $crawler = $this->client->request('GET', '/admin/users?role=ROLE_APPORTEUR');
+        self::assertCount(2, $crawler->filter('tbody tr'));
+        self::assertSelectorTextContains('h1', '4');
+
+        $crawler = $this->client->request('GET', '/admin/users?q=formapro');
+        self::assertCount(1, $crawler->filter('tbody tr'));
+        self::assertSelectorTextContains('tbody', 'formapro@test.fr');
+    }
+
+    public function testAdminCanPromoteSomeoneButNotChangeOwnRole(): void
+    {
+        $julie = $this->makeUser('julie@test.fr', 'ROLE_APPORTEUR');
+        $admin = $this->makeUser('admin@test.fr', 'ROLE_ADMIN');
+        $this->client->loginUser($admin);
+
+        $crawler = $this->client->request('GET', '/admin/users');
+        $token = $crawler->filter(sprintf('form[action="/admin/user/%d/role"] input[name=_token]', $julie->getId()))->attr('value');
+        $this->client->request('POST', sprintf('/admin/user/%d/role', $julie->getId()), ['_token' => $token, 'role' => 'ROLE_ADMIN']);
+        self::assertResponseRedirects('/admin/users');
+        $this->em->clear();
+        self::assertSame(['ROLE_ADMIN'], $this->em->find(User::class, $julie->getId())->getRoles());
+
+        // Own row has no role form at all; a forged request is refused too.
+        self::assertCount(0, $crawler->filter(sprintf('form[action="/admin/user/%d/role"]', $admin->getId())));
+        $this->client->request('POST', sprintf('/admin/user/%d/role', $admin->getId()), ['_token' => $token, 'role' => 'ROLE_CLIENT']);
+        $this->em->clear();
+        self::assertSame(['ROLE_ADMIN'], $this->em->find(User::class, $admin->getId())->getRoles());
+    }
+
+    public function testRoleChangeEndsTheOpenSession(): void
+    {
+        $julie = $this->makeUser('julie@test.fr', 'ROLE_APPORTEUR');
+        $this->client->loginUser($julie);
+        $this->client->request('GET', '/dashboard');
+        self::assertResponseIsSuccessful();
+
+        $this->em->getConnection()->executeStatement('UPDATE user SET roles = \'["ROLE_CLIENT"]\' WHERE id = ' . $julie->getId());
+
+        $this->client->request('GET', '/dashboard');
+        self::assertResponseRedirects('/login');
+    }
+
+    public function testInviteFromUsersPageStaysThereAndCanCreateAnAdmin(): void
+    {
+        $this->client->loginUser($this->makeUser('admin@test.fr', 'ROLE_ADMIN'));
+        $crawler = $this->client->request('GET', '/admin/users');
+        $this->client->submit($crawler->filter('#invite-dialog form')->form(), ['role' => 'ROLE_ADMIN', 'email' => 'associe@test.fr']);
+
+        self::assertResponseRedirects('/admin/users');
+        $this->client->followRedirect();
+        self::assertSelectorExists('.link-box');
+        self::assertSame('ROLE_ADMIN', $this->em->getConnection()->fetchOne('SELECT role FROM invitation'));
+    }
 }

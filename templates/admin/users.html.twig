@@ -1,63 +1,179 @@
 {% extends "admin/base_admin.html.twig" %}
 {% block title %}Utilisateurs - Admin Klevup{% endblock %}
-{% block page_title %}Utilisateurs{% endblock %}
-{% block page_subtitle %}Désactivez un compte pour couper son accès sans perdre son historique.{% endblock %}
+{% block page_title %}Utilisateurs <span style="font-size:18px;color:#5A6A80;font-weight:600">· {{ counts.all }}</span>{% endblock %}
+{% block page_subtitle %}Invitez, changez les rôles, désactivez un compte sans perdre son historique.{% endblock %}
 
 {% block topbar_action %}
-<a href="{{ path('admin_invite') }}" class="btn btn-gold">+ Nouvelle invitation</a>
+<button type="button" class="btn btn-gold" onclick="document.getElementById('invite-dialog').showModal()">+ Inviter quelqu'un</button>
 {% endblock %}
 
 {% block admin_styles %}<style>
-.role-badge{display:inline-block;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:700;margin-right:4px}
-.role-apporteur{background:#fffbee;color:#ff9800}
-.role-client{background:#e3f2fd;color:#1976d2}
-.role-admin{background:#ffebee;color:#c0392b}
+.toolbar{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:18px}
+.search{flex:1;min-width:240px;position:relative}
+.search input{width:100%;padding:11px 14px 11px 38px;border:2px solid #E3E9F2;border-radius:12px;font-family:Poppins,sans-serif;font-size:14px;background:#fff}
+.search input:focus{outline:none;border-color:#F5B731}
+.search::before{content:'⌕';position:absolute;left:13px;top:50%;transform:translateY(-52%);color:#5A6A80;font-size:18px}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chips a{display:inline-flex;gap:8px;align-items:center;padding:9px 14px;border-radius:999px;background:#fff;border:2px solid #E3E9F2;color:#0F2447;text-decoration:none;font-weight:700;font-size:13px}
+.chips a:hover{border-color:#F5B731}
+.chips a.on{background:#0F2447;border-color:#0F2447;color:#fff}
+.chips .n{background:#F0F2F5;color:#0F2447;border-radius:999px;padding:1px 8px;font-size:12px}
+.chips a.on .n{background:#F5B731}
+.u-name{font-weight:700;color:#0F2447}
+.u-mail{font-size:12.5px;color:#5A6A80}
+.you{display:inline-block;background:#F5B731;color:#0F2447;font-size:10.5px;font-weight:700;border-radius:999px;padding:1px 8px;margin-left:6px}
+.role-form select{padding:7px 10px;border:2px solid #E3E9F2;border-radius:10px;font-family:Poppins,sans-serif;font-size:13px;font-weight:600;color:#0F2447;background:#fff;cursor:pointer}
+.role-form select.r-ROLE_ADMIN{border-color:#f5c6c0;background:#ffebee;color:#c0392b}
+.role-form select.r-ROLE_APPORTEUR{border-color:#fde7b0;background:#fffbee;color:#b9770e}
+.role-form select.r-ROLE_CLIENT{border-color:#c6dcf5;background:#e3f2fd;color:#1976d2}
+.role-fixed{display:inline-block;font-size:12px;font-weight:700;padding:6px 12px;border-radius:999px;background:#ffebee;color:#c0392b}
 .status-active{background:#e8f5e9;color:#2E8B57}
-.status-disabled{background:#f5f5f5;color:#888}
-.btn-toggle{background:#E3E9F2;color:#0F2447;padding:6px 12px;border-radius:6px;font-size:12px;border:none;cursor:pointer;font-family:Poppins,sans-serif;font-weight:600}
-.btn-delete{background:#ff6b6b;color:#fff;padding:6px 12px;border-radius:6px;font-size:12px;border:none;cursor:pointer;font-family:Poppins,sans-serif;transition:all .15s}
-.btn-delete:hover{background:#ff5252}
+.status-disabled{background:#f0f2f5;color:#888}
+.row-actions{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap}
+.btn-mini{background:#F0F2F5;color:#0F2447;padding:7px 12px;border-radius:8px;font-size:12px;border:none;cursor:pointer;font-family:Poppins,sans-serif;font-weight:600}
+.btn-mini:hover{background:#E3E9F2}
+.btn-mini.danger{background:#fff;color:#C0392B;border:1px solid #f5c6c0}
+.btn-mini.danger:hover{background:#ffebee}
+.link-box{background:#e8f5e9;border:2px solid #2E8B57;border-radius:14px;padding:16px;margin-bottom:18px}
+.link-box p{color:#2E8B57;font-weight:700;font-size:14px;margin-bottom:8px}
+.link-row{display:flex;gap:10px;flex-wrap:wrap}
+.link-row input{flex:1;min-width:240px;padding:10px;border-radius:10px;border:1px solid #E3E9F2;font-family:monospace;font-size:12.5px;color:#0F2447}
+dialog{border:none;border-radius:18px;padding:0;width:min(480px,calc(100% - 32px));box-shadow:0 24px 60px rgba(4,12,28,.35)}
+dialog::backdrop{background:rgba(15,36,71,.45)}
+.dlg{padding:26px}
+.dlg h2{color:#0F2447;font-size:19px;margin-bottom:4px}
+.dlg .lead{color:#5A6A80;font-size:13.5px;margin-bottom:18px}
+.dlg .form-group{margin-bottom:16px}
+.dlg-roles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.dlg-roles label{position:relative}
+.dlg-roles input{position:absolute;opacity:0}
+.dlg-roles span{display:block;text-align:center;padding:12px 6px;border:2px solid #E3E9F2;border-radius:12px;font-weight:700;font-size:13px;color:#5A6A80;cursor:pointer}
+.dlg-roles span small{display:block;font-weight:500;font-size:11px;margin-top:2px}
+.dlg-roles input:checked + span{border-color:#0F2447;background:#0F2447;color:#fff}
+.dlg-roles input:focus-visible + span{outline:3px solid #F5B731}
+.dlg-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:6px}
+.dlg-actions .cancel{background:none;border:none;color:#5A6A80;font-weight:600;cursor:pointer;font-family:Poppins,sans-serif;font-size:14px}
+.admin-warn{display:none;background:#ffebee;color:#c0392b;border-radius:10px;padding:10px 12px;font-size:12.5px;margin-top:-6px;margin-bottom:14px}
+@media(max-width:900px){.hide-sm{display:none}}
 </style>{% endblock %}
 
 {% block admin_content %}
+{% for link in app.flashes('invite_link') %}
+<div class="link-box">
+  <p>✓ Invitation créée — lien valable 30 jours, à usage unique</p>
+  <div class="link-row">
+    <input type="text" value="{{ link }}" readonly aria-label="Lien d'invitation">
+    <button type="button" class="btn-save" data-link="{{ link }}" onclick="navigator.clipboard.writeText(this.dataset.link);this.textContent='Copié ✓'">Copier le lien</button>
+  </div>
+</div>
+{% endfor %}
+
+<form method="get" class="toolbar" role="search">
+  <div class="search"><input type="search" name="q" value="{{ q }}" placeholder="Rechercher un nom ou un email…" aria-label="Rechercher un utilisateur"></div>
+  {% if role %}<input type="hidden" name="role" value="{{ role }}">{% endif %}
+  <nav class="chips" aria-label="Filtrer par rôle">
+    <a href="{{ path('admin_users', q ? {q: q} : {}) }}" class="{{ role is null ? 'on' }}">Tous <span class="n">{{ counts.all }}</span></a>
+    {% for key, label in roleLabels %}
+    <a href="{{ path('admin_users', {role: key}|merge(q ? {q: q} : {})) }}" class="{{ role == key ? 'on' }}">{{ label }}s <span class="n">{{ counts[key] }}</span></a>
+    {% endfor %}
+  </nav>
+</form>
+
 <div class="panel">
   {% if users|length > 0 %}
   <table>
-    <thead><tr><th>Nom</th><th>Email</th><th>Rôle</th><th>Statut</th><th>Inscrit le</th><th>Actions</th></tr></thead>
+    <thead><tr><th>Utilisateur</th><th>Rôle</th><th>Statut</th><th class="hide-sm">Inscrit le</th><th></th></tr></thead>
     <tbody>
       {% for user in users %}
+      {% set isMe = user.id == app.user.id %}
+      {% set current = user.roles|filter(r => r in roleLabels|keys)|first ?: 'ROLE_CLIENT' %}
       <tr>
-        <td><strong>{{ user.name }}</strong></td>
-        <td style="font-size:13px">{{ user.email }}</td>
         <td>
-          {% for role in user.roles %}
-            {% if role == 'ROLE_APPORTEUR' %}<span class="role-badge role-apporteur">Apporteur</span>
-            {% elseif role == 'ROLE_CLIENT' %}<span class="role-badge role-client">Client</span>
-            {% elseif role == 'ROLE_ADMIN' %}<span class="role-badge role-admin">Admin</span>{% endif %}
-          {% endfor %}
+          <div class="u-name">{{ user.name }}{% if isMe %}<span class="you">Vous</span>{% endif %}</div>
+          <div class="u-mail">{{ user.email }}</div>
+        </td>
+        <td>
+          {% if isMe %}
+          <span class="role-fixed">{{ roleLabels[current] }}</span>
+          {% else %}
+          <form method="post" action="{{ path('admin_user_role', {id: user.id}) }}" class="role-form">
+            <input type="hidden" name="_token" value="{{ csrf_token('role_user_' ~ user.id) }}">
+            <input type="hidden" name="q" value="{{ q }}"><input type="hidden" name="filter_role" value="{{ role }}"><input type="hidden" name="page" value="{{ page }}">
+            <select name="role" class="r-{{ current }}" aria-label="Rôle de {{ user.name }}" data-current="{{ current }}" data-name="{{ user.name }}">
+              {% for key, label in roleLabels %}<option value="{{ key }}" {{ current == key ? 'selected' }}>{{ label }}</option>{% endfor %}
+            </select>
+          </form>
+          {% endif %}
         </td>
         <td><span class="status-badge status-{{ user.status }}">{{ user.status == 'disabled' ? 'Désactivé' : 'Actif' }}</span></td>
-        <td>{{ user.createdAt|date('d/m/Y') }}</td>
+        <td class="hide-sm">{{ user.createdAt|date('d/m/Y') }}</td>
         <td>
-          <form method="post" action="{{ path('admin_user_toggle', {id: user.id}) }}" style="display:inline">
-            <input type="hidden" name="_token" value="{{ csrf_token('toggle_user_' ~ user.id) }}">
-            <button type="submit" class="btn-toggle">{{ user.status == 'disabled' ? 'Réactiver' : 'Désactiver' }}</button>
-          </form>
-          <form method="post" action="{{ path('admin_user_delete', {id: user.id}) }}" style="display:inline" onsubmit="return confirm('Supprimer cet utilisateur ?');">
-            <input type="hidden" name="_token" value="{{ csrf_token('delete_user_' ~ user.id) }}">
-            <button type="submit" class="btn-delete">Supprimer</button>
-          </form>
+          {% if not isMe %}
+          <div class="row-actions">
+            <form method="post" action="{{ path('admin_user_toggle', {id: user.id}) }}">
+              <input type="hidden" name="_token" value="{{ csrf_token('toggle_user_' ~ user.id) }}">
+              <button type="submit" class="btn-mini">{{ user.status == 'disabled' ? 'Réactiver' : 'Désactiver' }}</button>
+            </form>
+            <form method="post" action="{{ path('admin_user_delete', {id: user.id}) }}" onsubmit="return confirm('Supprimer définitivement {{ user.name|e('js') }} ?');">
+              <input type="hidden" name="_token" value="{{ csrf_token('delete_user_' ~ user.id) }}">
+              <button type="submit" class="btn-mini danger">Supprimer</button>
+            </form>
+          </div>
+          {% endif %}
         </td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
   {% else %}
-  <div class="empty">
-    <p>Aucun utilisateur pour le moment.</p>
-    <a href="{{ path('admin_invite') }}" class="btn btn-gold" style="margin-top:20px">Inviter un utilisateur</a>
-  </div>
+  <div class="empty">Aucun utilisateur ne correspond{{ q ? ' à « ' ~ q ~ ' »' }}.</div>
   {% endif %}
 </div>
 {% include 'admin/_pagination.html.twig' %}
+
+<dialog id="invite-dialog" aria-labelledby="invite-title">
+  <form method="post" action="{{ path('admin_invite') }}" class="dlg">
+    <input type="hidden" name="_token" value="{{ csrf_token('invite') }}">
+    <input type="hidden" name="_back" value="users">
+    <h2 id="invite-title">Inviter quelqu'un</h2>
+    <p class="lead">Un lien personnel, valable 30 jours et utilisable une seule fois.</p>
+    <div class="form-group">
+      <label>Rôle</label>
+      <div class="dlg-roles">
+        <label><input type="radio" name="role" value="ROLE_APPORTEUR" checked><span>Apporteur<small>envoie des leads</small></span></label>
+        <label><input type="radio" name="role" value="ROLE_CLIENT"><span>Client<small>portail support</small></span></label>
+        <label><input type="radio" name="role" value="ROLE_ADMIN"><span>Admin<small>accès complet</small></span></label>
+      </div>
+    </div>
+    <div class="admin-warn" id="admin-warn">Un admin voit et modifie tout : leads, commissions, IBAN, utilisateurs.</div>
+    <div class="form-group">
+      <label for="invite-email">Email (recommandé)</label>
+      <input type="email" id="invite-email" name="email" placeholder="prenom@entreprise.fr">
+      <small style="display:block;font-size:12px;color:#5A6A80;margin-top:5px">Le lien est envoyé directement, et seule cette adresse pourra l'utiliser. Sans email, vous copiez le lien vous-même.</small>
+    </div>
+    <div class="dlg-actions">
+      <button type="button" class="cancel" onclick="this.closest('dialog').close()">Annuler</button>
+      <button type="submit" class="btn btn-gold">Créer l'invitation</button>
+    </div>
+  </form>
+</dialog>
+
+<script>
+(function () {
+  // Role change: confirm, then submit. Promoting to admin gets an explicit warning.
+  document.querySelectorAll('.role-form select').forEach(function (sel) {
+    sel.addEventListener('change', function () {
+      var label = sel.options[sel.selectedIndex].text;
+      var msg = sel.value === 'ROLE_ADMIN'
+        ? 'Donner l\'accès admin complet à ' + sel.dataset.name + ' ?'
+        : 'Passer ' + sel.dataset.name + ' en ' + label.toLowerCase() + ' ?';
+      if (confirm(msg)) { sel.form.submit(); } else { sel.value = sel.dataset.current; }
+    });
+  });
+  var dlg = document.getElementById('invite-dialog');
+  dlg.addEventListener('change', function () {
+    document.getElementById('admin-warn').style.display = dlg.querySelector('input[name=role]:checked').value === 'ROLE_ADMIN' ? 'block' : 'none';
+  });
+})();
+</script>
 {% endblock %}
