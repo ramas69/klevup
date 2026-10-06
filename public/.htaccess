@@ -14,6 +14,15 @@ DirectoryIndex index.php
 
     RewriteEngine On
 
+    # Canonical URL: HTTPS, without "www" (one 301 hop). Let's Encrypt challenges stay reachable over HTTP.
+    RewriteCond %{REQUEST_URI} !^/\.well-known/acme-challenge/
+    RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
+    RewriteRule ^ https://%1%{REQUEST_URI} [L,R=301]
+    RewriteCond %{REQUEST_URI} !^/\.well-known/acme-challenge/
+    RewriteCond %{HTTPS} off
+    RewriteCond %{HTTP:X-Forwarded-Proto} !https
+    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
     # Determine the RewriteBase automatically and set it as environment variable.
     # If you are using Apache aliases to do mass virtual hosting or installed the
     # project in a subdirectory, the base path will be prepended to allow proper

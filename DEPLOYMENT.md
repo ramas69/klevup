@@ -49,6 +49,8 @@ php bin/console app:create-admin admin@votredomaine.fr MOT_DE_PASSE_FORT "Votre 
 Le domaine doit servir **uniquement** le dossier `public/` :
 
 - **o2switch** : cPanel → « Domaines » → modifier la racine du domaine vers `klevup/public`.
+  En SSH, équivalent utilisé pour klevup.fr : le dossier racine créé par cPanel est remplacé par un lien `ln -s ~/klevup/public ~/klevup.fr`.
+- **MariaDB (o2switch)** : dans `DATABASE_URL`, mettre `serverVersion=mariadb-11.4.13` (voir `mysql --version`).
 - **OVH** : espace client → Multisite → dossier racine `klevup/public`.
 
 Le fichier `public/.htaccess` (inclus) gère la réécriture Apache — rien d'autre à faire.
@@ -65,7 +67,7 @@ APP_ENV=prod php bin/console cache:warmup
 ## 6. Vérifications post-déploiement
 
 - [ ] `https://votredomaine.fr/` → landing OK
-- [ ] `/login` → connexion admin OK, redirigé vers `/admin/users`
+- [ ] `/login` → connexion admin OK, redirigé vers `/admin` (tableau de bord)
 - [ ] Générer une invitation avec email → email reçu
 - [ ] `https://votredomaine.fr/.env` → **doit renvoyer 404** (sinon la racine web est mal configurée)
 - [ ] HTTPS actif (o2switch : Let's Encrypt auto ; OVH : SSL Gateway dans l'espace client)
