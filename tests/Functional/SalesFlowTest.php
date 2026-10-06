@@ -260,7 +260,8 @@ class SalesFlowTest extends WebTestCase
         $this->em->flush();
         $this->client->loginUser($this->makeUser('admin@test.fr', 'ROLE_ADMIN'));
 
-        foreach (['/admin', '/admin/leads', '/admin/commissions', '/admin/tickets', '/admin/applications', '/admin/products', '/admin/users', '/admin/invite', '/profile'] as $page) {
+        $productId = $this->product()->getId();
+        foreach (['/admin', '/admin/leads', '/admin/commissions', '/admin/tickets', '/admin/applications', '/admin/products', '/admin/product/new', '/admin/product/' . $productId . '/edit', '/admin/users', '/admin/invite', '/profile'] as $page) {
             $this->client->request('GET', $page);
             self::assertResponseIsSuccessful($page);
         }

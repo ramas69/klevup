@@ -679,6 +679,13 @@ class AdminController extends AbstractController
         ]);
     }
 
+    #[Route('/admin/product/new', name: 'admin_product_new')]
+    #[Route('/admin/product/{id}/edit', name: 'admin_product_edit', requirements: ['id' => '\d+'])]
+    public function editProduct(?Product $product = null): Response
+    {
+        return $this->render('admin/product_edit.html.twig', ['product' => $product]);
+    }
+
     #[Route('/admin/product/save/{id}', name: 'admin_product_save', methods: ['POST'], defaults: ['id' => null])]
     public function saveProduct(?int $id, Request $request, EntityManagerInterface $em): Response
     {
@@ -696,7 +703,7 @@ class AdminController extends AbstractController
         if ($name === '' || mb_strlen($name) > 255 || $rate < 0 || $rate > 50) {
             $this->addFlash('error', 'Nom obligatoire et taux de commission entre 0 et 50 %.');
 
-            return $this->redirectToRoute('admin_products');
+            return $id === null ? $this->redirectToRoute('admin_product_new') : $this->redirectToRoute('admin_product_edit', ['id' => $id]);
         }
 
         $product->setName($name);

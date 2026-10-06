@@ -1,0 +1,162 @@
+{% extends "admin/base_admin.html.twig" %}
+{% set p = product %}
+{% block title %}{{ p ? p.name : 'Nouvelle solution' }} - Catalogue Klevup{% endblock %}
+{% block page_title %}{{ p ? p.name : 'Nouvelle solution' }}{% endblock %}
+{% block page_subtitle %}<a href="{{ path('admin_products') }}" style="color:#1D4E89;font-weight:600;text-decoration:none">← Catalogue</a>{% endblock %}
+
+{% block admin_styles %}<style>
+.edit-grid{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:24px;align-items:start}
+.sec{background:#fff;border:2px solid #E3E9F2;border-radius:18px;padding:24px;margin-bottom:20px}
+.sec h2{font-size:16px;color:#0F2447;margin-bottom:4px}
+.sec .lead{font-size:13px;color:#5A6A80;margin-bottom:18px}
+.row{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.field{margin-bottom:16px}
+.field:last-child{margin-bottom:0}
+.field label{display:block;font-size:13px;font-weight:700;color:#0F2447;margin-bottom:6px}
+.field input[type=text],.field input[type=url],.field input[type=number],.field textarea{width:100%;padding:11px 12px;border:2px solid #E3E9F2;border-radius:10px;font-family:Poppins,sans-serif;font-size:14px;color:#1A2332;background:#fff}
+.field textarea{resize:vertical;line-height:1.55}
+.field input:focus,.field textarea:focus{outline:none;border-color:#F5B731;box-shadow:0 0 0 3px rgba(245,183,49,.15)}
+.field small{display:block;font-size:12px;color:#5A6A80;margin-top:6px}
+.suffix{position:relative}
+.suffix input{padding-right:58px}
+.suffix span{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:13px;color:#5A6A80;font-weight:600}
+.toggle{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-top:1px solid #E3E9F2;cursor:pointer}
+.toggle:first-of-type{border-top:none;padding-top:0}
+.toggle input{width:18px;height:18px;margin-top:2px;accent-color:#0F2447;flex-shrink:0}
+.toggle strong{display:block;font-size:14px;color:#0F2447}
+.toggle span{font-size:12.5px;color:#5A6A80}
+.side{position:sticky;top:20px}
+.side h3{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#5A6A80;margin:0 0 10px}
+.preview{background:#fff;border:2px solid #E3E9F2;border-radius:18px;padding:22px;position:relative;margin-bottom:20px}
+.preview.hl{border:3px solid #F5B731}
+.preview .tag{position:absolute;top:-12px;left:20px;background:#F5B731;color:#0F2447;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:1px;padding:3px 10px;border-radius:999px}
+.preview h4{color:#0F2447;font-size:17px;margin-bottom:8px}
+.preview h4 .arr{color:#F5B731}
+.preview p{font-size:13.5px;color:#5A6A80;line-height:1.55}
+.preview .pr{margin-top:14px;font-weight:800;color:#0F2447;font-size:15px}
+.preview .pr span{font-weight:500;color:#5A6A80;font-size:12.5px}
+.preview.hidden-prod{opacity:.5}
+.earn{background:linear-gradient(135deg,#0F2447 0%,#1D4E89 70%,#2A6DB5 100%);color:#fff;border-radius:18px;padding:20px}
+.earn .v{font-size:28px;font-weight:800;color:#F5B731}
+.earn .l{font-size:12.5px;color:#CFE0F5;margin-top:2px}
+.savebar{position:sticky;bottom:0;background:rgba(248,249,250,.95);backdrop-filter:blur(6px);border-top:1px solid #E3E9F2;padding:14px 0;margin-top:4px;display:flex;gap:12px;align-items:center}
+.savebar .cancel{color:#5A6A80;font-weight:600;font-size:14px;text-decoration:none}
+@media(max-width:1100px){.edit-grid{grid-template-columns:1fr}.side{position:static}}
+@media(max-width:640px){.row{grid-template-columns:1fr}}
+</style>{% endblock %}
+
+{% block admin_content %}
+<form method="post" action="{{ p ? path('admin_product_save', {id: p.id}) : path('admin_product_save') }}" id="product-form">
+<input type="hidden" name="_token" value="{{ csrf_token('product_save_' ~ (p ? p.id : 'new')) }}">
+<div class="edit-grid">
+  <div>
+    <section class="sec">
+      <h2>Présentation</h2>
+      <p class="lead">Ce que voient les prospects sur le site et les clients dans leur portail.</p>
+      <div class="field">
+        <label for="name">Nom de la solution</label>
+        <input type="text" id="name" name="name" required maxlength="255" value="{{ p ? p.name }}" placeholder="Ex : Gestion d'organisme de formation">
+      </div>
+      <div class="field">
+        <label for="description">Description courte</label>
+        <textarea id="description" name="description" rows="3" maxlength="500" placeholder="Le bénéfice principal, en une ou deux phrases.">{{ p ? p.description }}</textarea>
+        <small><span id="desc-count">0</span>/500 caractères — 160 environ pour une carte bien équilibrée.</small>
+      </div>
+    </section>
+
+    <section class="sec">
+      <h2>Tarifs et commission</h2>
+      <p class="lead">Prix « à partir de » affichés publiquement. La commission apporteur porte sur la mise en place uniquement.</p>
+      <div class="row">
+        <div class="field">
+          <label for="price_from">Mise en place</label>
+          <div class="suffix"><input type="number" id="price_from" name="price_from" min="0" step="100" value="{{ p ? p.priceFrom : 2000 }}"><span>€</span></div>
+          <small>Paiement unique, dès.</small>
+        </div>
+        <div class="field">
+          <label for="monthly_from">Abonnement</label>
+          <div class="suffix"><input type="number" id="monthly_from" name="monthly_from" min="0" step="1" value="{{ p ? p.monthlyFrom : 0 }}"><span>€/mois</span></div>
+          <small>Hébergement, maintenance, support. 0 = non affiché.</small>
+        </div>
+        <div class="field">
+          <label for="commission_rate">Commission apporteur</label>
+          <div class="suffix"><input type="number" id="commission_rate" name="commission_rate" min="0" max="50" value="{{ p ? p.commissionRate : 15 }}"><span>%</span></div>
+          <small>Du montant de mise en place (+5 pts au palier).</small>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec">
+      <h2>Kit de vente apporteurs</h2>
+      <p class="lead">Affiché dans l'espace apporteur : qui cibler et quoi dire pour décrocher un rendez-vous.</p>
+      <div class="field">
+        <label for="target">Clients idéaux</label>
+        <input type="text" id="target" name="target" maxlength="255" value="{{ p ? p.target }}" placeholder="Ex : organismes de formation de 1 à 50 formateurs, en préparation Qualiopi">
+      </div>
+      <div class="field">
+        <label for="pitch">Argumentaire</label>
+        <textarea id="pitch" name="pitch" rows="7" placeholder="Le déclic : « Combien de temps passez-vous… ? »&#10;- Argument 1&#10;- Argument 2">{{ p ? p.pitch }}</textarea>
+        <small>Une idée par ligne. Commencez par la question qui fait réagir le prospect.</small>
+      </div>
+      <div class="field">
+        <label for="resource_url">Plaquette ou vidéo de démo</label>
+        <input type="url" id="resource_url" name="resource_url" maxlength="500" value="{{ p ? p.resourceUrl }}" placeholder="https://…">
+        <small>Lien que l'apporteur peut partager (PDF, Loom, YouTube…).</small>
+      </div>
+    </section>
+
+    <section class="sec">
+      <h2>Visibilité</h2>
+      <label class="toggle"><input type="checkbox" name="active" value="1" id="active" {{ not p or p.active ? 'checked' }}><div><strong>En ligne</strong><span>Visible sur le site, dans le formulaire et le kit des apporteurs, et proposée aux clients.</span></div></label>
+      <label class="toggle"><input type="checkbox" name="featured" value="1" id="featured" {{ p and p.featured ? 'checked' }}><div><strong>Mettre en avant</strong><span>Badge « La plus demandée » et bordure dorée sur le site.</span></div></label>
+      <div class="field" style="margin-top:12px;max-width:160px">
+        <label for="position">Ordre d'affichage</label>
+        <input type="number" id="position" name="position" value="{{ p ? p.position : 0 }}">
+      </div>
+    </section>
+
+    <div class="savebar">
+      <button type="submit" class="btn btn-gold">{{ p ? 'Enregistrer les modifications' : 'Créer la solution' }}</button>
+      <a class="cancel" href="{{ path('admin_products') }}">Annuler</a>
+    </div>
+  </div>
+
+  <aside class="side">
+    <h3>Aperçu sur le site</h3>
+    <div class="preview" id="pv">
+      <span class="tag" id="pv-tag">La plus demandée</span>
+      <h4><span class="arr">↗</span> <span id="pv-name"></span></h4>
+      <p id="pv-desc"></p>
+      <div class="pr" id="pv-price"></div>
+    </div>
+    <h3>Ce que gagne l'apporteur</h3>
+    <div class="earn">
+      <div class="v" id="pv-earn"></div>
+      <div class="l">par vente au prix d'appel · <span id="pv-earn-bonus"></span> au palier</div>
+    </div>
+  </aside>
+</div>
+</form>
+
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var fmt = function (n) { return Math.round(n).toLocaleString('fr-FR'); };
+  function render() {
+    var setup = +$('price_from').value || 0, monthly = +$('monthly_from').value || 0, rate = +$('commission_rate').value || 0;
+    $('pv-name').textContent = $('name').value || 'Nom de la solution';
+    $('pv-desc').textContent = $('description').value || 'Description courte de la solution.';
+    $('desc-count').textContent = $('description').value.length;
+    $('pv-price').innerHTML = 'Mise en place dès ' + fmt(setup) + ' €' + (monthly ? ' <span>+ ' + fmt(monthly) + ' €/mois tout compris</span>' : '');
+    $('pv').classList.toggle('hl', $('featured').checked);
+    $('pv-tag').style.display = $('featured').checked ? '' : 'none';
+    $('pv').classList.toggle('hidden-prod', !$('active').checked);
+    $('pv-earn').textContent = '~' + fmt(setup * rate / 100) + ' €';
+    $('pv-earn-bonus').textContent = '~' + fmt(setup * (rate + 5) / 100) + ' €';
+  }
+  $('product-form').addEventListener('input', render);
+  $('product-form').addEventListener('change', render);
+  render();
+})();
+</script>
+{% endblock %}

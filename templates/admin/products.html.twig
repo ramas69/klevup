@@ -1,49 +1,74 @@
 {% extends "admin/base_admin.html.twig" %}
 {% block title %}Catalogue - Admin Klevup{% endblock %}
 {% block page_title %}Catalogue des solutions{% endblock %}
-{% block page_subtitle %}Une solution active apparaît sur le site, dans le formulaire et le kit de vente des apporteurs, et dans le portail des clients qui ne l'ont pas encore.{% endblock %}
+{% block page_subtitle %}Ce que vous vendez : affiché sur le site, dans le kit et le formulaire des apporteurs, et proposé aux clients qui ne l'ont pas encore.{% endblock %}
+
+{% block topbar_action %}
+<a href="{{ path('admin_product_new') }}" class="btn btn-gold">+ Nouvelle solution</a>
+{% endblock %}
 
 {% block admin_styles %}<style>
-.product-form{display:grid;grid-template-columns:2fr 3fr 110px 110px 100px 70px auto;gap:10px;align-items:end}
-.product-form .form-group{margin:0}
-.checks{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:#0F2447;font-weight:600;white-space:nowrap}
-.checks input{width:auto}
-.card.off{opacity:.6}
-.kit-fields{grid-column:1/-2;font-size:13px}
-.kit-fields summary{cursor:pointer;color:#1D4E89;font-weight:600;margin-bottom:8px}
-.kit-fields .form-group{margin-bottom:10px}
-@media(max-width:1100px){.product-form{grid-template-columns:1fr 1fr}}
+.alert{display:flex;gap:12px;align-items:flex-start;background:#FDF9F0;border:2px solid #F5B731;border-radius:14px;padding:14px 18px;margin-bottom:20px;font-size:14px;color:#0F2447}
+.alert strong{display:block;margin-bottom:2px}
+.catalog td{vertical-align:middle}
+.pos{color:#5A6A80;font-weight:700;width:36px;text-align:center}
+.name{font-weight:700;color:#0F2447;font-size:14.5px}
+.desc{font-size:12.5px;color:#5A6A80;margin-top:3px;max-width:440px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.price{font-weight:700;color:#0F2447;white-space:nowrap;font-variant-numeric:tabular-nums}
+.price small{display:block;font-weight:500;color:#5A6A80;font-size:11.5px}
+.missing{color:#C0392B;font-weight:700;font-size:12.5px;white-space:nowrap}
+.pill{display:inline-block;font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px;margin:2px 4px 2px 0;white-space:nowrap}
+.pill-on{background:#e8f5e9;color:#2E8B57}
+.pill-off{background:#f0f2f5;color:#5A6A80}
+.pill-star{background:#FDF9F0;color:#b9770e;border:1px solid #F5B731}
+.kit-ok{color:#2E8B57;font-weight:600;font-size:12.5px}
+.kit-ko{color:#b9770e;font-weight:600;font-size:12.5px}
+.edit{display:inline-block;background:#0F2447;color:#fff;text-decoration:none;font-weight:700;font-size:12.5px;padding:8px 16px;border-radius:10px;white-space:nowrap}
+.edit:hover{background:#1D4E89}
+tr.off td:not(:last-child){opacity:.55}
+@media(max-width:900px){.desc{max-width:200px}.hide-sm{display:none}}
 </style>{% endblock %}
 
-{% macro product_form(p) %}
-<form method="post" action="{{ p ? path('admin_product_save', {id: p.id}) : path('admin_product_save') }}" class="product-form">
-  <input type="hidden" name="_token" value="{{ csrf_token('product_save_' ~ (p ? p.id : 'new')) }}">
-  <div class="form-group"><label>Nom</label><input type="text" name="name" required maxlength="255" value="{{ p ? p.name }}"></div>
-  <div class="form-group"><label>Description (site public)</label><textarea name="description" rows="2" maxlength="500">{{ p ? p.description }}</textarea></div>
-  <div class="form-group"><label>Setup dès (€)</label><input type="number" name="price_from" min="0" step="100" value="{{ p ? p.priceFrom : 2000 }}"></div>
-  <div class="form-group"><label>Abo dès (€/mois)</label><input type="number" name="monthly_from" min="0" step="1" value="{{ p ? p.monthlyFrom : 0 }}"></div>
-  <div class="form-group"><label>Commission % (setup)</label><input type="number" name="commission_rate" min="0" max="50" value="{{ p ? p.commissionRate : 15 }}"></div>
-  <div class="form-group"><label>Ordre</label><input type="number" name="position" value="{{ p ? p.position : 0 }}"></div>
-  <details class="kit-fields">
-    <summary>Kit de vente apporteurs</summary>
-    <div class="form-group"><label>Qui cibler</label><input type="text" name="target" maxlength="255" value="{{ p ? p.target }}"></div>
-    <div class="form-group"><label>Quoi dire (une idée par ligne)</label><textarea name="pitch" rows="5">{{ p ? p.pitch }}</textarea></div>
-    <div class="form-group"><label>Lien plaquette / vidéo démo (https://…)</label><input type="url" name="resource_url" maxlength="500" value="{{ p ? p.resourceUrl }}"></div>
-  </details>
-  <div class="checks">
-    <label><input type="checkbox" name="active" value="1" {{ not p or p.active ? 'checked' }}> Active</label>
-    <label><input type="checkbox" name="featured" value="1" {{ p and p.featured ? 'checked' }}> Mise en avant</label>
-    <button type="submit" class="btn-save">{{ p ? 'Enregistrer' : 'Ajouter' }}</button>
-  </div>
-</form>
-{% endmacro %}
-
 {% block admin_content %}
-{% for p in products %}
-<div class="card {{ p.active ? '' : 'off' }}">{{ _self.product_form(p) }}</div>
-{% endfor %}
-<div class="card">
-  <h2>Nouvelle solution</h2>
-  {{ _self.product_form(null) }}
+{% set noMonthly = products|filter(p => p.active and p.monthlyFrom == 0) %}
+{% if noMonthly|length > 0 %}
+<div class="alert">
+  <span style="font-size:20px">⚠️</span>
+  <div><strong>Prix mensuel manquant pour {{ noMonthly|length }} solution{{ noMonthly|length > 1 ? 's' }}</strong>
+  Tant qu'il est à 0, le site n'affiche que le prix de mise en place : {{ noMonthly|map(p => p.name)|join(', ') }}.</div>
+</div>
+{% endif %}
+
+<div class="panel">
+  {% if products|length > 0 %}
+  <table class="catalog">
+    <thead>
+      <tr><th class="pos">#</th><th>Solution</th><th>Mise en place</th><th>Abonnement</th><th>Commission</th><th class="hide-sm">Kit de vente</th><th>Statut</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for p in products %}
+      {% set kitDone = p.target and p.pitch %}
+      <tr class="{{ p.active ? '' : 'off' }}">
+        <td class="pos">{{ p.position }}</td>
+        <td>
+          <div class="name">{{ p.name }}</div>
+          <div class="desc" title="{{ p.description }}">{{ p.description ?: '—' }}</div>
+        </td>
+        <td class="price">{{ p.priceFrom|number_format(0, ',', ' ') }} €<small>dès</small></td>
+        <td>{% if p.monthlyFrom > 0 %}<span class="price">{{ p.monthlyFrom|number_format(0, ',', ' ') }} €<small>/mois</small></span>{% else %}<span class="missing">À renseigner</span>{% endif %}</td>
+        <td class="price">{{ p.commissionRate }} %<small>~{{ (p.priceFrom * p.commissionRate / 100)|round|number_format(0, ',', ' ') }} € / vente</small></td>
+        <td class="hide-sm">{% if kitDone %}<span class="kit-ok">✓ Complet{{ p.resourceUrl ? ' + plaquette' }}</span>{% else %}<span class="kit-ko">À compléter</span>{% endif %}</td>
+        <td>
+          <span class="pill {{ p.active ? 'pill-on' : 'pill-off' }}">{{ p.active ? 'En ligne' : 'Masquée' }}</span>
+          {% if p.featured %}<span class="pill pill-star">★ Mise en avant</span>{% endif %}
+        </td>
+        <td style="text-align:right"><a class="edit" href="{{ path('admin_product_edit', {id: p.id}) }}">Modifier</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty">Aucune solution — <a href="{{ path('admin_product_new') }}">ajoutez la première</a>.</div>
+  {% endif %}
 </div>
 {% endblock %}
