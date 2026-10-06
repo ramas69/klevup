@@ -63,7 +63,7 @@ class CommissionFlowTest extends WebTestCase
     private function updateLead(string $status, ?int $dealAmount): void
     {
         $this->client->loginUser($this->admin);
-        $crawler = $this->client->request('GET', '/admin/leads');
+        $crawler = $this->client->request('GET', '/admin/lead/' . $this->lead->getId());
         self::assertResponseIsSuccessful();
 
         $token = $crawler->filter(sprintf('form[action="/admin/lead/%d/update"] input[name="_token"]', $this->lead->getId()))->attr('value');
@@ -73,7 +73,7 @@ class CommissionFlowTest extends WebTestCase
             'deal_amount' => $dealAmount === null ? '' : (string) $dealAmount,
             'lost_reason' => $status === 'lost' ? 'budget' : '',
         ]);
-        self::assertResponseRedirects('/admin/leads');
+        self::assertResponseRedirects('/admin/lead/' . $this->lead->getId());
     }
 
     private function commissions(): array
@@ -253,7 +253,7 @@ class CommissionFlowTest extends WebTestCase
     public function testLostRequiresAReasonShownToTheApporteur(): void
     {
         $this->client->loginUser($this->admin);
-        $crawler = $this->client->request('GET', '/admin/leads');
+        $crawler = $this->client->request('GET', '/admin/lead/' . $this->lead->getId());
         $token = $crawler->filter(sprintf('form[action="/admin/lead/%d/update"] input[name="_token"]', $this->lead->getId()))->attr('value');
         $this->client->request('POST', sprintf('/admin/lead/%d/update', $this->lead->getId()), ['_token' => $token, 'status' => 'lost', 'deal_amount' => '']);
         $this->em->clear();
@@ -317,7 +317,7 @@ class CommissionFlowTest extends WebTestCase
     public function testCommissionIsOnSetupOnlyNotOnTheSubscription(): void
     {
         $this->client->loginUser($this->admin);
-        $crawler = $this->client->request('GET', '/admin/leads');
+        $crawler = $this->client->request('GET', '/admin/lead/' . $this->lead->getId());
         $token = $crawler->filter(sprintf('form[action="/admin/lead/%d/update"] input[name="_token"]', $this->lead->getId()))->attr('value');
         $this->client->request('POST', sprintf('/admin/lead/%d/update', $this->lead->getId()), ['_token' => $token, 'status' => 'signed', 'deal_amount' => '2000', 'monthly_amount' => '150']);
 

@@ -1,7 +1,8 @@
 {% if pages > 1 %}
+{% set params = app.request.query.all %}
 <div class="pagination">
-  {% if page > 1 %}<a href="{{ path(app.current_route, {page: page - 1}) }}">← Précédent</a>{% else %}<span class="disabled">← Précédent</span>{% endif %}
+  {% if page > 1 %}<a href="{{ path(app.current_route, params|merge({page: page - 1})) }}">← Précédent</a>{% else %}<span class="disabled">← Précédent</span>{% endif %}
   <span class="page-info">Page {{ page }} / {{ pages }}</span>
-  {% if page < pages %}<a href="{{ path(app.current_route, {page: page + 1}) }}">Suivant →</a>{% else %}<span class="disabled">Suivant →</span>{% endif %}
+  {% if page < pages %}<a href="{{ path(app.current_route, params|merge({page: page + 1})) }}">Suivant →</a>{% else %}<span class="disabled">Suivant →</span>{% endif %}
 </div>
 {% endif %}

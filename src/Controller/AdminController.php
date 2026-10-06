@@ -190,19 +190,50 @@ class AdminController extends AbstractController
         return [$page, $pages, ($page - 1) * self::PER_PAGE];
     }
 
+    private const LEAD_TABS = [
+        'all' => ['label' => 'Tous', 'statuses' => null],
+        'new' => ['label' => 'Nouveaux', 'statuses' => ['new']],
+        'open' => ['label' => 'En cours', 'statuses' => ['meeting', 'devis']],
+        'signed' => ['label' => 'Signés', 'statuses' => ['signed']],
+        'lost' => ['label' => 'Sans suite', 'statuses' => ['lost']],
+    ];
+
     #[Route('/admin/leads', name: 'admin_leads')]
     public function leads(Request $request, EntityManagerInterface $em): Response
     {
         $repo = $em->getRepository(Lead::class);
-        [$page, $pages, $offset] = $this->paginate($request, $repo->count([]));
+        $tab = array_key_exists($request->query->getString('tab'), self::LEAD_TABS) ? $request->query->getString('tab') : 'all';
+        $criteria = self::LEAD_TABS[$tab]['statuses'] === null ? [] : ['status' => self::LEAD_TABS[$tab]['statuses']];
+        [$page, $pages, $offset] = $this->paginate($request, $repo->count($criteria));
+
+        $counts = [];
+        foreach (self::LEAD_TABS as $key => $def) {
+            $counts[$key] = $repo->count($def['statuses'] === null ? [] : ['status' => $def['statuses']]);
+        }
 
         return $this->render('admin/leads.html.twig', [
-            'leads' => $repo->findBy([], ['createdAt' => 'DESC'], self::PER_PAGE, $offset),
-            'statuses' => self::LEAD_STATUSES,
+            'leads' => $repo->findBy($criteria, ['createdAt' => 'DESC'], self::PER_PAGE, $offset),
+            'tabs' => self::LEAD_TABS,
+            'tab' => $tab,
+            'counts' => $counts,
             'labels' => self::LEAD_LABELS,
             'lostReasons' => Lead::LOST_REASONS,
             'page' => $page,
             'pages' => $pages,
+        ]);
+    }
+
+    #[Route('/admin/lead/{id}', name: 'admin_lead_show', requirements: ['id' => '\d+'])]
+    public function showLead(Lead $lead, CommissionCalculator $calculator, EntityManagerInterface $em): Response
+    {
+        return $this->render('admin/lead_show.html.twig', [
+            'lead' => $lead,
+            'statuses' => self::LEAD_STATUSES,
+            'labels' => self::LEAD_LABELS,
+            'lostReasons' => Lead::LOST_REASONS,
+            // Rate this sale would get if signed now (product rate + tier bonus) — drives the live preview.
+            'rate' => $lead->getApporteur() ? $calculator->rateFor($lead, $lead->getSignedAt() ?? new \DateTimeImmutable()) : null,
+            'commission' => $em->getRepository(Commission::class)->findOneBy(['lead' => $lead]),
         ]);
     }
 
@@ -217,7 +248,7 @@ class AdminController extends AbstractController
         if (!in_array($status, self::LEAD_STATUSES, true)) {
             $this->addFlash('error', 'Statut invalide.');
 
-            return $this->redirectToRoute('admin_leads');
+            return $this->redirectToRoute('admin_lead_show', ['id' => $lead->getId()]);
         }
 
         $rawAmount = trim((string) $request->request->get('deal_amount'));
@@ -225,14 +256,14 @@ class AdminController extends AbstractController
         if ($status === 'signed' && !$dealAmount) {
             $this->addFlash('error', sprintf('« %s » : renseignez le montant du setup pour le passer en Signé.', $lead->getContact()));
 
-            return $this->redirectToRoute('admin_leads');
+            return $this->redirectToRoute('admin_lead_show', ['id' => $lead->getId()]);
         }
 
         $lostReason = $request->request->getString('lost_reason');
         if ($status === 'lost' && !array_key_exists($lostReason, Lead::LOST_REASONS)) {
             $this->addFlash('error', sprintf('« %s » : indiquez le motif — l\'apporteur le verra.', $lead->getContact()));
 
-            return $this->redirectToRoute('admin_leads');
+            return $this->redirectToRoute('admin_lead_show', ['id' => $lead->getId()]);
         }
 
         $commission = $em->getRepository(Commission::class)->findOneBy(['lead' => $lead]);
@@ -242,11 +273,11 @@ class AdminController extends AbstractController
         if ($commission?->getStatus() === 'encashed' && ($status !== 'signed' || $dealAmount !== $lead->getDealAmount())) {
             $this->addFlash('error', sprintf('« %s » : la commission est déjà versée — vente non modifiable.', $lead->getContact()));
 
-            return $this->redirectToRoute('admin_leads');
+            return $this->redirectToRoute('admin_lead_show', ['id' => $lead->getId()]);
         }
         if ($commission?->getStatus() === 'encashed') {
             // Nothing editable left; never recompute a paid amount (the product rate may have changed since).
-            return $this->redirectToRoute('admin_leads');
+            return $this->redirectToRoute('admin_lead_show', ['id' => $lead->getId()]);
         }
         $previousSignedAt = $lead->getSignedAt();
 
@@ -332,7 +363,7 @@ class AdminController extends AbstractController
 
         $this->addFlash('success', sprintf('Lead « %s » mis à jour.', $lead->getContact()));
 
-        return $this->redirectToRoute('admin_leads');
+        return $this->redirectToRoute('admin_lead_show', ['id' => $lead->getId()]);
     }
 
     // First signed sale of a referred apporteur → fixed bonus for the referrer (once per referee, enforced by a unique key).

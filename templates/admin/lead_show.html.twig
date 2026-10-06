@@ -1,0 +1,165 @@
+{% extends "admin/base_admin.html.twig" %}
+{% block title %}{{ lead.contact }} - Leads Klevup{% endblock %}
+{% block page_title %}{{ lead.contact }}{% endblock %}
+{% block page_subtitle %}<a href="{{ path('admin_leads') }}" style="color:#1D4E89;font-weight:600;text-decoration:none">← Leads</a> · {{ lead.solution }} · reçu le {{ lead.createdAt|date('d/m/Y') }}{% endblock %}
+
+{% block admin_styles %}<style>
+.grid{display:grid;grid-template-columns:minmax(0,1fr) 420px;gap:24px;align-items:start}
+.sec{background:#fff;border:2px solid #E3E9F2;border-radius:18px;padding:24px;margin-bottom:20px}
+.sec h2{font-size:16px;color:#0F2447;margin-bottom:16px}
+.who{font-size:15px;color:#1A2332;margin-bottom:14px}
+.who strong{color:#0F2447;font-size:16px}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.act{display:inline-flex;gap:8px;align-items:center;background:#F0F2F5;color:#0F2447;text-decoration:none;font-weight:600;font-size:13.5px;padding:9px 14px;border-radius:10px}
+.act:hover{background:#E3E9F2}
+.facts{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:18px 0}
+.fact{background:#f8f9fa;border-radius:12px;padding:12px}
+.fact .k{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:#5A6A80;font-weight:700;margin-bottom:4px}
+.fact .v{font-size:14px;color:#0F2447;font-weight:600}
+.fact .v.hot{color:#C0392B}
+.notes{white-space:pre-line;background:#FDF9F0;border-left:4px solid #F5B731;border-radius:8px;padding:14px;font-size:14px;line-height:1.6;color:#1A2332}
+.meta{font-size:12.5px;color:#5A6A80;margin-top:14px}
+.side{position:sticky;top:20px}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px}
+.steps label{position:relative}
+.steps input{position:absolute;opacity:0}
+.steps span{display:block;text-align:center;padding:10px 4px;border:2px solid #E3E9F2;border-radius:10px;font-size:12.5px;font-weight:700;color:#5A6A80;cursor:pointer;line-height:1.25}
+.steps input:checked + span{background:#0F2447;border-color:#0F2447;color:#fff}
+.steps input:focus-visible + span{outline:3px solid #F5B731}
+.steps .signed input:checked + span{background:#2E8B57;border-color:#2E8B57}
+.lost-toggle{display:flex;gap:8px;align-items:center;font-size:13px;color:#5A6A80;margin-bottom:16px}
+.lost-toggle label{cursor:pointer;display:flex;gap:6px;align-items:center}
+.lost-box{background:#f8f9fa;border-radius:12px;padding:12px;margin-bottom:16px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:13px;font-weight:700;color:#0F2447;margin-bottom:6px}
+.field select,.field input{width:100%;padding:11px 12px;border:2px solid #E3E9F2;border-radius:10px;font-family:Poppins,sans-serif;font-size:14px;background:#fff}
+.field input:focus,.field select:focus{outline:none;border-color:#F5B731;box-shadow:0 0 0 3px rgba(245,183,49,.15)}
+.field small{display:block;font-size:12px;color:#5A6A80;margin-top:5px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.suffix{position:relative}
+.suffix input{padding-right:60px}
+.suffix span{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:13px;color:#5A6A80;font-weight:600}
+.calc{background:linear-gradient(135deg,#0F2447 0%,#1D4E89 70%,#2A6DB5 100%);color:#fff;border-radius:14px;padding:16px;margin:4px 0 16px}
+.calc .v{font-size:26px;font-weight:800;color:#F5B731}
+.calc .l{font-size:12.5px;color:#CFE0F5}
+.calc.none{background:#f0f2f5;color:#5A6A80}
+.calc.none .v{color:#0F2447;font-size:16px}
+.locked{background:#e8f5e9;color:#2E8B57;border-radius:12px;padding:12px;font-size:13.5px;font-weight:600;margin-bottom:12px}
+.save{width:100%}
+@media(max-width:1100px){.grid{grid-template-columns:1fr}.side{position:static}}
+@media(max-width:640px){.facts{grid-template-columns:1fr}.two{grid-template-columns:1fr}}
+</style>{% endblock %}
+
+{% block admin_content %}
+<div class="grid">
+  <div>
+    <section class="sec">
+      <h2>Prospect</h2>
+      <div class="who">
+        <strong>{{ lead.contactName ?? lead.contact }}</strong>{% if lead.contactRole %} — {{ lead.contactRole }}{% endif %}<br>
+        {{ lead.contact }}
+      </div>
+      <div class="actions">
+        {% if lead.phone %}<a class="act" href="tel:{{ lead.phone|replace({' ': ''}) }}">📞 {{ lead.phone }}</a>{% endif %}
+        {% if lead.email %}<a class="act" href="mailto:{{ lead.email }}">✉️ {{ lead.email }}</a>{% endif %}
+      </div>
+
+      {% if lead.timeline or lead.budget or lead.relationship %}
+      <div class="facts">
+        <div class="fact"><div class="k">Échéance</div><div class="v {{ lead.timeline == 'urgent' ? 'hot' }}">{{ constant('App\\Entity\\Lead::TIMELINES')[lead.timeline] ?? '—' }}</div></div>
+        <div class="fact"><div class="k">Budget</div><div class="v">{{ constant('App\\Entity\\Lead::BUDGETS')[lead.budget] ?? '—' }}</div></div>
+        <div class="fact"><div class="k">Lien avec l'apporteur</div><div class="v">{{ constant('App\\Entity\\Lead::RELATIONSHIPS')[lead.relationship] ?? '—' }}</div></div>
+      </div>
+      {% endif %}
+
+      {% if lead.notes %}<div class="notes">{{ lead.notes }}</div>{% endif %}
+
+      <div class="meta">
+        {{ lead.consentAt ? '✓ Accord du prospect pour être recontacté, recueilli le ' ~ lead.consentAt|date('d/m/Y') : '⚠ Accord de contact non recueilli' }}
+      </div>
+    </section>
+
+    <section class="sec">
+      <h2>Origine</h2>
+      {% if lead.apporteur %}
+      <div class="who" style="margin:0"><strong>{{ lead.apporteur.name }}</strong> — apporteur<br><a href="mailto:{{ lead.apporteur.email }}" style="color:#1D4E89">{{ lead.apporteur.email }}</a></div>
+      {% else %}
+      <div class="who" style="margin:0">{{ {'site': 'Demande reçue depuis le site', 'client': 'Client existant intéressé'}[lead.source]|default(lead.source) }} — pas d'apporteur, pas de commission.</div>
+      {% endif %}
+    </section>
+  </div>
+
+  <aside class="side">
+    <section class="sec">
+      <h2>Avancement</h2>
+      {% if commission and commission.status == 'encashed' %}
+      <div class="locked">✓ Commission de {{ commission.amount }} € versée le {{ commission.encashedAt|date('d/m/Y') }} — la vente ne peut plus être modifiée.</div>
+      {% endif %}
+
+      <form method="post" action="{{ path('admin_lead_update', {id: lead.id}) }}" id="lead-form">
+        <input type="hidden" name="_token" value="{{ csrf_token('lead_update_' ~ lead.id) }}">
+
+        <div class="steps" role="radiogroup" aria-label="Statut">
+          {% for s in ['new', 'meeting', 'devis', 'signed'] %}
+          <label class="{{ s }}"><input type="radio" name="status" value="{{ s }}" {{ lead.status == s ? 'checked' }}><span>{{ labels[s] }}</span></label>
+          {% endfor %}
+        </div>
+        <div class="lost-toggle"><label><input type="radio" name="status" value="lost" {{ lead.status == 'lost' ? 'checked' }}> Classer sans suite</label></div>
+
+        <div class="lost-box" id="lost-box">
+          <div class="field" style="margin:0">
+            <label for="lost_reason">Motif (visible par l'apporteur)</label>
+            <select id="lost_reason" name="lost_reason">
+              <option value="">Choisir…</option>
+              {% for key, label in lostReasons %}<option value="{{ key }}" {{ lead.lostReason == key ? 'selected' }}>{{ label }}</option>{% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <div class="two">
+          <div class="field">
+            <label for="deal_amount">Mise en place</label>
+            <div class="suffix"><input type="number" id="deal_amount" name="deal_amount" min="0" step="1" value="{{ lead.dealAmount }}" placeholder="0"><span>€ HT</span></div>
+            <small id="deal-hint">Obligatoire pour « Signé ».</small>
+          </div>
+          <div class="field">
+            <label for="monthly_amount">Abonnement</label>
+            <div class="suffix"><input type="number" id="monthly_amount" name="monthly_amount" min="0" step="1" value="{{ lead.monthlyAmount }}" placeholder="0"><span>€/mois</span></div>
+            <small>Hors commission.</small>
+          </div>
+        </div>
+
+        {% if rate is not null %}
+        <div class="calc" id="calc">
+          <div class="v" id="calc-v"></div>
+          <div class="l">Commission {{ lead.apporteur.name }} · {{ rate }} % de la mise en place{{ rate > (lead.product ? lead.product.commissionRate : 15) ? ' (palier atteint)' }}</div>
+        </div>
+        {% else %}
+        <div class="calc none"><div class="v">Pas de commission</div><div class="l">Lead sans apporteur.</div></div>
+        {% endif %}
+
+        <button type="submit" class="btn btn-gold save">Enregistrer</button>
+      </form>
+    </section>
+  </aside>
+</div>
+
+<script>
+(function () {
+  var form = document.getElementById('lead-form'), rate = {{ rate ?? 'null' }};
+  function sync() {
+    var status = form.querySelector('input[name=status]:checked').value;
+    document.getElementById('lost-box').style.display = status === 'lost' ? '' : 'none';
+    document.getElementById('lost_reason').required = status === 'lost';
+    document.getElementById('deal_amount').required = status === 'signed';
+    if (rate !== null) {
+      var amount = +document.getElementById('deal_amount').value || 0;
+      document.getElementById('calc-v').textContent = amount ? Math.round(amount * rate / 100).toLocaleString('fr-FR') + ' €' : 'Saisissez la mise en place';
+    }
+  }
+  form.addEventListener('input', sync);
+  form.addEventListener('change', sync);
+  sync();
+})();
+</script>
+{% endblock %}
