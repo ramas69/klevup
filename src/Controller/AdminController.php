@@ -158,20 +158,55 @@ class AdminController extends AbstractController
         $em->persist($invitation);
         $em->flush();
 
-        $link = $this->generateUrl('register', ['code' => $invitation->getCode()], UrlGeneratorInterface::ABSOLUTE_URL);
-
         if ($email !== null) {
-            $sent = $this->notifier->send($email, 'Votre invitation Klevup', sprintf(
-                "Bonjour,\n\nVous êtes invité à rejoindre Klevup en tant que %s.\n\nCréez votre compte ici (lien valable 30 jours) :\n%s",
-                ['ROLE_APPORTEUR' => 'apporteur d\'affaires', 'ROLE_CLIENT' => 'client', 'ROLE_ADMIN' => 'administrateur'][$role],
-                $link
-            ));
-            $sent
-                ? $this->addFlash('success', sprintf('Invitation envoyée à %s.', $email))
-                : $this->addFlash('error', 'Envoi email impossible — partagez le lien manuellement : ' . $link);
+            $this->sendInvitation($invitation);
         }
 
-        return $link;
+        return $this->generateUrl('register', ['code' => $invitation->getCode()], UrlGeneratorInterface::ABSOLUTE_URL);
+    }
+
+    private function sendInvitation(Invitation $invitation): void
+    {
+        $link = $this->generateUrl('register', ['code' => $invitation->getCode()], UrlGeneratorInterface::ABSOLUTE_URL);
+        $sent = $this->notifier->send($invitation->getEmail(), 'Votre invitation Klevup', sprintf(
+            "Bonjour,\n\nVous êtes invité à rejoindre Klevup en tant que %s.\n\nCréez votre compte ici (lien valable jusqu'au %s) :\n%s",
+            ['ROLE_APPORTEUR' => 'apporteur d\'affaires', 'ROLE_CLIENT' => 'client', 'ROLE_ADMIN' => 'administrateur'][$invitation->getRole()] ?? 'utilisateur',
+            $invitation->getExpiresAt()->format('d/m/Y'),
+            $link
+        ));
+        $sent
+            ? $this->addFlash('success', sprintf('Invitation envoyée à %s.', $invitation->getEmail()))
+            : $this->addFlash('error', 'Envoi email impossible — partagez le lien manuellement : ' . $link);
+    }
+
+    #[Route('/admin/invitation/{id}/{action}', name: 'admin_invitation_action', methods: ['POST'], requirements: ['action' => 'resend|revoke'])]
+    public function invitationAction(Invitation $invitation, string $action, Request $request, EntityManagerInterface $em): Response
+    {
+        if (!$this->isCsrfTokenValid('invitation_' . $invitation->getId(), $request->request->getString('_token'))) {
+            throw $this->createAccessDeniedException(self::CSRF_ERROR);
+        }
+        if ($invitation->isUsed()) {
+            $this->addFlash('error', 'Cette invitation a déjà été utilisée.');
+
+            return $this->redirectToRoute('admin_users');
+        }
+
+        if ($action === 'revoke') {
+            // An unused invitation is just a pending link: removing it makes the link invalid.
+            $em->remove($invitation);
+            $em->flush();
+            $this->addFlash('success', sprintf('Invitation %s annulée — le lien ne fonctionne plus.', $invitation->getEmail() ?? 'sans email'));
+        } else {
+            $invitation->setExpiresAt(new \DateTimeImmutable('+30 days'));
+            $em->flush();
+            if ($invitation->getEmail() !== null) {
+                $this->sendInvitation($invitation);
+            } else {
+                $this->addFlash('invite_link', $this->generateUrl('register', ['code' => $invitation->getCode()], UrlGeneratorInterface::ABSOLUTE_URL));
+            }
+        }
+
+        return $this->redirectToRoute('admin_users');
     }
 
     #[Route('/admin/users', name: 'admin_users')]
@@ -201,6 +236,7 @@ class AdminController extends AbstractController
             'role' => $role,
             'roleLabels' => self::ROLE_LABELS,
             'counts' => $counts,
+            'pendingInvitations' => $em->getRepository(Invitation::class)->findBy(['usedAt' => null], ['createdAt' => 'DESC']),
             'page' => $page,
             'pages' => $pages,
         ]);

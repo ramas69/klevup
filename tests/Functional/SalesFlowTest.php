@@ -492,4 +492,26 @@ class SalesFlowTest extends WebTestCase
         self::assertResponseIsSuccessful();
         self::assertSelectorExists('.sidebar .k-logo');
     }
+
+    public function testPendingInvitationsAreListedAndCanBeResentOrRevoked(): void
+    {
+        $this->client->loginUser($this->makeUser('admin@test.fr', 'ROLE_ADMIN'));
+        $crawler = $this->client->request('GET', '/admin/users');
+        $this->client->submit($crawler->filter('#invite-dialog form')->form(), ['role' => 'ROLE_ADMIN', 'email' => 'badr@test.fr']);
+        $crawler = $this->client->followRedirect();
+
+        self::assertSelectorTextContains('.invites', 'badr@test.fr');
+        self::assertSelectorTextContains('.invites', 'Admin');
+        $id = (int) $this->em->getConnection()->fetchOne('SELECT id FROM invitation');
+        $token = $crawler->filter(sprintf('form[action="/admin/invitation/%d/resend"] input[name=_token]', $id))->attr('value');
+
+        $this->em->getConnection()->executeStatement('UPDATE invitation SET expiresAt = DATE_SUB(NOW(), INTERVAL 1 DAY)');
+        $this->client->request('POST', sprintf('/admin/invitation/%d/resend', $id), ['_token' => $token]);
+        self::assertResponseRedirects('/admin/users');
+        self::assertEmailCount(1);
+        self::assertGreaterThan(new \DateTimeImmutable('+29 days'), new \DateTimeImmutable($this->em->getConnection()->fetchOne('SELECT expiresAt FROM invitation')));
+
+        $this->client->request('POST', sprintf('/admin/invitation/%d/revoke', $id), ['_token' => $token]);
+        self::assertSame(0, (int) $this->em->getConnection()->fetchOne('SELECT COUNT(*) FROM invitation'));
+    }
 }

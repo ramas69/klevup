@@ -1,7 +1,7 @@
 {% extends "admin/base_admin.html.twig" %}
 {% block title %}Utilisateurs - Admin Klevup{% endblock %}
 {% block page_title %}Utilisateurs <span style="font-size:18px;color:#5A6A80;font-weight:600">· {{ counts.all }}</span>{% endblock %}
-{% block page_subtitle %}Invitez, changez les rôles, désactivez un compte sans perdre son historique.{% endblock %}
+{% block page_subtitle %}Invitez, changez les rôles, désactivez un compte sans perdre son historique. Une personne invitée apparaît ici dès qu'elle a créé son compte.{% endblock %}
 
 {% block topbar_action %}
 <button type="button" class="btn btn-gold" onclick="document.getElementById('invite-dialog').showModal()">+ Inviter quelqu'un</button>
@@ -54,6 +54,17 @@ dialog::backdrop{background:rgba(15,36,71,.45)}
 .dlg-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:6px}
 .dlg-actions .cancel{background:none;border:none;color:#5A6A80;font-weight:600;cursor:pointer;font-family:Poppins,sans-serif;font-size:14px}
 .admin-warn{display:none;background:#ffebee;color:#c0392b;border-radius:10px;padding:10px 12px;font-size:12.5px;margin-top:-6px;margin-bottom:14px}
+.invites{background:#fff;border:2px solid #E3E9F2;border-radius:18px;padding:18px 20px;margin-bottom:20px}
+.invites h2{font-size:15px;color:#0F2447;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.invites h2 .n{background:#F5B731;color:#0F2447;border-radius:999px;padding:1px 9px;font-size:12px}
+.inv{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:10px 0;border-top:1px solid #E3E9F2}
+.inv:first-of-type{border-top:none}
+.inv .who{flex:1;min-width:200px}
+.inv .who b{color:#0F2447;font-size:14px}
+.inv .who small{display:block;color:#5A6A80;font-size:12px;margin-top:2px}
+.inv .st{font-size:11.5px;font-weight:700;padding:3px 10px;border-radius:999px;background:#fff3e0;color:#f57c00;white-space:nowrap}
+.inv .st.exp{background:#f0f2f5;color:#888}
+.inv form{display:inline}
 @media(max-width:900px){.hide-sm{display:none}}
 </style>{% endblock %}
 
@@ -78,6 +89,34 @@ dialog::backdrop{background:rgba(15,36,71,.45)}
     {% endfor %}
   </nav>
 </form>
+
+{% if pendingInvitations|length > 0 %}
+<section class="invites" aria-label="Invitations en attente">
+  <h2>Invitations en attente <span class="n">{{ pendingInvitations|length }}</span></h2>
+  {% for inv in pendingInvitations %}
+  {% set expired = inv.expiresAt < date() %}
+  {% set link = url('register', {code: inv.code}) %}
+  <div class="inv">
+    <div class="who">
+      <b>{{ inv.email ?? 'Lien sans email' }}</b>
+      <small>{{ roleLabels[inv.role]|default(inv.role) }} · envoyée le {{ inv.createdAt|date('d/m/Y à H:i') }}{% if inv.referrer %} · parrainé par {{ inv.referrer.name }}{% endif %}</small>
+    </div>
+    <span class="st{{ expired ? ' exp' }}">{{ expired ? 'Expirée' : 'En attente · expire le ' ~ inv.expiresAt|date('d/m/Y') }}</span>
+    <div class="row-actions">
+      {% if not expired %}<button type="button" class="btn-mini" data-link="{{ link }}" onclick="navigator.clipboard.writeText(this.dataset.link);this.textContent='Copié ✓'">Copier le lien</button>{% endif %}
+      <form method="post" action="{{ path('admin_invitation_action', {id: inv.id, action: 'resend'}) }}">
+        <input type="hidden" name="_token" value="{{ csrf_token('invitation_' ~ inv.id) }}">
+        <button type="submit" class="btn-mini">{{ inv.email ? 'Renvoyer' : 'Prolonger' }}</button>
+      </form>
+      <form method="post" action="{{ path('admin_invitation_action', {id: inv.id, action: 'revoke'}) }}" onsubmit="return confirm('Annuler cette invitation ? Le lien ne fonctionnera plus.');">
+        <input type="hidden" name="_token" value="{{ csrf_token('invitation_' ~ inv.id) }}">
+        <button type="submit" class="btn-mini danger">Annuler</button>
+      </form>
+    </div>
+  </div>
+  {% endfor %}
+</section>
+{% endif %}
 
 <div class="panel">
   {% if users|length > 0 %}
