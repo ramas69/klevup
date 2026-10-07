@@ -16,7 +16,7 @@ class Lead
     public const TIMELINES = ['urgent' => 'Urgent (moins d\'1 mois)', '3m' => 'Sous 3 mois', '6m' => 'Sous 6 mois', 'unknown' => 'Pas encore défini'];
     public const BUDGETS = ['lt2k' => 'Moins de 2 000 €', '2k5k' => '2 000 – 5 000 €', 'gt5k' => 'Plus de 5 000 €', 'unknown' => 'Inconnu'];
     public const RELATIONSHIPS = ['client' => 'C\'est mon client', 'network' => 'Contact de mon réseau pro', 'friend' => 'Proche / ami', 'cold' => 'Je ne le connais pas encore'];
-    public const LOST_REASONS = ['budget' => 'Budget insuffisant', 'timing' => 'Pas le bon moment', 'competitor' => 'A choisi un concurrent', 'no_need' => 'Pas de besoin réel', 'unreachable' => 'Injoignable', 'other' => 'Autre raison'];
+    public const LOST_REASONS = ['budget' => 'Budget insuffisant', 'timing' => 'Pas le bon moment', 'competitor' => 'A choisi un concurrent', 'no_need' => 'Pas de besoin réel', 'unreachable' => 'Injoignable', 'out_of_scope' => 'Hors de notre périmètre', 'other' => 'Autre raison'];
 
     #[ORM\Id]
     #[ORM\GeneratedValue]

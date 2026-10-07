@@ -253,7 +253,8 @@ body{background:#fff}
       </article>
       {% endfor %}
     </div>
-    <p class="who-more">Un besoin qui n'est pas dans la liste ? Transmettez-le aussi : nous développons sur mesure.</p>
+    {% set minSetup = products|map(p => p.priceFrom)|filter(v => v > 0) %}
+    <p class="who-more">Un besoin qui n'est pas dans la liste ? <strong>Transmettez-le aussi</strong> : on étudie tout{{ minSetup|length ? ', à partir de ' ~ min(minSetup)|number_format(0, ',', ' ') ~ ' €' }}, et votre commission s'applique de la même façon.</p>
   </div>
 </section>
 

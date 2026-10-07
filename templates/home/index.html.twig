@@ -72,6 +72,9 @@ section{padding:84px 0}
   .grid,.steps-grid,.lead-form .row2{grid-template-columns:1fr}
   h1{font-size:38px}
 }
+.anything{display:flex;gap:20px;align-items:center;justify-content:space-between;flex-wrap:wrap;background:var(--navy);color:#CFE0F5;border-radius:18px;padding:22px 26px;margin-top:28px;font-size:15.5px;line-height:1.6}
+.anything strong{color:#fff}
+.anything .btn{white-space:nowrap}
 .faq{background:var(--cream)}
 .faq-list{max-width:760px;margin:0 auto}
 .faq-item{background:#fff;border:2px solid var(--border);border-radius:14px;margin-bottom:12px;overflow:hidden}
@@ -89,13 +92,13 @@ section{padding:84px 0}
 <header class="hero">
   <div class="wrap">
     <div>
-      <span class="eyebrow">Applications métier clés en main</span>
+      <span class="eyebrow">Votre équipe tech & IA externalisée</span>
       {% set setupPrices = products|map(p => p.priceFrom)|filter(v => v > 0) %}
       {% set setupFrom = setupPrices|length ? min(setupPrices) : 0 %}
       {% set monthlyPrices = products|map(p => p.monthlyFrom)|filter(v => v > 0) %}
       {% set monthlyFrom = monthlyPrices|length ? min(monthlyPrices) : 0 %}
-      <h1>Votre application professionnelle, <em>prête en quelques jours</em>, entretenue pour vous.</h1>
-      <p>Gestion de formation, e-learning, prospection, prise de commande — nos développeurs livrent votre outil personnalisé à votre marque{% if setupFrom %}, mise en place dès {{ setupFrom|number_format(0, ',', ' ') }} €{% endif %}. Ensuite, un abonnement mensuel couvre l'hébergement, la maintenance, les mises à jour et le support.</p>
+      <h1>Vos applications et automatisations IA, <em>prêtes en quelques jours</em>, entretenues pour vous.</h1>
+      <p>Des solutions prêtes à l'emploi (formation, e-learning, prospection, prise de commande), des agents IA qui travaillent à votre place, ou une application sur mesure : nos développeurs livrent votre outil à votre marque{% if setupFrom %}, dès {{ setupFrom|number_format(0, ',', ' ') }} €{% endif %}. Ensuite, un abonnement mensuel couvre l'hébergement, la maintenance, les mises à jour et le support.</p>
       <div class="hero-ctas">
         <a class="btn btn-gold" href="#contact">Demander une démo gratuite</a>
         <a class="btn btn-ghost" href="#solutions">Voir les solutions</a>
@@ -122,7 +125,7 @@ section{padding:84px 0}
 <section id="solutions">
   <div class="wrap">
     <div class="sec-head">
-      <h2>Une solution pour chaque métier</h2>
+      <h2>Des solutions prêtes… et tout le reste sur mesure</h2>
       <p>Des applications éprouvées, personnalisées à votre activité et livrées à votre marque. Une mise en place, puis un abonnement mensuel qui inclut hébergement, maintenance, mises à jour et support.</p>
     </div>
     <div class="grid">
@@ -130,7 +133,10 @@ section{padding:84px 0}
       <div class="card {{ p.featured ? 'hl' }}">{% if p.featured %}<span class="tag">La plus demandée</span>{% endif %}<h3><span class="arr">↗</span> {{ p.name }}</h3><p>{{ p.description }}</p><div class="price">Mise en place dès {{ p.priceFrom|number_format(0, ',', ' ') }} €{% if p.monthlyFrom %} <span>+ {{ p.monthlyFrom|number_format(0, ',', ' ') }} €/mois tout compris</span>{% endif %}</div></div>
       {% endfor %}
     </div>
-    <p style="text-align:center;margin-top:28px;color:var(--gray);font-size:15px">Un besoin spécifique ? <a href="#contact" style="color:var(--blue);font-weight:600">Notre équipe développe aussi sur mesure →</a></p>
+    <div class="anything">
+      <div><strong>Votre besoin n'est pas dans la liste ?</strong> On étudie tout : décrivez-le en 2 minutes, on vous propose une solution et un devis ferme sous 48 h{% if setupFrom %}, à partir de {{ setupFrom|number_format(0, ',', ' ') }} €{% endif %}.</div>
+      <a class="btn btn-gold" href="#contact">Décrire mon besoin</a>
+    </div>
   </div>
 </section>
 
@@ -207,7 +213,7 @@ section{padding:84px 0}
       </div>
       <select name="product_id" aria-label="Solution qui vous intéresse">
         {% for p in products %}<option value="{{ p.id }}">{{ p.name }}</option>{% endfor %}
-        <option value="0">Autre besoin / sur-mesure</option>
+        <option value="0">Autre besoin — on étudie tout</option>
       </select>
       <textarea name="notes" rows="3" maxlength="2000" placeholder="Votre besoin en quelques mots" aria-label="Votre besoin"></textarea>
       <button type="submit" class="btn btn-gold" style="font-size:17px;padding:16px 34px">Demander une démo gratuite</button>
