@@ -18,6 +18,15 @@
 .kit-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px;align-items:center}
 .kit-actions a.res{color:#1D4E89;font-weight:600;font-size:14px}
 @media(max-width:860px){.how{grid-template-columns:1fr}}
+.msgs{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:32px}
+.msg{background:#fff;border:2px solid #E3E9F2;border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:10px}
+.msg h3{font-size:14.5px;color:#0F2447}
+.msg .txt{white-space:pre-line;font-size:13.5px;line-height:1.6;color:#1A2332;background:#f8f9fa;border-radius:10px;padding:12px;flex:1}
+.msg button{align-self:flex-start;background:#0F2447;color:#fff;border:none;border-radius:10px;padding:8px 14px;font-family:Poppins,sans-serif;font-weight:600;font-size:13px;cursor:pointer}
+.msg button:hover{background:#1D4E89}
+.sec-title{font-size:18px;color:#0F2447;margin:4px 0 4px}
+.sec-sub{font-size:13.5px;color:#5A6A80;margin-bottom:14px}
+@media(max-width:1100px){.msgs{grid-template-columns:1fr}}
 </style>{% endblock %}
 
 {% block apporteur_content %}
@@ -27,6 +36,23 @@
   <div><strong>3. Transmettez</strong>Avec son accord, envoyez le lead : on le rappelle sous 24 h et vous suivez tout ici. Vous touchez le taux de la solution sur la mise en place (+{{ palierBonus }} points dès la {{ palierSales + 1 }}ᵉ vente du trimestre), puis {{ recurringRate }} % de l'abonnement pendant {{ recurringMonths }} mois.</div>
 </div>
 
+{% set setupPrices = products|map(p => p.priceFrom)|filter(v => v > 0) %}
+{% set from = setupPrices|length ? min(setupPrices)|number_format(0, ',', ' ') ~ ' €' : '' %}
+<h2 class="sec-title">Messages prêts à envoyer</h2>
+<p class="sec-sub">Copiez, remplacez les [crochets], envoyez. Pensez à obtenir l'accord de votre contact avant de nous transmettre ses coordonnées.</p>
+<div class="msgs">
+  <div class="msg"><h3>LinkedIn / WhatsApp — version directe</h3><div class="txt">Bonjour [Prénom], j'ai découvert Klevup — une équipe française qui livre des applications métier clés en main (inscriptions, émargements, e-learning, prise de commande) à la marque du client, en quelques jours{{ from ? ', dès ' ~ from }} puis un abonnement tout compris.
+
+Je pense à toi pour [raison]. Une démo gratuite de 30 min pour voir ? Je te mets en contact directement.</div><button type="button" class="copy">Copier</button></div>
+  <div class="msg"><h3>Version douce — prospect hésitant</h3><div class="txt">[Prénom], tu m'avais dit que [irritant : tu perds du temps avec tes inscriptions / tes devis]. Je connais une équipe qui règle exactement ça — application à ta marque, prête en quelques jours, pas de projet interminable.
+
+Je t'introduis ? C'est gratuit, sans engagement — et la démo vaut le détour rien que pour voir comment c'est fait.</div><button type="button" class="copy">Copier</button></div>
+  <div class="msg"><h3>Version groupe / publication</h3><div class="txt">Je connais une équipe française (Klevup) qui livre des applications métier clés en main : organisme de formation, e-learning, prospection, prise de commande. À votre marque, en quelques jours{{ from ? ', dès ' ~ from }}, puis un abonnement tout compris (hébergement, maintenance, support).
+
+Si votre gestion tourne encore sur Excel et trois outils dispersés, ça vaut 30 minutes de démo. Contactez-moi, je vous présente.</div><button type="button" class="copy">Copier</button></div>
+</div>
+<h2 class="sec-title">Par solution</h2>
+<p class="sec-sub">Qui cibler, la question qui déclenche l'intérêt, et ce que chaque vente vous rapporte.</p>
 {% for p in products %}
 <div class="kit" id="produit-{{ p.id }}">
   <div class="kit-head">
@@ -45,4 +71,13 @@
   </div>
 </div>
 {% endfor %}
+<script>
+document.querySelectorAll('.msg .copy').forEach(function (b) {
+  b.addEventListener('click', function () {
+    navigator.clipboard.writeText(b.parentNode.querySelector('.txt').textContent.trim());
+    b.textContent = 'Copié ✓';
+    setTimeout(function () { b.textContent = 'Copier'; }, 2000);
+  });
+});
+</script>
 {% endblock %}

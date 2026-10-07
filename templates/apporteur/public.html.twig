@@ -1,185 +1,391 @@
 {% extends "base.html.twig" %}
+{% set exampleGain = example ? (example.priceFrom * example.commissionRate / 100)|round : 0 %}
+{% macro eur(n) %}{{ n|round|number_format(0, ',', ' ') }}{% endmacro %}
 
-{% block title %}Devenir apporteur Klevup — {{ (3000 * rates.setup / 100)|round }} € par client apporté, puis un revenu qui coule{% endblock %}
+{% block title %}Devenir apporteur Klevup — {{ _self.eur(exampleGain) }} € par client apporté, puis un revenu chaque mois{% endblock %}
 
 {% block styles %}
 <style>
-.hero{background:var(--grad);color:#fff;padding:70px 0 80px}
-.eyebrow{display:inline-block;background:rgba(245,183,49,.15);border:1px solid var(--gold);color:var(--gold);font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:6px 14px;border-radius:999px;margin-bottom:22px}
-h1{font-size:44px;font-weight:800;letter-spacing:-1.2px;line-height:1.15;color:#fff}
-h1 em{font-style:normal;color:var(--gold)}
-.hero p{margin:20px 0 0;font-size:17.5px;color:#CFE0F5;line-height:1.65;max-width:640px}
-section{padding:70px 0}
-.wrap{max-width:1080px;margin:0 auto;padding:0 20px}
-.sec-head{text-align:center;max-width:660px;margin:0 auto 46px}
-.sec-head h2{font-size:30px;font-weight:700;color:var(--navy);letter-spacing:-.5px}
-.sec-head p{margin-top:12px;color:var(--gray);font-size:16px;line-height:1.6}
-.calc{background:var(--cream);border-radius:22px;padding:44px 40px;max-width:820px;margin:0 auto}
-.calc h2{font-size:26px;color:var(--navy);margin-bottom:6px}
-.calc .hint{color:var(--gray);font-size:14px;margin-bottom:26px;font-family:Arial,sans-serif}
-.calc-grid{display:grid;grid-template-columns:1fr 1fr;gap:34px;align-items:start}
-.calc label{display:block;font-family:Arial,sans-serif;font-size:13px;font-weight:700;color:var(--navy);margin-bottom:10px;text-transform:uppercase;letter-spacing:1px}
-.calc input[type=range]{width:100%;accent-color:var(--blue)}
-.calc .val{font-size:22px;font-weight:800;color:var(--navy);font-family:Arial,sans-serif}
-.resultbox{background:var(--navy);border-radius:18px;padding:30px;color:#fff;text-align:center}
-.resultbox .big{font-size:44px;font-weight:800;color:var(--gold)}
-.resultbox .l1{font-size:13px;color:#9FB6D6;margin-top:2px}
-.resultbox .y{font-size:20px;font-weight:700;color:#fff;margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.2)}
-.chrono{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
-.ch{background:#fff;border:2px solid var(--border);border-radius:16px;padding:24px 20px;text-align:center}
-.ch .n{width:40px;height:40px;border-radius:10px;background:var(--grad);color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;margin:0 auto 12px}
-.ch h3{font-size:15.5px;color:var(--navy);margin-bottom:6px}
-.ch p{font-size:13.5px;color:var(--gray);line-height:1.55}
-.triggers{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
-.tr{background:#fff;border:2px solid var(--border);border-left:5px solid var(--gold);border-radius:12px;padding:16px 18px;font-size:14.5px;color:var(--ink);line-height:1.5}
-.tr b{color:var(--navy)}
-.kit{background:var(--cream)}
-.kit-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
-.kit-card{background:#fff;border:2px solid var(--border);border-radius:14px;padding:20px}
-.kit-card h3{font-size:15px;color:var(--navy);margin-bottom:10px}
-.kit-card pre{white-space:pre-wrap;font-family:Georgia,serif;font-size:13px;line-height:1.55;color:var(--ink);background:#FAF7F0;border-radius:8px;padding:12px}
-.guar{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-.g{background:#fff;border:2px solid var(--border);border-radius:14px;padding:20px;text-align:center;font-size:14px;color:var(--gray);line-height:1.5}
-.g b{color:var(--navy);display:block;font-size:15.5px;margin-bottom:6px}
-.cta{background:var(--grad);color:#fff;text-align:center;padding:70px 0}
-.cta h2{font-size:30px;color:#fff;letter-spacing:-.5px}
-.cta p{color:#CFE0F5;margin:14px auto 26px;max-width:560px;font-size:16px}
-.btn-gold{background:var(--gold);color:var(--navy);border:none;border-radius:10px;padding:15px 34px;font-size:16px;font-weight:800;text-decoration:none;display:inline-block;cursor:pointer}
-@media(max-width:860px){.calc-grid,.triggers,.kit-grid,.guar,.chrono{grid-template-columns:1fr}h1{font-size:32px}}
+body{background:#fff}
+.ap section{padding:84px 0}
+.ap .eyebrow{display:inline-block;background:rgba(245,183,49,.15);border:1px solid var(--gold);color:var(--gold);font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:6px 14px;border-radius:999px;margin-bottom:22px}
+.ap .sec-head{text-align:center;max-width:680px;margin:0 auto 48px}
+.ap .sec-head .kicker{font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--blue);margin-bottom:10px}
+.ap .sec-head h2{font-size:34px;font-weight:700;color:var(--navy);letter-spacing:-.5px;line-height:1.2}
+.ap .sec-head p{margin-top:14px;color:var(--gray);font-size:16.5px;line-height:1.6}
+.ap .btn-ghost{background:transparent;color:#fff;border:2px solid rgba(255,255,255,.55);padding:11px 24px;font-size:15px}
+.ap .btn-ghost:hover{border-color:#fff}
+
+/* 1. Hero */
+.hero{background:var(--grad);color:#fff;padding:80px 0 92px;overflow:hidden}
+.hero .wrap{display:grid;grid-template-columns:1.1fr .9fr;gap:56px;align-items:center}
+.hero h1{font-size:42px;font-weight:800;letter-spacing:-1.2px;line-height:1.14;color:#fff}
+.hero h1 em{font-style:normal;color:var(--gold)}
+.hero p.lead{margin:22px 0 30px;font-size:18px;color:#CFE0F5;line-height:1.65;max-width:540px}
+.hero .ctas{display:flex;gap:14px;flex-wrap:wrap}
+.hero .proof{display:flex;gap:18px;flex-wrap:wrap;margin-top:22px;font-size:14px;color:#CFE0F5;font-weight:500}
+.hero .proof span::before{content:'✓ ';color:var(--gold);font-weight:800}
+.notif-stack{position:relative;display:flex;flex-direction:column;gap:14px}
+.notif{background:#fff;color:var(--ink);border-radius:18px;padding:18px 20px;box-shadow:0 24px 60px rgba(4,12,28,.4);display:flex;gap:14px;align-items:center;animation:pop .6s ease-out both}
+.notif:nth-child(2){animation-delay:.35s;margin-left:36px}
+.notif:nth-child(3){animation-delay:.7s;margin-left:12px}
+.notif .ic{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.notif .ic.g{background:#E2EFDA}.notif .ic.y{background:#FDF3D6}.notif .ic.b{background:#E3EEFA}
+.notif b{display:block;color:var(--navy);font-size:15px}
+.notif small{color:var(--gray);font-size:13px}
+.notif .amt{margin-left:auto;font-weight:800;color:var(--success);font-size:18px;white-space:nowrap}
+@keyframes pop{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.notif{animation:none}}
+
+/* 2. Calculator */
+.calc{background:var(--cream)}
+.calc-box{background:#fff;border:2px solid var(--border);border-radius:22px;padding:34px;display:grid;grid-template-columns:1.15fr .85fr;gap:34px;max-width:980px;margin:0 auto;box-shadow:0 12px 40px rgba(15,36,71,.06)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:26px}
+.chip{border:2px solid var(--border);background:#fff;color:var(--navy);font-family:inherit;font-weight:600;font-size:13.5px;padding:8px 14px;border-radius:999px;cursor:pointer}
+.chip:hover{border-color:var(--gold)}
+.chip.on{background:var(--navy);border-color:var(--navy);color:#fff}
+.slider{margin-bottom:22px}
+.slider .top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+.slider label{font-size:14px;font-weight:600;color:var(--navy)}
+.slider output{font-size:20px;font-weight:800;color:var(--navy)}
+.slider input{width:100%;accent-color:var(--blue)}
+.res{background:var(--navy);color:#fff;border-radius:18px;padding:26px;display:flex;flex-direction:column;gap:18px}
+.res .row .k{font-size:12.5px;color:#9FB6D6;text-transform:uppercase;letter-spacing:1px;font-weight:600}
+.res .row .v{font-size:30px;font-weight:800;color:var(--gold);line-height:1.15;margin-top:2px}
+.res .row .v small{font-size:15px;color:#fff;font-weight:600}
+.res .year{border-top:1px solid rgba(255,255,255,.18);padding-top:16px}
+.res .year .v{color:#fff;font-size:34px}
+.res .note{font-size:12px;color:#9FB6D6;line-height:1.5}
+
+/* 3. Steps */
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;position:relative}
+.step{text-align:center;padding:0 8px}
+.step .ic{width:64px;height:64px;border-radius:18px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 16px;box-shadow:0 10px 24px rgba(15,36,71,.18)}
+.step h3{font-size:17px;color:var(--navy);margin-bottom:8px}
+.step p{font-size:14.5px;color:var(--gray);line-height:1.6}
+.step .n{display:block;font-size:12px;font-weight:700;color:var(--gold);letter-spacing:1px;margin-bottom:6px}
+
+/* 4. Who to recommend */
+.who{background:var(--cream)}
+.who-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}
+.who-card{background:#fff;border:2px solid var(--border);border-radius:18px;padding:26px;display:flex;flex-direction:column;gap:12px}
+.who-card h3{font-size:18px;color:var(--navy)}
+.who-card .target{font-size:14px;color:var(--gray);line-height:1.6}
+.who-card .quote{font-size:15px;color:var(--navy);font-weight:600;border-left:4px solid var(--gold);padding:4px 0 4px 14px;line-height:1.5}
+.who-card .gain{margin-top:auto;display:flex;gap:10px;flex-wrap:wrap;padding-top:6px}
+.who-card .gain span{background:#E2EFDA;color:var(--success);font-weight:700;font-size:13.5px;padding:6px 12px;border-radius:999px}
+.who-card .gain span.rec{background:#FDF3D6;color:#8a6d1a}
+.who-more{text-align:center;margin-top:26px;color:var(--gray);font-size:15px}
+
+/* 5. Space preview */
+.space .wrap{display:grid;grid-template-columns:.9fr 1.1fr;gap:56px;align-items:center}
+.space h2{font-size:32px;color:var(--navy);letter-spacing:-.5px;line-height:1.2}
+.space ul{list-style:none;margin-top:22px;display:flex;flex-direction:column;gap:14px}
+.space li{display:flex;gap:12px;font-size:15.5px;color:var(--ink);line-height:1.5}
+.space li::before{content:'✓';flex-shrink:0;width:26px;height:26px;border-radius:8px;background:#E2EFDA;color:var(--success);font-weight:800;display:flex;align-items:center;justify-content:center;font-size:14px}
+.mock{background:#f4f6fa;border-radius:20px;padding:18px;box-shadow:0 24px 60px rgba(15,36,71,.14);border:1px solid var(--border)}
+.mock .bar{display:flex;gap:6px;margin-bottom:14px}.mock .bar i{width:10px;height:10px;border-radius:50%;background:#d6dce6}
+.mock-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
+.mock-kpi{background:#fff;border-radius:12px;padding:12px}
+.mock-kpi.feat{background:var(--grad);color:#fff}
+.mock-kpi .k{font-size:10px;text-transform:uppercase;letter-spacing:.8px;font-weight:700;opacity:.75}
+.mock-kpi .v{font-size:20px;font-weight:800;color:var(--navy);margin-top:4px}
+.mock-kpi.feat .v{color:var(--gold)}
+.mock-palier{background:#fff;border:2px solid var(--gold);border-radius:12px;padding:12px;margin-bottom:12px;font-size:12.5px;font-weight:700;color:var(--navy)}
+.mock-palier .pb{height:8px;background:#E3E9F2;border-radius:4px;margin-top:8px;overflow:hidden}
+.mock-palier .pb span{display:block;height:100%;width:66%;background:linear-gradient(90deg,#1D4E89,#F5B731)}
+.mock-rows{background:#fff;border-radius:12px;overflow:hidden}
+.mock-row{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-bottom:1px solid var(--border);font-size:12.5px}
+.mock-row:last-child{border:none}
+.mock-row b{color:var(--navy)}
+.pill{font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:999px}
+.pill.s{background:#E2EFDA;color:var(--success)}.pill.d{background:#FDF3D6;color:#b9770e}.pill.r{background:#E3EEFA;color:#1976d2}
+
+/* 6. Rules */
+.rules{background:var(--cream)}
+.rules-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.rule{background:#fff;border:2px solid var(--border);border-radius:16px;padding:22px}
+.rule .ic{font-size:24px;margin-bottom:10px}
+.rule b{display:block;color:var(--navy);font-size:16px;margin-bottom:6px}
+.rule p{font-size:14px;color:var(--gray);line-height:1.6}
+
+/* 7. FAQ */
+.faq-list{max-width:780px;margin:0 auto}
+.faq-item{background:#fff;border:2px solid var(--border);border-radius:14px;margin-bottom:12px;overflow:hidden}
+.faq-item summary{cursor:pointer;padding:18px 22px;font-weight:700;color:var(--navy);font-size:16px;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.faq-item summary::-webkit-details-marker{display:none}
+.faq-item summary::after{content:'+';font-size:22px;color:var(--gold);font-weight:800}
+.faq-item[open] summary::after{content:'−'}
+.faq-item .a{padding:0 22px 18px;color:var(--gray);font-size:15px;line-height:1.65}
+
+/* 8. Apply */
+.apply{background:var(--grad)}
+.apply-card{background:#fff;border-radius:22px;padding:38px;max-width:640px;margin:0 auto;box-shadow:0 24px 60px rgba(4,12,28,.35)}
+.apply-card h2{font-size:28px;color:var(--navy);letter-spacing:-.5px}
+.apply-card .sub{color:var(--gray);margin:10px 0 24px;font-size:15.5px;line-height:1.6}
+.apply-card form{display:flex;flex-direction:column;gap:12px}
+.apply-card .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.apply-card input,.apply-card textarea{width:100%;padding:13px 14px;border:2px solid var(--border);border-radius:12px;font-family:inherit;font-size:15px;color:var(--ink);background:#fff}
+.apply-card input:focus,.apply-card textarea:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(245,183,49,.15)}
+.apply-card .btn{width:100%;padding:15px;font-size:16px;margin-top:4px}
+.apply-card .reassure{display:flex;justify-content:center;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--gray);margin-top:6px}
+.apply-card .reassure span::before{content:'✓ ';color:var(--success);font-weight:800}
+.hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
+.flash{border-radius:12px;padding:12px 14px;font-size:14.5px;font-weight:600;margin-bottom:14px}
+.flash.ok{background:#E2EFDA;color:var(--success)}.flash.ko{background:#fdecea;color:#C0392B}
+
+@media(max-width:960px){
+  .hero .wrap,.space .wrap,.calc-box{grid-template-columns:1fr}
+  .hero h1{font-size:36px}
+  .steps,.rules-grid{grid-template-columns:1fr 1fr}
+  .who-grid{grid-template-columns:1fr}
+  .notif:nth-child(2),.notif:nth-child(3){margin-left:0}
+}
+@media(max-width:600px){
+  .ap section{padding:60px 0}
+  .ap .sec-head h2,.space h2{font-size:27px}
+  .steps,.rules-grid,.apply-card .row2,.mock-kpis{grid-template-columns:1fr}
+  .calc-box,.apply-card{padding:22px}
+}
 </style>
 {% endblock %}
 
 {% block body %}
 {% include 'partials/_public_header.html.twig' %}
+<div class="ap">
 
+{# 1. Hero #}
 <header class="hero">
   <div class="wrap">
-    <span class="eyebrow">Réseau apporteurs Klevup</span>
-    <h1>{{ (3000 * rates.setup / 100)|round|number_format(0, ',', ' ') }} € par client apporté.<br><em>Puis un revenu qui coule {{ rates.months }} mois.</em></h1>
-    <p>Vous transmettez un contact. On s'occupe de tout : démo, devis, livraison, support.
-    Vous touchez {{ rates.setup }} % de la mise en place, puis {{ rates.recurring }} % de l'abonnement pendant {{ rates.months }} mois.
-    Vous n'appelez personne, vous ne vendez rien, vous ne gérez rien après.</p>
+    <div>
+      <span class="eyebrow">Réseau apporteurs Klevup</span>
+      <h1>{{ _self.eur(exampleGain) }} € par client apporté.<br><em>Puis un revenu chaque mois.</em></h1>
+      <p class="lead">Vous recommandez Klevup à un contact qui en a besoin. Nous faisons la démo, le devis, la livraison et le support. Vous touchez {{ rates.setup }} % de la mise en place, puis {{ rates.recurring }} % de son abonnement pendant {{ rates.months }} mois.</p>
+      <div class="ctas">
+        <a class="btn btn-gold" href="#rejoindre">Rejoindre le réseau</a>
+        <a class="btn btn-ghost" href="#gains">Calculer mes gains</a>
+      </div>
+      <div class="proof"><span>Gratuit</span><span>Sans engagement</span><span>Payé sous {{ rates.paymentDays }} jours</span></div>
+    </div>
+    <div class="notif-stack" aria-hidden="true">
+      <div class="notif"><div class="ic g">🎉</div><div><b>Vente signée</b><small>{{ example ? example.name : 'Gestion de formation' }}</small></div><div class="amt">+{{ _self.eur(exampleGain) }} €</div></div>
+      <div class="notif"><div class="ic y">🔁</div><div><b>Commission récurrente</b><small>Abonnement — mois 3/{{ rates.months }}</small></div><div class="amt">+{{ _self.eur((example and example.monthlyFrom ? example.monthlyFrom : 150) * rates.recurring / 100) }} €</div></div>
+      <div class="notif"><div class="ic b">📅</div><div><b>RDV planifié</b><small>Votre contact a sa démo jeudi</small></div></div>
+    </div>
   </div>
 </header>
 
-<section>
+{# 2. Calculator #}
+<section class="calc" id="gains">
   <div class="wrap">
-    <div class="calc">
-      <h2>Vos commissions, en euros réels</h2>
-      <div class="hint">Bougez les curseurs — le calcul se met à jour instantanément.</div>
-      <div class="calc-grid">
-        <div>
-          <label>Prix de la mise en place : <span class="val" id="v1">3 000 €</span></label>
-          <input type="range" min="2000" max="15000" step="500" value="3000" id="r1" oninput="calc()">
-          <label style="margin-top:22px">Abonnement mensuel : <span class="val" id="v2">150 €</span></label>
-          <input type="range" min="80" max="600" step="10" value="150" id="r2" oninput="calc()">
-          <label style="margin-top:22px">Clients apportés par mois : <span class="val" id="v3">1</span></label>
-          <input type="range" min="1" max="6" step="1" value="1" id="r3" oninput="calc()">
+    <div class="sec-head">
+      <div class="kicker">Vos gains</div>
+      <h2>Combien pouvez-vous gagner ?</h2>
+      <p>Choisissez une solution, ajustez les curseurs : le calcul utilise nos vrais prix et nos vrais taux.</p>
+    </div>
+    <div class="calc-box">
+      <div>
+        <div class="chips" role="group" aria-label="Solution">
+          {% for p in products %}
+          <button type="button" class="chip{{ loop.first ? ' on' }}" data-setup="{{ p.priceFrom }}" data-monthly="{{ p.monthlyFrom ?: 150 }}" data-rate="{{ p.commissionRate }}">{{ p.name }}</button>
+          {% endfor %}
         </div>
-        <div class="resultbox">
-          <div class="big" id="r_immediate">—</div>
-          <div class="l1">commission immédiate par client ({{ rates.setup }} %)</div>
-          <div class="y" id="r_year">—</div>
-          <div class="l1" style="margin-top:2px">+ récurrent {{ rates.recurring }} % × {{ rates.months }} mois, après un an de portefeuille</div>
+        {% set first = products|first %}
+        <div class="slider">
+          <div class="top"><label for="c-setup">Mise en place</label><output id="o-setup"></output></div>
+          <input type="range" id="c-setup" min="1000" max="15000" step="100" value="{{ first ? first.priceFrom : 3000 }}">
         </div>
+        <div class="slider">
+          <div class="top"><label for="c-monthly">Abonnement mensuel</label><output id="o-monthly"></output></div>
+          <input type="range" id="c-monthly" min="0" max="600" step="10" value="{{ first and first.monthlyFrom ? first.monthlyFrom : 150 }}">
+        </div>
+        <div class="slider">
+          <div class="top"><label for="c-clients">Clients apportés par mois</label><output id="o-clients"></output></div>
+          <input type="range" id="c-clients" min="1" max="6" step="1" value="1">
+        </div>
+      </div>
+      <div class="res" aria-live="polite">
+        <div class="row"><div class="k">Par client, à la signature</div><div class="v" id="r-now"></div></div>
+        <div class="row"><div class="k">Puis chaque mois, pendant {{ rates.months }} mois</div><div class="v" id="r-month"></div></div>
+        <div class="row year"><div class="k">Sur votre première année</div><div class="v" id="r-year"></div></div>
+        <div class="note">Estimation au taux de base, hors bonus de +{{ rates.bonus }} points dès la {{ rates.palier + 1 }}ᵉ vente du trimestre. Le récurrent est compté pour les mois réellement écoulés.</div>
       </div>
     </div>
   </div>
 </section>
 
-<section>
+{# 3. How it works #}
+<section id="comment">
   <div class="wrap">
-    <div class="sec-head"><h2>Ton rôle, en 4 étapes</h2><p>Tu ne vends rien, tu ne gères rien — tu écoutes et tu transmets.</p></div>
-    <div class="chrono">
-      <div class="ch"><div class="n">1</div><h3>Tu repères un besoin</h3><p>Dans tes conversations : un formateur, un artisan, un commerce qui galère avec ses outils.</p></div>
-      <div class="ch"><div class="n">2</div><h3>Tu transmets le contact</h3><p>Ton lien de recommandation ou ton nom dans le formulaire. C'est tout.</p></div>
-      <div class="ch"><div class="n">3</div><h3>On s'occupe de tout</h3><p>Démo sous 48 h, devis ferme, livraison, formation du client, support. Tu n'es plus dans la boucle.</p></div>
-      <div class="ch"><div class="n">4</div><h3>Tu encaisses</h3><p>{{ rates.setup }} % de la mise en place à la signature, puis {{ rates.recurring }} % de l'abonnement chaque mois pendant {{ rates.months }} mois.</p></div>
+    <div class="sec-head">
+      <div class="kicker">Comment ça marche</div>
+      <h2>Vous recommandez, on s'occupe du reste</h2>
+      <p>Aucune vente à faire, aucun suivi client : votre rôle s'arrête à la mise en relation.</p>
+    </div>
+    <div class="steps">
+      <div class="step"><div class="ic">👀</div><span class="n">ÉTAPE 1</span><h3>Vous repérez un besoin</h3><p>Un formateur sur Excel, un commerce qui paie des commissions, une TPE qui jongle entre trois outils.</p></div>
+      <div class="step"><div class="ic">📨</div><span class="n">ÉTAPE 2</span><h3>Vous transmettez le contact</h3><p>Avec son accord, en 2 minutes depuis votre espace. Il est à vous dès cet instant.</p></div>
+      <div class="step"><div class="ic">🛠️</div><span class="n">ÉTAPE 3</span><h3>On s'occupe de tout</h3><p>Rappel sous 24 h, démo, devis, livraison, formation et support. Vous suivez chaque étape en direct.</p></div>
+      <div class="step"><div class="ic">💶</div><span class="n">ÉTAPE 4</span><h3>Vous êtes payé</h3><p>{{ rates.setup }} % de la mise en place sous {{ rates.paymentDays }} jours, puis {{ rates.recurring }} % de l'abonnement chaque mois pendant {{ rates.months }} mois.</p></div>
     </div>
   </div>
 </section>
 
-<section>
+{# 4. Who to recommend #}
+<section class="who" id="qui">
   <div class="wrap">
-    <div class="sec-head"><h2>Les conversations qui déclenchent tout</h2><p>Si tu entends une de ces phrases, tu as un prospect. Clique, tu verras combien ça vaut pour toi.</p></div>
-    <div class="triggers">
-      <div class="tr"><b>« Je gère mes inscriptions et mes émargements sur Excel »</b> — un organisme de formation. Mise en place dès 3 000 € → {{ (3000 * rates.setup / 100)|round|number_format(0, ',', ' ') }} € pour toi.</div>
-      <div class="tr"><b>« Je veux vendre mes formations en ligne »</b> — un formateur qui veut sa plateforme e-learning à sa marque.</div>
-      <div class="tr"><b>« La prospection me prend des heures chaque semaine »</b> — un consultant ou agence qui veut outiller son acquisition.</div>
-      <div class="tr"><b>« Je veux que mes clients commandent en ligne »</b> — un artisan, un producteur, un commerce de proximité.</div>
-      <div class="tr"><b>« On paye trois outils qui ne se parlent pas »</b> — une TPE qui veut une seule application à son image.</div>
-      <div class="tr"><b>« Un outil sur mesure ? Trop cher, trop long »</b> — et c'est là que tu parles de nous : quelques jours, dès 2 000 €.</div>
+    <div class="sec-head">
+      <div class="kicker">Qui recommander</div>
+      <h2>Les contacts qui ont besoin de nous</h2>
+      <p>Si vous entendez une de ces phrases, vous avez un prospect. Voici ce que chaque solution vous rapporte.</p>
     </div>
+    <div class="who-grid">
+      {% for p in products %}
+      {% set hook = p.pitch ? (p.pitch|split("\n")|first|replace({'Le déclic : ': ''})) : null %}
+      <article class="who-card">
+        <h3>{{ p.name }}</h3>
+        {% if p.target %}<div class="target">{{ p.target }}</div>{% endif %}
+        {% if hook %}<div class="quote">{{ hook }}</div>{% endif %}
+        <div class="gain">
+          <span>{{ _self.eur(p.priceFrom * p.commissionRate / 100) }} € dès la signature</span>
+          {% if p.monthlyFrom %}<span class="rec">+ {{ _self.eur(p.monthlyFrom * rates.recurring / 100) }} €/mois × {{ rates.months }}</span>{% endif %}
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+    <p class="who-more">Un besoin qui n'est pas dans la liste ? Transmettez-le aussi : nous développons sur mesure.</p>
   </div>
 </section>
 
-<section class="kit">
+{# 5. Space preview #}
+<section class="space" id="espace">
   <div class="wrap">
-    <div class="sec-head"><h2>Ton kit de recommandation — copier, coller, envoyer</h2><p>Trois messages prêts. Remplace les crochets, c'est parti.</p></div>
-    <div class="kit-grid">
-      <div class="kit-card"><h3>LinkedIn / WhatsApp — la version directe</h3><pre>Bonjour [Prénom], je suis tombé sur Klevup — une équipe française qui livre des applications métier clés en main (inscriptions, émargements, e-learning, prise de commande) à la marque du client, en quelques jours, dès 2 000 € puis un abonnement tout compris.
-
-Je pense à toi pour [raison]. Une démo gratuite de 30 min pour voir ? Je te mets en contact directement.</pre></div>
-      <div class="kit-card"><h3>La version douce (prospect hésitant)</h3><pre>[Prénom], tu m'avais dit que [irritant : tu perds du temps avec tes inscriptions / tes devis]. Je connais une équipe qui règle exactement ça — application à ta marque, prête en quelques jours, pas de projet interminable.
-
-Je t'introduis ? C'est gratuit, sans engagement — et la démo vaut le détour rien que pour voir comment c'est fait.</pre></div>
-      <div class="kit-card"><h3>La version groupe / post</h3><pre>Je connais une équipe française (Klevup) qui livre des applications métier clés en main : organisme de formation, e-learning, prospection, prise de commande. À ta marque, en quelques jours, dès 2 000 €, puis un abonnement tout compris (hébergement, maintenance, support).
-
-Si votre gestion tourne encore sur Excel et trois outils dispersés, ça vaut 30 minutes de démo. Contactez-moi, je vous présente.</pre></div>
+    <div>
+      <div class="kicker" style="font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--blue);margin-bottom:10px">Votre espace apporteur</div>
+      <h2>Vous voyez tout, en temps réel</h2>
+      <ul>
+        <li>Chaque contact transmis, avec son statut : rendez-vous, devis, signé.</li>
+        <li>Vos commissions, leur date de versement et un relevé mensuel pour votre facture.</li>
+        <li>Votre progression vers le bonus de +{{ rates.bonus }} points du trimestre.</li>
+        <li>Un kit de vente par solution : qui cibler, quoi dire, messages prêts à envoyer.</li>
+      </ul>
     </div>
-  </div>
-</section>
-
-<section>
-  <div class="wrap">
-    <div class="sec-head"><h2>Les garanties du réseau</h2><p>Ce qu'on t'écrit noir sur blanc.</p></div>
-    <div class="guar">
-      <div class="g"><b>24 h pour prendre en charge</b>Ton contact reçoit sa démo sous 48 h. Ta réputation n'attend pas.</div>
-      <div class="g"><b>Commission à {{ rates.paymentDays }} jours</b>Payée dans les {{ rates.paymentDays }} jours suivant la signature du client. Le récurrent tombe chaque mois tant que le client règle.</div>
-      <div class="g"><b>Ta relation reste la tienne</b>Pas de démarchage abusif en ton nom : on recommande, on livre, on chouchoute — et le client sait qui l'a envoyé.</div>
-    </div>
-  </div>
-</section>
-
-<section class="cta" id="rejoindre">
-  <div class="wrap">
-    <h2>Une question avant de rejoindre ?</h2>
-    <p>Remplis le formulaire en 2 minutes : qui tu es, ton réseau, et on t'appelle. Si ce n'est pas fait pour toi, on te le dira franchement.</p>
-    {% for m in app.flashes('apporteur_success') %}<div class="flash ok" style="max-width:560px;margin:0 auto 14px;border-radius:12px;padding:12px 14px;font-size:14.5px;font-weight:600;background:#E2EFDA;color:var(--success)">{{ m }}</div>{% endfor %}
-    {% for m in app.flashes('apporteur_error') %}<div class="flash ko" style="max-width:560px;margin:0 auto 14px;border-radius:12px;padding:12px 14px;font-size:14.5px;font-weight:600;background:#fdecea;color:#C0392B">{{ m }}</div>{% endfor %}
-    <form method="post" action="{{ path('apporteur_request') }}" class="lead-form" style="max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:12px;text-align:left">
-      <input type="hidden" name="_token" value="{{ csrf_token('apporteur_request') }}">
-      <input type="hidden" name="ref" value="{{ ref }}">
-      <input type="hidden" name="_back" value="page">
-      <input type="text" name="website" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-        <input type="text" name="name" required maxlength="255" placeholder="Nom et prénom" aria-label="Nom et prénom" style="padding:13px 14px;border:2px solid rgba(255,255,255,.25);border-radius:12px;font-size:15px;background:rgba(255,255,255,.08);color:#fff">
-        <input type="email" name="email" required maxlength="180" placeholder="Email" aria-label="Email" style="padding:13px 14px;border:2px solid rgba(255,255,255,.25);border-radius:12px;font-size:15px;background:rgba(255,255,255,.08);color:#fff">
+    <div class="mock" aria-label="Aperçu de l'espace apporteur" role="img">
+      <div class="bar"><i></i><i></i><i></i></div>
+      <div class="mock-kpis">
+        <div class="mock-kpi feat"><div class="k">Ce mois</div><div class="v">{{ _self.eur(exampleGain + 8) }} €</div></div>
+        <div class="mock-kpi"><div class="k">Leads en cours</div><div class="v">3</div></div>
+        <div class="mock-kpi"><div class="k">Ventes signées</div><div class="v">2</div></div>
       </div>
-      <input type="tel" name="phone" maxlength="30" placeholder="Téléphone (optionnel)" aria-label="Téléphone" style="padding:13px 14px;border:2px solid rgba(255,255,255,.25);border-radius:12px;font-size:15px;background:rgba(255,255,255,.08);color:#fff">
-      <textarea name="message" rows="2" maxlength="2000" placeholder="Ton réseau en deux mots (secteur, type de contacts…)" aria-label="Ton réseau" style="padding:13px 14px;border:2px solid rgba(255,255,255,.25);border-radius:12px;font-size:15px;background:rgba(255,255,255,.08);color:#fff;font-family:inherit"></textarea>
-      <button type="submit" class="btn-gold" style="align-self:center">Rejoindre le réseau apporteurs</button>
-    </form>
+      <div class="mock-palier">Plus qu'1 vente avant le bonus de +{{ rates.bonus }} points<div class="pb"><span></span></div></div>
+      <div class="mock-rows">
+        <div class="mock-row"><b>Cabinet Morel</b><span class="pill s">Signé</span></div>
+        <div class="mock-row"><b>Atelier Bois & Co</b><span class="pill d">Devis envoyé</span></div>
+        <div class="mock-row"><b>Pizzeria Napoli</b><span class="pill r">RDV planifié</span></div>
+      </div>
+    </div>
   </div>
 </section>
 
+{# 6. Rules #}
+<section class="rules" id="regles">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="kicker">Nos engagements</div>
+      <h2>Des règles claires, écrites noir sur blanc</h2>
+    </div>
+    <div class="rules-grid">
+      <div class="rule"><div class="ic">⚡</div><b>Rappel sous 24 h</b><p>Votre contact est rappelé dans la journée ouvrée. Votre recommandation ne reste jamais sans réponse.</p></div>
+      <div class="rule"><div class="ic">🥇</div><b>Premier arrivé, premier servi</b><p>Un prospect reste attribué à l'apporteur qui l'a transmis en premier. Les doublons sont refusés automatiquement.</p></div>
+      <div class="rule"><div class="ic">💶</div><b>Payé sous {{ rates.paymentDays }} jours</b><p>Commission de mise en place versée sous {{ rates.paymentDays }} jours après la signature, par virement. Le récurrent tombe chaque mois.</p></div>
+      <div class="rule"><div class="ic">📄</div><b>Un contrat signé</b><p>Vos taux et conditions sont fixés dans un contrat d'apporteur d'affaires, avant votre première recommandation.</p></div>
+      <div class="rule"><div class="ic">🧾</div><b>Un relevé chaque mois</b><p>Un relevé de vos commissions versées, prêt à joindre à votre facture.</p></div>
+      <div class="rule"><div class="ic">🤝</div><b>Votre relation reste la vôtre</b><p>Aucun démarchage abusif en votre nom. Le client sait qui l'a recommandé.</p></div>
+    </div>
+  </div>
+</section>
+
+{# 7. FAQ #}
+<section id="faq-apporteur">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="kicker">Questions fréquentes</div>
+      <h2>Avant de vous lancer</h2>
+    </div>
+    <div class="faq-list">
+      <details class="faq-item"><summary>Faut-il un statut particulier pour être apporteur ?</summary><div class="a">Pour être payé, vous devez pouvoir nous facturer : indépendant, auto-entrepreneur, consultant ou société. Chaque mois, Klevup vous fournit un relevé de vos commissions à joindre à votre facture.</div></details>
+      <details class="faq-item"><summary>Combien de temps faut-il y consacrer ?</summary><div class="a">Le temps de repérer le besoin et de transmettre le contact : environ 2 minutes par recommandation. Ensuite, nous prenons le relais et vous tenons informé à chaque étape.</div></details>
+      <details class="faq-item"><summary>Et si quelqu'un d'autre recommande le même client ?</summary><div class="a">Le prospect reste attribué à l'apporteur qui l'a transmis en premier. Si vous essayez de transmettre un contact déjà dans notre suivi, vous en êtes averti immédiatement.</div></details>
+      <details class="faq-item"><summary>Quand et comment suis-je payé ?</summary><div class="a">Par virement sur votre IBAN : la commission de mise en place sous {{ rates.paymentDays }} jours après la signature, puis {{ rates.recurring }} % de l'abonnement chaque mois pendant {{ rates.months }} mois. Chaque date de versement est affichée dans votre espace.</div></details>
+      <details class="faq-item"><summary>Que se passe-t-il si le client arrête son abonnement ?</summary><div class="a">Votre commission de mise en place reste acquise. Le récurrent s'arrête simplement à partir du mois où le client ne paie plus.</div></details>
+      <details class="faq-item"><summary>Puis-je faire venir d'autres apporteurs ?</summary><div class="a">Oui : avec votre lien de parrainage, vous touchez {{ referralBonus }} € dès que la personne que vous avez parrainée signe sa première vente.</div></details>
+      <details class="faq-item"><summary>Dois-je connaître la technique ?</summary><div class="a">Pas du tout. Vous parlez du problème de votre contact, nous parlons de la solution. Un kit de vente vous donne, pour chaque solution, qui cibler et quoi dire.</div></details>
+    </div>
+  </div>
+</section>
+
+{# 8. Apply #}
+<section class="apply" id="rejoindre">
+  <div class="wrap">
+    <div class="apply-card">
+      <h2>Rejoindre le réseau</h2>
+      <p class="sub">Dites-nous qui vous êtes et quel est votre réseau. Nous revenons vers vous sous 48 h avec votre accès et votre contrat.</p>
+      {% for m in app.flashes('apporteur_success') %}<div class="flash ok">{{ m }}</div>{% endfor %}
+      {% for m in app.flashes('apporteur_error') %}<div class="flash ko">{{ m }}</div>{% endfor %}
+      <form method="post" action="{{ path('apporteur_request') }}">
+        <input type="hidden" name="_token" value="{{ csrf_token('apporteur_request') }}">
+        <input type="hidden" name="ref" value="{{ ref }}">
+        <input type="hidden" name="_back" value="page">
+        <input type="text" name="website" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <div class="row2">
+          <input type="text" name="name" required maxlength="255" placeholder="Nom et prénom" aria-label="Nom et prénom" autocomplete="name">
+          <input type="email" name="email" required maxlength="180" placeholder="Email" aria-label="Email" autocomplete="email">
+        </div>
+        <input type="tel" name="phone" maxlength="30" placeholder="Téléphone (optionnel)" aria-label="Téléphone" autocomplete="tel">
+        <textarea name="message" rows="3" maxlength="2000" placeholder="Votre activité et votre réseau en quelques mots (secteur, type de contacts…)" aria-label="Votre activité et votre réseau"></textarea>
+        <button type="submit" class="btn btn-gold">Envoyer ma candidature</button>
+        <div class="reassure"><span>Gratuit</span><span>Sans engagement</span><span>Réponse sous 48 h</span></div>
+      </form>
+    </div>
+  </div>
+</section>
+
+</div>
 {% include 'partials/_public_footer.html.twig' %}
 
 <script>
-function calc(){
-  const setup=+document.getElementById('r1').value;
-  const monthly=+document.getElementById('r2').value;
-  const clients=+document.getElementById('r3').value;
-  document.getElementById('v1').textContent=setup.toLocaleString('fr-FR')+' €';
-  document.getElementById('v2').textContent=monthly+' €';
-  document.getElementById('v3').textContent=clients+(clients>1?' clients':' client');
-  const R={setup:{{ rates.setup }}/100,recurring:{{ rates.recurring }}/100,months:{{ rates.months }}};
-  const immediate=setup*R.setup;
-  const recur=monthly*R.recurring*R.months;
-  const monthlyPortfolio=clients*(monthly*R.recurring);
-  document.getElementById('r_immediate').textContent=immediate.toLocaleString('fr-FR')+' €';
-  document.getElementById('r_year').textContent='Avec un an de portefeuille : '+Math.round(clients*12*(immediate+recur)).toLocaleString('fr-FR')+' € — dont '+Math.round(clients*12*monthlyPortfolio).toLocaleString('fr-FR')+' €/mois de récurrent à la 12ᵉ';
-}
-calc();
+(function () {
+  var R = {recurring: {{ rates.recurring }} / 100, months: {{ rates.months }}};
+  var $ = function (id) { return document.getElementById(id); };
+  var eur = function (n) { return Math.round(n).toLocaleString('fr-FR') + ' €'; };
+  var rate = {{ (products|first) ? (products|first).commissionRate : rates.setup }} / 100;
+
+  function calc() {
+    var setup = +$('c-setup').value, monthly = +$('c-monthly').value, n = +$('c-clients').value;
+    $('o-setup').textContent = eur(setup);
+    $('o-monthly').textContent = monthly ? eur(monthly) + '/mois' : 'aucun';
+    $('o-clients').textContent = n + (n > 1 ? ' clients' : ' client');
+    var now = setup * rate, perMonth = Math.round(monthly * R.recurring);
+    $('r-now').textContent = eur(now);
+    $('r-month').innerHTML = perMonth ? eur(perMonth) + ' <small>/ mois</small>' : '—';
+    // First year: n new clients each month; a client signed in month k has paid (12 - k) months of subscription by month 12.
+    var paidMonths = 0;
+    for (var k = 1; k <= 12; k++) { paidMonths += Math.min(12 - k, R.months); }
+    $('r-year').textContent = '≈ ' + eur(n * 12 * now + n * perMonth * paidMonths);
+  }
+
+  document.querySelectorAll('.chip').forEach(function (chip) {
+    chip.addEventListener('click', function () {
+      document.querySelectorAll('.chip').forEach(function (c) { c.classList.remove('on'); });
+      chip.classList.add('on');
+      $('c-setup').value = chip.dataset.setup;
+      $('c-monthly').value = chip.dataset.monthly;
+      rate = +chip.dataset.rate / 100;
+      calc();
+    });
+  });
+  ['c-setup', 'c-monthly', 'c-clients'].forEach(function (id) { $(id).addEventListener('input', calc); });
+  calc();
+})();
 </script>
 {% endblock %}

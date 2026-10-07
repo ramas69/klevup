@@ -29,9 +29,16 @@ class HomeController extends AbstractController
     }
 
     #[Route('/devenir-apporteur', name: 'apporteur_page', methods: ['GET'])]
-    public function apporteurPage(Request $request): Response
+    public function apporteurPage(Request $request, ProductRepository $products): Response
     {
+        $catalogue = $products->findActive();
+        // Headline example: the featured solution, else the first one.
+        $example = array_values(array_filter($catalogue, fn($p) => $p->isFeatured()))[0] ?? $catalogue[0] ?? null;
+
         return $this->render('apporteur/public.html.twig', [
+            'products' => $catalogue,
+            'example' => $example,
+            'referralBonus' => CommissionCalculator::REFERRAL_BONUS,
             'rates' => self::rates(),
             'ref' => preg_replace('/[^a-f0-9]/', '', $request->query->getString('ref')),
         ]);
