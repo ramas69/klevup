@@ -97,13 +97,13 @@ section{padding:84px 0}
       {% set setupFrom = setupPrices|length ? min(setupPrices) : 0 %}
       {% set monthlyPrices = products|map(p => p.monthlyFrom)|filter(v => v > 0) %}
       {% set monthlyFrom = monthlyPrices|length ? min(monthlyPrices) : 0 %}
-      <h1>Vos applications et automatisations IA, <em>prêtes en quelques jours</em>, entretenues pour vous.</h1>
-      <p>Des solutions prêtes à l'emploi (formation, e-learning, prospection, prise de commande), des agents IA qui travaillent à votre place, ou une application sur mesure : nos développeurs livrent votre outil à votre marque{% if setupFrom %}, dès {{ setupFrom|number_format(0, ',', ' ') }} €{% endif %}. Ensuite, un abonnement mensuel couvre l'hébergement, la maintenance, les mises à jour et le support.</p>
+      <h1>Vos applications et automatisations IA, <em>prêtes en quelques jours</em>.</h1>
+      <p>Solutions prêtes, agents IA ou sur mesure, livrés à votre marque{% if setupFrom %} dès {{ setupFrom|number_format(0, ',', ' ') }} €{% endif %}. Hébergement, maintenance et support inclus.</p>
       <div class="hero-ctas">
         <a class="btn btn-gold" href="#contact">Demander une démo gratuite</a>
         <a class="btn btn-ghost" href="#solutions">Voir les solutions</a>
       </div>
-      <div class="hero-note">✓ Hébergement, mises à jour et support inclus &nbsp; ✓ Livraison rapide &nbsp; ✓ Équipe française</div>
+      <div class="hero-note">✓ Tout compris &nbsp; ✓ Livraison rapide &nbsp; ✓ Équipe française</div>
     </div>
     <div class="hero-card">
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px">
@@ -120,13 +120,13 @@ section{padding:84px 0}
   </div>
 </header>
 
-<div class="proof"><div class="wrap">Déjà choisi par des <b>organismes de formation</b>, des <b>formateurs indépendants</b> et des <b>TPE</b> qui voulaient un outil fait pour leur métier — pas un logiciel générique de plus.</div></div>
+<div class="proof"><div class="wrap">Choisi par des <b>organismes de formation</b>, des <b>formateurs</b> et des <b>TPE</b>.</div></div>
 
 <section id="solutions">
   <div class="wrap">
     <div class="sec-head">
-      <h2>Des solutions prêtes… et tout le reste sur mesure</h2>
-      <p>Des applications éprouvées, personnalisées à votre activité et livrées à votre marque. Une mise en place, puis un abonnement mensuel qui inclut hébergement, maintenance, mises à jour et support.</p>
+      <h2>Nos solutions</h2>
+      <p>Prêtes à l'emploi, ou sur mesure.</p>
     </div>
     <div class="grid">
       {% for p in products %}
@@ -134,7 +134,7 @@ section{padding:84px 0}
       {% endfor %}
     </div>
     <div class="anything">
-      <div><strong>Votre besoin n'est pas dans la liste ?</strong> On étudie tout : décrivez-le en 2 minutes, on vous propose une solution et un devis ferme sous 48 h{% if setupFrom %}, à partir de {{ setupFrom|number_format(0, ',', ' ') }} €{% endif %}.</div>
+      <div><strong>Pas dans la liste ?</strong> On étudie tout : devis sous 48 h{% if setupFrom %}, dès {{ setupFrom|number_format(0, ',', ' ') }} €{% endif %}.</div>
       <a class="btn btn-gold" href="#contact">Décrire mon besoin</a>
     </div>
   </div>
@@ -142,11 +142,11 @@ section{padding:84px 0}
 
 <section class="steps" id="comment">
   <div class="wrap">
-    <div class="sec-head"><h2>Comment ça marche</h2><p>De l'échange à la mise en ligne, un parcours simple et sans surprise.</p></div>
+    <div class="sec-head"><h2>Comment ça marche</h2></div>
     <div class="steps-grid">
-      <div class="step"><div class="n">1</div><h3>On échange 30 minutes</h3><p>Vous nous expliquez votre activité et vos irritants. On vous montre la solution en démo, avec un devis ferme sous 48 h.</p></div>
-      <div class="step"><div class="n">2</div><h3>On personnalise et on livre</h3><p>Votre logo, vos couleurs, vos spécificités métier. Votre application est prête en quelques jours, pas en quelques mois.</p></div>
-      <div class="step"><div class="n">3</div><h3>On s'occupe du reste</h3><p>On forme votre équipe à la prise en main. Ensuite, hébergement, maintenance, mises à jour et support sont inclus dans votre abonnement : rien d'autre à gérer.</p></div>
+      <div class="step"><div class="n">1</div><h3>On échange 30 minutes</h3><p>Démo et devis ferme sous 48 h.</p></div>
+      <div class="step"><div class="n">2</div><h3>On livre à votre marque</h3><p>En quelques jours, pas en quelques mois.</p></div>
+      <div class="step"><div class="n">3</div><h3>On s'occupe du reste</h3><p>Formation, hébergement, maintenance et support inclus.</p></div>
     </div>
   </div>
 </section>
@@ -155,8 +155,8 @@ section{padding:84px 0}
   <div class="wrap">
     <div>
       <h2>Vous connaissez des entreprises qui en ont besoin ? <em>Devenez apporteur.</em></h2>
-      <p>Consultants, formateurs, commerciaux, entrepreneurs : recommandez Klevup autour de vous. Vous transmettez le contact, on s'occupe de tout — démo, devis, livraison — et vous touchez {{ rates.setup }} % de la mise en place <em>plus {{ rates.recurring }} % de l'abonnement pendant {{ rates.months }} mois</em> : chaque client apporté devient un revenu qui coule.</p>
-      <div style="margin:-6px 0 22px"><a href="{{ path('apporteur_page') }}" style="color:var(--gold);font-weight:700;text-decoration:underline">Voir le détail des commissions et le calculateur →</a></div>
+      <p>Vous recommandez, on s'occupe de tout. Vous touchez {{ rates.setup }} % de la mise en place, puis {{ rates.recurring }} % de l'abonnement pendant {{ rates.months }} mois.</p>
+      <div style="margin:-6px 0 22px"><a href="{{ path('apporteur_page') }}" style="color:var(--gold);font-weight:700;text-decoration:underline">Détail des commissions →</a></div>
       {% for m in app.flashes('apporteur_success') %}<div class="flash ok">{{ m }}</div>{% endfor %}
       {% for m in app.flashes('apporteur_error') %}<div class="flash ko">{{ m }}</div>{% endfor %}
       <form method="post" action="{{ path('apporteur_request') }}" class="lead-form dark">
@@ -173,23 +173,22 @@ section{padding:84px 0}
       </form>
     </div>
     <div class="stat-cards">
-      <div class="stat"><div class="v">{{ rates.setup }} %</div><div class="l">de la mise en place + {{ rates.recurring }} % de l'abonnement pendant {{ rates.months }} mois</div></div>
-      <div class="stat"><div class="v">{{ rates.setup + rates.bonus }} %</div><div class="l">sur la mise en place dès la {{ rates.palier + 1 }}ᵉ vente du trimestre</div></div>
-      <div class="stat"><div class="v">≈ 1 000 €</div><div class="l">par mois à 2 ventes/mois</div></div>
-      <div class="stat"><div class="v">24 h</div><div class="l">pour prendre en charge vos leads</div></div>
+      <div class="stat"><div class="v">{{ rates.setup }} %</div><div class="l">de la mise en place</div></div>
+      <div class="stat"><div class="v">{{ rates.recurring }} %</div><div class="l">de l'abonnement, {{ rates.months }} mois</div></div>
+      <div class="stat"><div class="v">{{ rates.setup + rates.bonus }} %</div><div class="l">dès la {{ rates.palier + 1 }}ᵉ vente du trimestre</div></div>
+      <div class="stat"><div class="v">{{ rates.paymentDays }} j</div><div class="l">pour être payé</div></div>
     </div>
   </div>
 </section>
 
 <section class="faq" id="faq">
   <div class="wrap">
-    <div class="sec-head"><h2>Questions fréquentes</h2><p>Les réponses honnêtes aux questions qu'on nous pose le plus.</p></div>
+    <div class="sec-head"><h2>Questions fréquentes</h2></div>
     <div class="faq-list">
-      <details class="faq-item"><summary>Qui possède les données de mon application ?</summary><div class="a">Vous. Vos données sont les vôtres : à tout moment, vous pouvez les exporter (CSV/Excel). Pas de prisonnier : si vous partez, vous repartez avec tout votre historique.</div></details>
-      <details class="faq-item"><summary>Que se passe-t-il si j'arrête l'abonnement ?</summary><div class="a">L'hébergement et le support s'arrêtent, mais vos données vous appartiennent : on vous fournit une exportation complète avant la fin. Pas de frais de sortie, pas de rétention.</div></details>
-      <details class="faq-item"><summary>Et si mon besoin n'est pas dans la liste ?</summary><div class="a">C'est notre métier : décrivez-le dans le formulaire de démo, on échange 30 minutes et on vous fait un devis ferme sous 48 h — application sur mesure ou adaptation d'une solution existante.</div></details>
-      <details class="faq-item"><summary>En combien de temps suis-je opérationnel ?</summary><div class="a">Quelques jours pour les solutions standard : maquette validée, personnalisation à votre marque, formation de votre équipe, mise en ligne. Un calendrier précis vous est donné avec le devis.</div></details>
-      <details class="faq-item"><summary>Qui est derrière Klevup ?</summary><div class="a">Une équipe française, développeuse et formatrice : une dizaine de plateformes livrées en production, 1 500+ professionnels formés. On construit l'outil ET on fait en sorte que vos équipes s'en servent.</div></details>
+      <details class="faq-item"><summary>À qui appartiennent mes données ?</summary><div class="a">À vous. Vous pouvez les exporter à tout moment (CSV/Excel).</div></details>
+      <details class="faq-item"><summary>Et si j'arrête l'abonnement ?</summary><div class="a">On vous remet une exportation complète de vos données. Aucun frais de sortie.</div></details>
+      <details class="faq-item"><summary>En combien de temps suis-je opérationnel ?</summary><div class="a">Quelques jours pour une solution prête ; un calendrier précis avec le devis pour le sur-mesure.</div></details>
+      <details class="faq-item"><summary>Qui est derrière Klevup ?</summary><div class="a">Une équipe française qui développe vos outils et forme vos équipes à s'en servir.</div></details>
     </div>
   </div>
 </section>
@@ -197,7 +196,7 @@ section{padding:84px 0}
 <section class="final" id="contact">
   <div class="wrap">
     <h2>Parlons de votre projet</h2>
-    <p>30 minutes, sans engagement. On vous montre l'outil adapté à votre métier et on vous donne un prix ferme.</p>
+    <p>30 minutes, sans engagement, prix ferme.</p>
     {% for m in app.flashes('demo_success') %}<div class="flash ok">{{ m }}</div>{% endfor %}
     {% for m in app.flashes('demo_error') %}<div class="flash ko">{{ m }}</div>{% endfor %}
     <form method="post" action="{{ path('demo_request') }}" class="lead-form">
