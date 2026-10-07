@@ -71,6 +71,7 @@ thead th,tbody td{padding:8px}
       <li><a href="{{ path('admin_products') }}" class="{{ app.current_route starts with 'admin_product' ? 'active' }}">Catalogue</a></li>
       <li><a href="{{ path('admin_users') }}" class="{{ app.current_route == 'admin_users' ? 'active' }}">Utilisateurs</a></li>
       <li><a href="{{ path('admin_invite') }}" class="{{ app.current_route == 'admin_invite' ? 'active' }}">Invitations</a></li>
+      <li><a href="{{ path('admin_contrat_apporteur') }}" class="{{ app.current_route == 'admin_contrat_apporteur' ? 'active' }}">Contrat apporteur</a></li>
       <li><a href="{{ path('profile') }}">Mon profil</a></li>
       <li><a href="{{ path('logout') }}">Déconnexion</a></li>
     </ul>

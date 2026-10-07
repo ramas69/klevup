@@ -23,6 +23,8 @@ class ApporteurController extends AbstractController
             'products' => $products->findActive(),
             'palierSales' => CommissionCalculator::PALIER_SALES,
             'palierBonus' => CommissionCalculator::PALIER_BONUS,
+            'recurringRate' => CommissionCalculator::RECURRING_RATE,
+            'recurringMonths' => CommissionCalculator::RECURRING_MONTHS,
         ]);
     }
 

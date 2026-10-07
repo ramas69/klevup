@@ -24,7 +24,7 @@
 <div class="how">
   <div><strong>1. Repérez</strong>Un contact qui perd du temps sur un outil bricolé, ou qui paie un abonnement ou des commissions chaque mois.</div>
   <div><strong>2. Posez la question « déclic »</strong>Pas de vente forcée : une question, et proposez une démo de 30 minutes sans engagement.</div>
-  <div><strong>3. Transmettez</strong>Avec son accord, envoyez le lead : on le rappelle sous 24 h et vous suivez tout ici. {{ palierSales + 1 }}ᵉ vente du trimestre et suivantes : +{{ palierBonus }} points.</div>
+  <div><strong>3. Transmettez</strong>Avec son accord, envoyez le lead : on le rappelle sous 24 h et vous suivez tout ici. Vous touchez le taux de la solution sur la mise en place (+{{ palierBonus }} points dès la {{ palierSales + 1 }}ᵉ vente du trimestre), puis {{ recurringRate }} % de l'abonnement pendant {{ recurringMonths }} mois.</div>
 </div>
 
 {% for p in products %}
@@ -34,7 +34,7 @@
       <h2>{{ p.name }}</h2>
       <div class="meta">Mise en place dès {{ p.priceFrom|number_format(0, ',', ' ') }} €{% if p.monthlyFrom %} + {{ p.monthlyFrom|number_format(0, ',', ' ') }} €/mois tout compris (hébergement, maintenance, support){% endif %}</div>
     </div>
-    <span class="rate">{{ p.commissionRate }} % du setup · ~{{ (p.priceFrom * p.commissionRate / 100)|round|number_format(0, ',', ' ') }} € mini</span>
+    <span class="rate">{{ p.commissionRate }} % du setup · ~{{ (p.priceFrom * p.commissionRate / 100)|round|number_format(0, ',', ' ') }} € mini{% if p.monthlyFrom %} + {{ (p.monthlyFrom * recurringRate / 100)|round }} €/mois × {{ recurringMonths }}{% endif %}</span>
   </div>
   <p>{{ p.description }}</p>
   {% if p.target %}<h3>Qui cibler</h3><p>{{ p.target }}</p>{% endif %}

@@ -40,6 +40,8 @@ class DashboardController extends AbstractController
             'palier_target' => CommissionCalculator::PALIER_SALES,
             'base_rate' => CommissionCalculator::DEFAULT_RATE,
             'bonus_rate' => CommissionCalculator::DEFAULT_RATE + CommissionCalculator::PALIER_BONUS,
+            'recurring_rate' => CommissionCalculator::RECURRING_RATE,
+            'recurring_months' => CommissionCalculator::RECURRING_MONTHS,
         ];
 
         $leadsData = array_map(fn(Lead $l) => [

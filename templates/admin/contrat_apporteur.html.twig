@@ -1,0 +1,162 @@
+{% extends "admin/base_admin.html.twig" %}
+
+{% block page_title %}Contrat d'apporteur d'affaires{% endblock %}
+{% block page_subtitle %}Génère un contrat personnalisé, prêt à imprimer ou à enregistrer en PDF.{% endblock %}
+
+{% block admin_styles %}
+<style>
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:760px}
+.form-grid .full{grid-column:1/-1}
+.fld label{display:block;font-size:12px;font-weight:700;color:var(--navy, #22355E);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px}
+.fld input,.fld textarea{width:100%;padding:10px 12px;border:2px solid #E5E9F2;border-radius:10px;font-size:14.5px;font-family:inherit}
+.fld textarea{min-height:70px;resize:vertical}
+.hint-sm{font-size:12.5px;color:#7A8BA5;margin-top:4px}
+.contract{background:#fff;border:1px solid #E5E9F2;border-radius:14px;padding:44px 48px;max-width:860px;margin:24px auto 0;font-family:Georgia,'Times New Roman',serif;color:#1A1A2E;line-height:1.62;font-size:14px}
+.contract h1{text-align:center;font-size:20px;margin-bottom:2px;letter-spacing:.3px}
+.contract .sub{text-align:center;font-size:13px;color:#555;margin-bottom:26px}
+.contract h2{font-size:14.5px;margin:22px 0 8px;border-bottom:1px solid #DDD;padding-bottom:4px}
+.contract p{margin:0 0 9px}
+.contract .parts{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:14px 0 20px;font-size:13.5px}
+.contract .parts div{background:#F8F9FB;border:1px solid #E5E9F2;border-radius:10px;padding:12px 14px}
+.contract .parts b{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:#22355E;margin-bottom:5px}
+.contract .fill{background:#FDF6E3;border-bottom:1px dashed #C9A94E;padding:0 3px}
+.contract ol{margin:0 0 10px 20px;padding:0}
+.contract ol li{margin-bottom:8px}
+.contract .sig{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:34px}
+.contract .sig div{border:1px solid #CCC;border-radius:8px;padding:14px;min-height:110px;font-size:13px}
+.contract .sig b{display:block;margin-bottom:8px}
+.printbar{display:flex;gap:12px;justify-content:center;margin-top:18px}
+.btn-print{background:#F5B731;color:#22355E;border:none;border-radius:10px;padding:12px 26px;font-weight:800;font-size:15px;cursor:pointer}
+.btn-ghost{background:#fff;color:#22355E;border:2px solid #E5E9F2;border-radius:10px;padding:12px 26px;font-weight:700;font-size:15px;cursor:pointer;text-decoration:none}
+@media print{
+  body *{visibility:hidden}
+  .contract,.contract *{visibility:visible}
+  .contract{position:absolute;left:0;top:0;width:100%;border:none;border-radius:0;padding:24px 30px}
+  .printbar,.sidebar,.topbar,.form-grid,.flash-success,.flash-error{display:none !important}
+}
+</style>
+{% endblock %}
+
+{% block admin_content %}
+{% if not preview %}
+<form method="post" action="{{ path('admin_contrat_apporteur') }}">
+  <input type="hidden" name="_token" value="{{ csrf_token('contrat_apporteur') }}">
+  <div class="form-grid">
+    <div class="fld full"><label>Apporteur — nom / raison sociale *</label><input type="text" name="apporteur_nom" required maxlength="255" placeholder="ex. Marie Durand ou SARL Conseil+"></div>
+    <div class="fld full"><label>Apporteur — adresse</label><input type="text" name="apporteur_adresse" maxlength="255" placeholder="Adresse complète"></div>
+    <div class="fld"><label>Apporteur — email</label><input type="email" name="apporteur_email" maxlength="180"></div>
+    <div class="fld"><label>Apporteur — SIRET (si existant)</label><input type="text" name="apporteur_siret" maxlength="30" placeholder="ou « en cours de création »"></div>
+    <div class="fld full"><label>Projet / contexte de la collaboration</label><textarea name="projet_contexte" maxlength="2000" placeholder="ex. Apport de prospects organismes de formation de son réseau LinkedIn, région Auvergne-Rhône-Alpes"></textarea><div class="hint-sm">Décrit le périmètre convenu avec l'apporteur — apparaît à l'article 2.</div></div>
+    <div class="fld"><label>Taux mise en place (%)</label><input type="number" name="taux_setup" min="0" max="100" value="15"></div>
+    <div class="fld"><label>Taux récurrent (%)</label><input type="number" name="taux_recurrent" min="0" max="100" value="5"></div>
+    <div class="fld"><label>Durée récurrent (mois)</label><input type="number" name="mois_recurrent" min="0" max="120" value="12"></div>
+    <div class="fld"><label>Lieu de signature</label><input type="text" name="lieu" value="Lyon" maxlength="120"></div>
+    <div class="fld"><label>Date</label><input type="text" name="date" value="{{ 'now'|date('d/m/Y') }}" maxlength="20"></div>
+    <div class="fld full"><label>Éditeur — raison sociale (laisser si SASU pas encore créée)</label><input type="text" name="societe_nom" maxlength="255" placeholder="ex. KLEVUP SAS — à compléter à la création"></div>
+    <div class="fld"><label>Éditeur — SIRET</label><input type="text" name="societe_siret" maxlength="30"></div>
+    <div class="fld"><label>Éditeur — adresse</label><input type="text" name="societe_adresse" maxlength="255"></div>
+  </div>
+  <div class="printbar" style="margin-top:20px"><button type="submit" class="btn-print">Générer le contrat →</button></div>
+</form>
+{% else %}
+<div class="contract" id="contract">
+  <h1>CONTRAT D'APPORTEUR D'AFFAIRES</h1>
+  <div class="sub">Entre les soussignés, en vue d'une collaboration commerciale de recommandation</div>
+
+  <div class="parts">
+    <div><b>Partie 1 — L'Éditeur</b>
+      <span class="fill">{{ data.societe_nom ?: 'KLEVUP (raison sociale à compléter)' }}</span><br>
+      {% if data.societe_adresse %}{{ data.societe_adresse }}<br>{% endif %}
+      {% if data.societe_siret %}SIRET : {{ data.societe_siret }}<br>{% endif %}
+      Ci-après « l'Éditeur »
+    </div>
+    <div><b>Partie 2 — L'Apporteur</b>
+      <span class="fill">{{ data.apporteur_nom }}</span><br>
+      {% if data.apporteur_adresse %}{{ data.apporteur_adresse }}<br>{% endif %}
+      {% if data.apporteur_email %}Email : {{ data.apporteur_email }}<br>{% endif %}
+      {% if data.apporteur_siret %}SIRET : {{ data.apporteur_siret }}<br>{% endif %}
+      Ci-après « l'Apporteur »
+    </div>
+  </div>
+
+  <p>Fait à <span class="fill">{{ data.lieu }}</span>, le <span class="fill">{{ data.date }}</span>.</p>
+
+  <h2>Article 1 — Objet</h2>
+  <p>Le présent contrat a pour objet de définir les conditions dans lesquelles l'Apporteur transmet à l'Éditeur des contacts commerciaux (ci-après « les Prospects ») susceptibles d'être intéressés par les applications métier clés en main et services associés édités par l'Éditeur, et les conditions de rémunération de l'Apporteur.</p>
+
+  <h2>Article 2 — Contexte et périmètre convenus</h2>
+  <p>{% if data.projet_contexte %}{{ data.projet_contexte }}{% else %}L'Apporteur recommande les solutions de l'Éditeur au sein de son réseau professionnel.{% endif %}</p>
+
+  <h2>Article 3 — Rôle de l'Apporteur et limites de son mandat</h2>
+  <ol>
+    <li>L'Apporteur agit en qualité de simple <b>recommandeur indépendant</b>. Il n'est ni mandataire, ni préposé, ni sous-traitant de l'Éditeur, et n'est pas habilité à le représenter contractuellement.</li>
+    <li>L'Apporteur s'interdit expressément : (a) de conclure tout contrat au nom ou pour le compte de l'Éditeur ; (b) de percevoir des fonds pour le compte de l'Éditeur ; (c) de formuler des engagements, remises ou garanties non prévus par l'Éditeur ; (d) de se présenter autrement que comme apporteur indépendant du réseau Klevup.</li>
+    <li>Le rôle de l'Apporteur se limite à la transmission de contact : identification du Prospect, mise en relation via le lien de recommandation, le formulaire ou la mention nominale. La qualification, la démonstration, la négociation, la contractualisation et la livraison relèvent exclusivement de l'Éditeur.</li>
+  </ol>
+
+  <h2>Article 4 — Attribution des Prospects</h2>
+  <ol>
+    <li>Un Prospect est attribué à l'Apporteur lorsqu'il est transmis <b>en premier</b> par l'Apporteur, par l'un des canaux de traçabilité de l'Éditeur (lien de recommandation nominatif, formulaire avec code ou mention nominale), ou par tout moyen écrit opposable (email).</li>
+    <li>Si le Prospect figure déjà dans le fichier prospects de l'Éditeur ou a été transmis par un autre apporteur au cours des <b>90 (quatre-vingt-dix) derniers jours</b>, la priorité appartient à la transmission la plus ancienne. L'Éditeur informe alors l'Apporteur de la non-attribution.</li>
+    <li>L'attribution est valable <b>12 (douze) mois</b> à compter de la transmission : toute mise en place souscrite par le Prospect dans ce délai ouvre droit à commission au titre du présent contrat.</li>
+    <li>L'Éditeur tient à disposition de l'Apporteur, sur simple demande, l'état de suivi des Prospects qu'il a transmis.</li>
+  </ol>
+
+  <h2>Article 5 — Commissions</h2>
+  <ol>
+    <li><b>Commission de mise en place :</b> l'Apporteur perçoit <b><span class="fill">{{ data.taux_setup }} %</span></b> du montant hors taxes effectivement encaissé par l'Éditeur au titre de la mise en place signée par un Prospect attribué.</li>
+    <li><b>Commission récurrente :</b> l'Apporteur perçoit <b><span class="fill">{{ data.taux_recurrent }} %</span></b> du montant hors taxes effectivement encaissé par l'Éditeur au titre de l'abonnement du client, pendant une durée de <b><span class="fill">{{ data.mois_recurrent }} mois</span></b> à compter du premier encaissement.</li>
+    <li>Les commissions ne sont dues que sur les sommes <b>effectivement encaissées</b> par l'Éditeur : tout montant impayé par le client (impayé, résiliation, utilisation de la garantie) ne génère pas de commission.</li>
+    <li>Les commissions sont calculées hors taxes et payées toutes taxes comprises, dans les <b>15 (quinze) jours</b> suivant l'encaissement concerné, par virement bancaire, sur justificatif d'auto-facture ou de facture émise par l'Apporteur.</li>
+    <li>Les commissions du présent contrat remplacent et éteignent toute autre rémunération au titre des mêmes opérations. Aucune dépense engagée par l'Apporteur n'est remboursable par l'Éditeur.</li>
+  </ol>
+
+  <h2>Article 6 — Statut, indépendance et conformité de l'Apporteur</h2>
+  <ol>
+    <li>L'Apporteur exerce son activité en toute indépendance, sous sa seule responsabilité, à titre libéral ou dans le cadre de son entreprise, et s'acquitte de l'ensemble de ses obligations sociales, fiscales et déclaratives. L'Apporteur déclare être en mesure de justifier de son inscription auprès des organismes compétents (SIRET, URSSAF, TVA le cas échéant).</li>
+    <li>Le présent contrat n'emporte aucune exclusivité pour l'une ou l'autre des parties : l'Éditeur conserve le droit de commercialiser ses services par tout autre canal, et l'Apporteur celui de recommander des produits concurrents.</li>
+    <li>Les commissions versées au titre du présent contrat ne peuvent servir de base à une revendication salariale : les parties reconnaissent expressément l'absence de lien de subordination, conformément aux critères de la jurisprudence en matière de mandat d'apporteur d'affaires (réseau de vente au sens de la loi n° 91-592 du 6 juin 1991).</li>
+  </ol>
+
+  <h2>Article 7 — Protection des données (RGPD)</h2>
+  <ol>
+    <li>L'Apporteur garantit détenir une base légale pour la transmission des données des Prospects (intérêt légitime, relation préalable ou information publique) et avoir informé chaque Prospect de la transmission de ses coordonnées à l'Éditeur, conformément au règlement (UE) 2016/679.</li>
+    <li>L'Apporteur s'interdit de transmettre des données sensibles, des coordonnées provenant d'un fichier acheté sans base légale vérifiable, ou des données de personnes s'étant opposées à la prospection.</li>
+    <li>Les données échangées entre les parties au titre du présent contrat sont traitées conformément à la politique de confidentialité publiée sur klevup.fr et ne sont utilisées que pour la gestion de la collaboration (traçabilité, calcul et versement des commissions).</li>
+  </ol>
+
+  <h2>Article 8 — Confidentialité</h2>
+  <p>L'Apporteur s'engage à garder strictement confidentiels les informations non publiques communiquées par l'Éditeur (tarifs négociés, code source, données clients, méthodologie de livraison), pendant toute la durée du contrat et 2 ans après sa cessation, pour quelque motif que ce soit.</p>
+
+  <h2>Article 9 — Non-dénigrement et loyauté</h2>
+  <ol>
+    <li>L'Apporteur s'engage à présenter les solutions de l'Éditeur de manière exacte et loyale, et s'interdit tout dénigrement de l'Éditeur, de ses produits ou de ses clients, pendant le contrat et après son terme.</li>
+    <li>L'Apporteur s'interdit de démarcher ou faire démarcher, directement ou indirectement, les clients de l'Éditeur pour proposer des services concurrents de développement ou d'automatisation, pendant la durée du contrat et 12 mois après son terme, pour les clients dont il a été l'apporteur.</li>
+  </ol>
+
+  <h2>Article 10 — Durée et résiliation</h2>
+  <ol>
+    <li>Le présent contrat est conclu pour une durée d'un an à compter de sa signature, renouvelable par tacite reconduction par périodes d'un an, sauf dénonciation par l'une des parties avec un préavis de 30 jours, notifiée par email ou lettre recommandée.</li>
+    <li>La résiliation n'affecte pas les commissions échues : les commissions dues au titre des clients attribués avant la résiliation continuent d'être versées selon les modalités de l'article 5.</li>
+    <li>En cas de manquement grave de l'Apporteur (violation des articles 3, 7, 8 ou 9, fraude dans l'attribution des Prospects, atteinte à l'image de l'Éditeur), l'Éditeur peut résilier immédiatement, suspendre le versement des commissions en cours sur les opérations concernées et engager la responsabilité de l'Apporteur.</li>
+  </ol>
+
+  <h2>Article 11 — Propriété intellectuelle</h2>
+  <p>La marque, le logo, les applications, la documentation et tout autre élément de propriété intellectuelle de l'Éditeur demeurent sa propriété exclusive. L'Apporteur bénéficie d'une simple autorisation d'utilisation dans le cadre de sa mission, cédant avec la fin du contrat.</p>
+
+  <h2>Article 12 — Litiges</h2>
+  <p>Le présent contrat est soumis au droit français. En cas de litige, les parties recherchent en priorité une solution amiable. À défaut, le litige relève des tribunaux compétents du ressort du siège de l'Éditeur, nonobstant pluralité de défendeurs ou appel en garantie.</p>
+
+  <p style="margin-top:18px;font-size:13px">Fait à {{ data.lieu }}, le {{ data.date }}, en deux exemplaires originaux, un pour chaque partie.</p>
+
+  <div class="sig">
+    <div><b>Pour l'Éditeur</b>Nom, qualité, signature et mention « Lu et approuvé »</div>
+    <div><b>Pour l'Apporteur</b>{{ data.apporteur_nom }} — signature et mention « Lu et approuvé »</div>
+  </div>
+</div>
+<div class="printbar">
+  <button class="btn-print" onclick="window.print()">Imprimer / Enregistrer en PDF</button>
+  <a class="btn-ghost" href="{{ path('admin_contrat_apporteur') }}">← Nouveau contrat</a>
+</div>
+{% endif %}
+{% endblock %}

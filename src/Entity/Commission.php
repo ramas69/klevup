@@ -6,6 +6,8 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: CommissionRepository::class)]
 #[ORM\Table(name: 'commission')]
+// One setup commission (period 0) and up to N monthly recurring ones (period 1..N) per lead.
+#[ORM\UniqueConstraint(name: 'uniq_commission_lead_period', columns: ['lead_id', 'period'])]
 class Commission
 {
     public const REFERRAL_LABEL = 'Prime de parrainage';
@@ -46,10 +48,13 @@ class Commission
     #[ORM\JoinColumn(nullable: false)]
     private User $user;
 
-    // One commission max per signed lead — prevents duplicates when re-saving a signed lead.
-    #[ORM\OneToOne(targetEntity: Lead::class)]
-    #[ORM\JoinColumn(nullable: true, unique: true)]
+    #[ORM\ManyToOne(targetEntity: Lead::class)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?Lead $lead = null;
+
+    // 0 = setup commission, 1..N = month N of the subscription (recurring commission).
+    #[ORM\Column(type: 'integer', options: ['default' => 0])]
+    private int $period = 0;
 
     public function __construct() { $this->createdAt = new \DateTimeImmutable(); }
 
@@ -69,6 +74,9 @@ class Commission
     public function setDueAt(?\DateTimeImmutable $dueAt): self { $this->dueAt = $dueAt; return $this; }
     public function getReferralOf(): ?User { return $this->referralOf; }
     public function setReferralOf(?User $referralOf): self { $this->referralOf = $referralOf; return $this; }
+    public function getPeriod(): int { return $this->period; }
+    public function setPeriod(int $period): self { $this->period = $period; return $this; }
+    public function isRecurring(): bool { return $this->period > 0; }
     public function isReferralBonus(): bool { return $this->lead === null && $this->solution === self::REFERRAL_LABEL; }
     public function getUser(): User { return $this->user; }
     public function setUser(User $user): self { $this->user = $user; return $this; }

@@ -14,7 +14,14 @@ class CommissionCalculator
     public const PALIER_SALES = 3;   // sales already signed in the quarter before the bonus applies
     public const PALIER_BONUS = 5;
     public const REFERRAL_BONUS = 100;      // € paid to the referrer when the referee signs a first sale
-    public const PAYMENT_DELAY_DAYS = 30;   // announced payment date = signature + 30 days
+    public const PAYMENT_DELAY_DAYS = 15;   // announced payment date = signature + 15 days
+    public const RECURRING_RATE = 5;        // % of the monthly subscription…
+    public const RECURRING_MONTHS = 12;     // …for the first 12 months, while the client keeps paying
+
+    public static function recurringAmount(int $monthly): int
+    {
+        return (int) round($monthly * self::RECURRING_RATE / 100);
+    }
 
     public static function dueDate(\DateTimeImmutable $from): \DateTimeImmutable
     {

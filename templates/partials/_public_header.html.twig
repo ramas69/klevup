@@ -1,27 +1,45 @@
-{# Public site header — home page and legal pages. Anchors point to the home page so they work from anywhere. #}
+{# Public site header — home, "Devenir apporteur" and legal pages. Anchors point to the home page so they work from anywhere. #}
 {% set home = path('home') %}
 {% if is_granted('ROLE_ADMIN') %}{% set space = path('admin_dashboard') %}{% elseif is_granted('ROLE_APPORTEUR') %}{% set space = path('dashboard') %}{% elseif is_granted('ROLE_CLIENT') %}{% set space = path('support') %}{% else %}{% set space = null %}{% endif %}
+{% set links = [
+  {href: home ~ '#solutions', label: 'Solutions', desktop: true},
+  {href: home ~ '#comment', label: 'Comment ça marche', desktop: false},
+  {href: home ~ '#faq', label: 'FAQ', desktop: true},
+  {href: path('apporteur_page'), label: 'Devenir apporteur', desktop: true, on: app.current_route == 'apporteur_page'},
+] %}
 <style>
 .site-nav{position:sticky;top:0;background:#fff;border-bottom:1px solid var(--border);z-index:10}
 .site-nav .nav-in{display:flex;align-items:center;justify-content:space-between;height:72px;gap:16px}
-.site-nav .nav-links{display:flex;gap:32px;align-items:center}
+.site-nav .nav-links{display:flex;gap:28px;align-items:center}
 .site-nav .nav-links a{color:var(--ink);text-decoration:none;font-weight:500;font-size:15px}
-.site-nav .nav-links a:hover{color:var(--blue)}
+.site-nav .nav-links a:hover,.site-nav .nav-links a.on{color:var(--blue)}
+.site-nav .nav-links a.on{font-weight:700}
 .site-nav .nav-links a.btn-gold{color:var(--navy);font-weight:700}
 .site-nav .nav-links a.nav-login{font-weight:600;color:var(--navy)}
+.site-nav .burger{display:none;background:none;border:none;cursor:pointer;padding:10px;margin-right:-10px}
+.site-nav .burger span{display:block;width:26px;height:3px;background:var(--navy);margin:5px 0;border-radius:2px}
+.site-nav .mobmenu{display:none;background:#fff;border-top:1px solid var(--border);padding:8px 20px 18px;flex-direction:column}
+.site-nav .mobmenu.open{display:flex}
+.site-nav .mobmenu a{color:var(--ink);text-decoration:none;font-weight:600;font-size:16px;padding:12px 6px;border-bottom:1px solid var(--border)}
+.site-nav .mobmenu a.btn-gold{border:none;margin-top:12px;text-align:center;color:var(--navy)}
 @media(max-width:860px){
-  .site-nav .nav-links{gap:12px}
-  .site-nav .nav-links a.nav-anchor{display:none}
-  .site-nav .nav-links a.btn-gold{padding:10px 14px;font-size:14px}
+  .site-nav .nav-links{display:none}
+  .site-nav .burger{display:block}
 }
 </style>
-<nav class="site-nav" aria-label="Navigation principale"><div class="wrap nav-in">
-  <a href="{{ home }}" aria-label="Klevup — accueil" style="text-decoration:none">{% include 'partials/_logo.html.twig' with {size: 38} only %}</a>
-  <div class="nav-links">
-    <a class="nav-anchor" href="{{ home }}#solutions">Solutions</a>
-    <a class="nav-anchor" href="{{ home }}#comment">Comment ça marche</a>
-    <a class="nav-anchor" href="{{ home }}#apporteur">Devenir apporteur</a>
-    {% if space %}<a class="nav-login" href="{{ space }}">Mon espace</a>{% else %}<a class="nav-login" href="{{ path('login') }}">Se connecter</a>{% endif %}
+<nav class="site-nav" aria-label="Navigation principale">
+  <div class="wrap nav-in">
+    <a href="{{ home }}" aria-label="Klevup — accueil" style="text-decoration:none">{% include 'partials/_logo.html.twig' with {size: 38} only %}</a>
+    <div class="nav-links">
+      {% for l in links|filter(l => l.desktop) %}<a href="{{ l.href }}" class="{{ l.on ?? false ? 'on' }}">{{ l.label }}</a>{% endfor %}
+      {% if space %}<a class="nav-login" href="{{ space }}">Mon espace</a>{% else %}<a class="nav-login" href="{{ path('login') }}">Se connecter</a>{% endif %}
+      <a class="btn btn-gold" href="{{ home }}#contact">Demander une démo</a>
+    </div>
+    <button class="burger" type="button" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="mobmenu" onclick="var m=document.getElementById('mobmenu');var o=m.classList.toggle('open');this.setAttribute('aria-expanded',o)"><span></span><span></span><span></span></button>
+  </div>
+  <div class="mobmenu" id="mobmenu" onclick="if(event.target.tagName==='A'){this.classList.remove('open')}">
+    {% for l in links %}<a href="{{ l.href }}">{{ l.label }}</a>{% endfor %}
+    {% if space %}<a href="{{ space }}">Mon espace</a>{% else %}<a href="{{ path('login') }}">Se connecter</a>{% endif %}
     <a class="btn btn-gold" href="{{ home }}#contact">Demander une démo</a>
   </div>
-</div></nav>
+</nav>

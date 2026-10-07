@@ -274,7 +274,7 @@ class CommissionFlowTest extends WebTestCase
 
         $due = $this->commissions()[0]->getDueAt();
         self::assertNotNull($due);
-        self::assertSame((new \DateTimeImmutable('today +30 days'))->format('Y-m-d'), $due->format('Y-m-d'));
+        self::assertSame((new \DateTimeImmutable('today +' . CommissionCalculator::PAYMENT_DELAY_DAYS . ' days'))->format('Y-m-d'), $due->format('Y-m-d'));
     }
 
     public function testReferrerEarnsABonusOnTheRefereesFirstSaleOnly(): void
@@ -323,5 +323,62 @@ class CommissionFlowTest extends WebTestCase
 
         self::assertSame(300, $this->commissions()[0]->getAmount());
         self::assertSame(150, $this->em->find(Lead::class, $this->lead->getId())->getMonthlyAmount());
+    }
+
+    private function runRecurring(): string
+    {
+        $tester = new \Symfony\Component\Console\Tester\CommandTester((new \Symfony\Bundle\FrameworkBundle\Console\Application(self::$kernel))->find('app:recurring-commissions'));
+        $tester->execute([]);
+
+        return $tester->getDisplay();
+    }
+
+    private function signedWithSubscription(string $signedAgo, ?string $endsAgo = null): void
+    {
+        $this->updateLead('signed', 2000);
+        $this->em->getConnection()->executeStatement(sprintf("UPDATE `lead` SET signedAt = DATE_SUB(NOW(), INTERVAL %s), monthlyAmount = 150 WHERE id = %d", $signedAgo, $this->lead->getId()));
+        $this->em->clear();
+        $app = (new \App\Entity\Application())->setName('App')->setClient($this->em->find(User::class, $this->admin->getId()))
+            ->setLead($this->em->find(Lead::class, $this->lead->getId()))->setMonthlyPrice(150);
+        if ($endsAgo !== null) {
+            $app->setSubscriptionEndsAt(new \DateTimeImmutable('-' . $endsAgo));
+        }
+        $this->em->persist($app);
+        $this->em->flush();
+    }
+
+    public function testRecurringCommissionsAreCreatedMonthlyOnceAndStopAtChurn(): void
+    {
+        $this->signedWithSubscription('3 MONTH');
+
+        self::assertStringContainsString('3 commission', $this->runRecurring());
+        self::assertStringContainsString('0 commission', $this->runRecurring(), 'idempotent');
+
+        $recurring = $this->em->getRepository(Commission::class)->findBy(['lead' => $this->lead->getId(), 'period' => [1, 2, 3]]);
+        self::assertCount(3, $recurring);
+        self::assertSame(8, $recurring[0]->getAmount()); // 5 % of 150 € = 7.5 → 8 €
+        self::assertSame(1, (int) $this->em->getConnection()->fetchOne("SELECT COUNT(*) FROM commission WHERE period = 0"));
+        $this->em->getConnection()->executeStatement('DELETE FROM application');
+    }
+
+    public function testRecurringStopsWhenTheClientStoppedPaying(): void
+    {
+        $this->signedWithSubscription('4 MONTH', '75 days'); // cancelled ~2.5 months ago → only month 1 was paid
+
+        $this->runRecurring();
+
+        self::assertSame(1, (int) $this->em->getConnection()->fetchOne('SELECT COUNT(*) FROM commission WHERE period > 0'));
+        $this->em->getConnection()->executeStatement('DELETE FROM application');
+    }
+
+    public function testUnsigningCancelsPendingRecurringCommissionsToo(): void
+    {
+        $this->signedWithSubscription('2 MONTH');
+        $this->runRecurring();
+        $this->em->getConnection()->executeStatement('DELETE FROM application');
+
+        $this->updateLead('lost', 2000);
+
+        self::assertSame(0, (int) $this->em->getConnection()->fetchOne('SELECT COUNT(*) FROM commission'));
     }
 }

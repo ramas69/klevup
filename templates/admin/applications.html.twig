@@ -50,6 +50,13 @@
         <input type="date" id="app-launched" name="launched_at">
       </div>
       <div class="form-group">
+        <label for="app-lead">Vente d'origine (apporteur)</label>
+        <select id="app-lead" name="lead_id">
+          <option value="0">Aucune — vente directe</option>
+          {% for l in sales %}<option value="{{ l.id }}">{{ l.contact }} · {{ l.apporteur.name }} · signé le {{ l.signedAt|date('d/m/Y') }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
         <label for="app-monthly">Abonnement (€/mois)</label>
         <input type="number" id="app-monthly" name="monthly_price" min="0" step="1" placeholder="Vide = prix du catalogue">
       </div>
@@ -61,7 +68,7 @@
 <div class="panel">
   {% if applications|length > 0 %}
   <table>
-    <thead><tr><th>Application</th><th>Client</th><th>URL</th><th>Livrée</th><th>Version · €/mois · fin si résilié</th></tr></thead>
+    <thead><tr><th>Application</th><th>Client</th><th>URL</th><th>Livrée</th><th>Vente d'origine · version · €/mois · fin si résilié</th></tr></thead>
     <tbody>
       {% for a in applications %}
       <tr>
@@ -73,6 +80,11 @@
           <form method="post" action="{{ path('admin_application_update', {id: a.id}) }}" class="inline-form">
             <input type="hidden" name="_token" value="{{ csrf_token('application_update_' ~ a.id) }}">
             <input type="text" name="version" value="{{ a.version }}" title="Version" aria-label="Version">
+            <select name="lead_id" aria-label="Vente d'origine" title="Vente d'origine — déclenche la commission récurrente de l'apporteur" style="max-width:190px">
+              <option value="0">Vente directe</option>
+              {% if a.lead %}<option value="{{ a.lead.id }}" selected>{{ a.lead.contact }} · {{ a.lead.apporteur.name }}</option>{% endif %}
+              {% for l in sales %}<option value="{{ l.id }}">{{ l.contact }} · {{ l.apporteur.name }}</option>{% endfor %}
+            </select>
             <input type="number" name="monthly_price" min="0" step="1" value="{{ a.monthlyPrice }}" title="Abonnement €/mois" aria-label="Abonnement en euros par mois" style="width:80px">
             <input type="date" name="subscription_ends_at" value="{{ a.subscriptionEndsAt ? a.subscriptionEndsAt|date('Y-m-d') : '' }}" title="Fin d'abonnement (si résilié)" aria-label="Fin d'abonnement si résilié">
             <button type="submit" class="btn-save">Enregistrer</button>

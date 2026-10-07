@@ -244,6 +244,36 @@ class AdminController extends AbstractController
         return [$page, $pages, ($page - 1) * self::PER_PAGE];
     }
 
+    #[Route('/admin/contrat-apporteur', name: 'admin_contrat_apporteur')]
+    public function contratApporteur(Request $request): Response
+    {
+        $defaults = [
+            'apporteur_nom' => '', 'apporteur_adresse' => '', 'apporteur_email' => '',
+            'apporteur_siret' => '', 'projet_contexte' => '',
+            'taux_setup' => (string) CommissionCalculator::DEFAULT_RATE,
+            'taux_recurrent' => (string) CommissionCalculator::RECURRING_RATE,
+            'mois_recurrent' => (string) CommissionCalculator::RECURRING_MONTHS,
+            'lieu' => 'Lyon', 'date' => (new \DateTimeImmutable())->format('d/m/Y'),
+        ];
+        $data = $defaults;
+        $preview = false;
+        if ($request->isMethod('POST')) {
+            if (!$this->isCsrfTokenValid('contrat_apporteur', $request->request->getString('_token'))) {
+                throw $this->createAccessDeniedException(self::CSRF_ERROR);
+            }
+            foreach ($defaults as $key => $default) {
+                $value = trim($request->request->getString($key));
+                $data[$key] = $value !== '' ? $value : $default;
+            }
+            $preview = true;
+        }
+
+        return $this->render('admin/contrat_apporteur.html.twig', [
+            'data' => $data,
+            'preview' => $preview,
+        ]);
+    }
+
     private const LEAD_TABS = [
         'all' => ['label' => 'Tous', 'statuses' => null],
         'new' => ['label' => 'Nouveaux', 'statuses' => ['new']],
@@ -287,7 +317,11 @@ class AdminController extends AbstractController
             'lostReasons' => Lead::LOST_REASONS,
             // Rate this sale would get if signed now (product rate + tier bonus) — drives the live preview.
             'rate' => $lead->getApporteur() ? $calculator->rateFor($lead, $lead->getSignedAt() ?? new \DateTimeImmutable()) : null,
-            'commission' => $em->getRepository(Commission::class)->findOneBy(['lead' => $lead]),
+            'commission' => $em->getRepository(Commission::class)->findOneBy(['lead' => $lead, 'period' => 0]),
+            'recurring' => $em->getRepository(Commission::class)->findBy(['lead' => $lead], ['period' => 'ASC']),
+            'application' => $em->getRepository(Application::class)->findOneBy(['lead' => $lead]),
+            'recurringRate' => CommissionCalculator::RECURRING_RATE,
+            'recurringMonths' => CommissionCalculator::RECURRING_MONTHS,
         ]);
     }
 
@@ -320,17 +354,23 @@ class AdminController extends AbstractController
             return $this->redirectToRoute('admin_lead_show', ['id' => $lead->getId()]);
         }
 
-        $commission = $em->getRepository(Commission::class)->findOneBy(['lead' => $lead]);
+        $commission = $em->getRepository(Commission::class)->findOneBy(['lead' => $lead, 'period' => 0]);
+        $leadCommissions = $em->getRepository(Commission::class)->findBy(['lead' => $lead]);
+        $anyPaid = (bool) array_filter($leadCommissions, fn(Commission $c) => $c->getStatus() === 'encashed');
         $previousStatus = $lead->getStatus();
 
-        // A paid commission freezes the deal: un-signing or re-pricing it would silently desync the books.
-        if ($commission?->getStatus() === 'encashed' && ($status !== 'signed' || $dealAmount !== $lead->getDealAmount())) {
+        // A paid commission (setup or recurring) freezes the deal: un-signing or re-pricing it would silently desync the books.
+        if ($anyPaid && ($status !== 'signed' || $dealAmount !== $lead->getDealAmount())) {
             $this->addFlash('error', sprintf('« %s » : la commission est déjà versée — vente non modifiable.', $lead->getContact()));
 
             return $this->redirectToRoute('admin_lead_show', ['id' => $lead->getId()]);
         }
         if ($commission?->getStatus() === 'encashed') {
-            // Nothing editable left; never recompute a paid amount (the product rate may have changed since).
+            // Setup paid: only the subscription amount can still change (it drives future recurring commissions).
+            $rawMonthly = trim($request->request->getString('monthly_amount'));
+            $lead->setMonthlyAmount($rawMonthly === '' ? null : max(0, (int) $rawMonthly));
+            $em->flush();
+
             return $this->redirectToRoute('admin_lead_show', ['id' => $lead->getId()]);
         }
         $previousSignedAt = $lead->getSignedAt();
@@ -349,10 +389,12 @@ class AdminController extends AbstractController
 
         $apporteur = $lead->getApporteur();
 
-        if ($status !== 'signed' && $commission !== null) {
-            // Deal fell through after signature: the pending commission is cancelled.
-            $em->remove($commission);
-            $this->addFlash('success', sprintf('Commission de %d € annulée.', $commission->getAmount()));
+        if ($status !== 'signed' && $leadCommissions !== []) {
+            // Deal fell through after signature: every pending commission (setup and recurring) is cancelled.
+            foreach ($leadCommissions as $pending) {
+                $em->remove($pending);
+            }
+            $this->addFlash('success', sprintf('%d commission(s) en attente annulée(s).', count($leadCommissions)));
         }
         if ($status !== 'signed' && $previousStatus === 'signed' && $apporteur !== null) {
             $this->revokeReferralBonusIfNoSale($em, $apporteur, $lead);
@@ -474,7 +516,7 @@ class AdminController extends AbstractController
             ->getResult();
 
         foreach ($leads as $signed) {
-            $commission = $em->getRepository(Commission::class)->findOneBy(['lead' => $signed]);
+            $commission = $em->getRepository(Commission::class)->findOneBy(['lead' => $signed, 'period' => 0]);
             if ($commission === null || $commission->getStatus() === 'encashed') {
                 continue;
             }
@@ -672,6 +714,8 @@ class AdminController extends AbstractController
             'applications' => $em->getRepository(Application::class)->findBy([], ['id' => 'DESC']),
             'clients' => $users->findByRole('ROLE_CLIENT'),
             'products' => $products->findBy([], ['position' => 'ASC']),
+            // Signed sales brought by an apporteur and not yet attached to a subscription.
+            'sales' => $em->createQuery("SELECT l FROM App\Entity\Lead l WHERE l.status = 'signed' AND l.apporteur IS NOT NULL AND l.id NOT IN (SELECT IDENTITY(a.lead) FROM App\Entity\Application a WHERE a.lead IS NOT NULL) ORDER BY l.signedAt DESC")->getResult(),
         ]);
     }
 
@@ -705,9 +749,11 @@ class AdminController extends AbstractController
         $app->setUrl(trim((string) $request->request->get('url')));
         $app->setClient($client);
         $app->setProduct($em->getRepository(Product::class)->find((int) $request->request->get('product_id')));
+        $app->setLead($this->findLinkableSale($em, $request->request->getInt('lead_id'), $app));
         $app->setLaunchedAt($launched);
         $monthly = trim($request->request->getString('monthly_price'));
-        $app->setMonthlyPrice($monthly === '' ? $app->getProduct()?->getMonthlyFrom() ?: null : max(0, (int) $monthly));
+        // Empty = the price signed on the originating sale, else the catalogue price.
+        $app->setMonthlyPrice($monthly === '' ? ($app->getLead()?->getMonthlyAmount() ?: $app->getProduct()?->getMonthlyFrom() ?: null) : max(0, (int) $monthly));
 
         $em->persist($app);
         $em->flush();
@@ -737,11 +783,26 @@ class AdminController extends AbstractController
         $monthly = trim($request->request->getString('monthly_price'));
         $app->setMonthlyPrice($monthly === '' ? null : max(0, (int) $monthly));
         $app->setSubscriptionEndsAt($endsAt);
+        if ($request->request->has('lead_id')) {
+            $app->setLead($this->findLinkableSale($em, $request->request->getInt('lead_id'), $app));
+        }
 
         $em->flush();
         $this->addFlash('success', sprintf('Application « %s » mise à jour.', $app->getName()));
 
         return $this->redirectToRoute('admin_applications');
+    }
+
+    // A signed apporteur sale not already attached to another subscription.
+    private function findLinkableSale(EntityManagerInterface $em, int $leadId, Application $app): ?Lead
+    {
+        $lead = $leadId > 0 ? $em->getRepository(Lead::class)->find($leadId) : null;
+        if ($lead === null || $lead->getStatus() !== 'signed' || $lead->getApporteur() === null) {
+            return null;
+        }
+        $owner = $em->getRepository(Application::class)->findOneBy(['lead' => $lead]);
+
+        return $owner === null || $owner === $app ? $lead : $app->getLead();
     }
 
     /** null when empty, false when malformed. */

@@ -40,6 +40,14 @@ class Application
     #[ORM\JoinColumn(nullable: false)]
     private User $client;
 
+    // The signed sale this subscription comes from: drives the apporteur's recurring commission.
+    #[ORM\OneToOne(targetEntity: Lead::class)]
+    #[ORM\JoinColumn(nullable: true, unique: true, onDelete: 'SET NULL')]
+    private ?Lead $lead = null;
+
+    public function getLead(): ?Lead { return $this->lead; }
+    public function setLead(?Lead $lead): self { $this->lead = $lead; return $this; }
+
     #[ORM\ManyToOne(targetEntity: Product::class)]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?Product $product = null;

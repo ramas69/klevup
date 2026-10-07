@@ -457,4 +457,39 @@ class SalesFlowTest extends WebTestCase
         self::assertSelectorExists('.link-box');
         self::assertSame('ROLE_ADMIN', $this->em->getConnection()->fetchOne('SELECT role FROM invitation'));
     }
+
+    public function testApporteurPageUsesSharedHeaderAndAnswersOnTheSamePage(): void
+    {
+        $crawler = $this->client->request('GET', '/devenir-apporteur');
+        self::assertResponseIsSuccessful();
+        self::assertSelectorExists('.site-nav .k-logo');
+        self::assertSelectorExists('.site-footer');
+        self::assertSelectorTextContains('h1', (string) (int) round(3000 * \App\Service\CommissionCalculator::DEFAULT_RATE / 100));
+
+        $this->client->submit($crawler->filter('#rejoindre form')->form(), ['name' => 'Paul', 'email' => 'paul@reseau.fr']);
+        self::assertResponseRedirects('/devenir-apporteur#rejoindre');
+        $this->client->followRedirect();
+        self::assertSelectorTextContains('#rejoindre', 'Candidature reçue');
+    }
+
+    public function testEveryPublicPageHasTheSameLogoAndMenu(): void
+    {
+        foreach (['/', '/devenir-apporteur', '/mentions-legales', '/confidentialite'] as $page) {
+            $this->client->request('GET', $page);
+            self::assertSelectorExists('.site-nav .k-logo', $page);
+            self::assertSelectorExists('.site-nav .burger', $page);
+        }
+        foreach (['/login', '/forgot-password'] as $page) {
+            $this->client->request('GET', $page);
+            self::assertSelectorExists('.auth-logo .k-logo', $page);
+        }
+    }
+
+    public function testContractGeneratorRenders(): void
+    {
+        $this->client->loginUser($this->makeUser('admin@test.fr', 'ROLE_ADMIN'));
+        $this->client->request('GET', '/admin/contrat-apporteur');
+        self::assertResponseIsSuccessful();
+        self::assertSelectorExists('.sidebar .k-logo');
+    }
 }

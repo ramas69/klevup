@@ -6,6 +6,7 @@ use App\Entity\Lead;
 use App\Entity\User;
 use App\Repository\LeadRepository;
 use App\Repository\ProductRepository;
+use App\Service\CommissionCalculator;
 use App\Service\Notifier;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -22,6 +23,16 @@ class HomeController extends AbstractController
     {
         return $this->render('home/index.html.twig', [
             'products' => $products->findActive(),
+            'rates' => self::rates(),
+            'ref' => preg_replace('/[^a-f0-9]/', '', $request->query->getString('ref')),
+        ]);
+    }
+
+    #[Route('/devenir-apporteur', name: 'apporteur_page', methods: ['GET'])]
+    public function apporteurPage(Request $request): Response
+    {
+        return $this->render('apporteur/public.html.twig', [
+            'rates' => self::rates(),
             'ref' => preg_replace('/[^a-f0-9]/', '', $request->query->getString('ref')),
         ]);
     }
@@ -66,7 +77,12 @@ class HomeController extends AbstractController
     #[Route('/devenir-apporteur', name: 'apporteur_request', methods: ['POST'])]
     public function apporteurRequest(Request $request, EntityManagerInterface $em, Notifier $notifier, RateLimiterFactory $publicFormLimiter): Response
     {
-        if ($response = $this->guard($request, 'apporteur_request', $publicFormLimiter, 'apporteur')) {
+        // Sent from the dedicated "Devenir apporteur" page or from the home section: answer on the same page.
+        $back = $request->request->getString('_back') === 'page'
+            ? $this->generateUrl('apporteur_page') . '#rejoindre'
+            : $this->generateUrl('home') . '#apporteur';
+
+        if ($response = $this->guard($request, 'apporteur_request', $publicFormLimiter, 'apporteur', $back)) {
             return $response;
         }
 
@@ -78,7 +94,7 @@ class HomeController extends AbstractController
         if ($name === '' || mb_strlen($name) > 255 || !filter_var($email, FILTER_VALIDATE_EMAIL) || mb_strlen($email) > 180 || mb_strlen($phone) > 30 || mb_strlen($message) > 2000) {
             $this->addFlash('apporteur_error', 'Nom et email valides sont obligatoires.');
 
-            return $this->redirect($this->generateUrl('home') . '#apporteur');
+            return $this->redirect($back);
         }
 
         $ref = $request->request->getString('ref');
@@ -100,13 +116,26 @@ class HomeController extends AbstractController
 
         $this->addFlash('apporteur_success', 'Candidature reçue ! Nous revenons vers vous très vite avec votre accès.');
 
-        return $this->redirect($this->generateUrl('home') . '#apporteur');
+        return $this->redirect($back);
+    }
+
+    /** Commission rules shown on public pages — always the ones the app actually applies. */
+    public static function rates(): array
+    {
+        return [
+            'setup' => CommissionCalculator::DEFAULT_RATE,
+            'bonus' => CommissionCalculator::PALIER_BONUS,
+            'palier' => CommissionCalculator::PALIER_SALES,
+            'recurring' => CommissionCalculator::RECURRING_RATE,
+            'months' => CommissionCalculator::RECURRING_MONTHS,
+            'paymentDays' => CommissionCalculator::PAYMENT_DELAY_DAYS,
+        ];
     }
 
     // CSRF + honeypot + per-IP rate limit for anonymous forms. Returns a redirect when the request must stop.
-    private function guard(Request $request, string $csrfId, RateLimiterFactory $limiter, string $anchor): ?Response
+    private function guard(Request $request, string $csrfId, RateLimiterFactory $limiter, string $anchor, ?string $backUrl = null): ?Response
     {
-        $back = $this->redirect($this->generateUrl('home') . '#' . $anchor);
+        $back = $this->redirect($backUrl ?? $this->generateUrl('home') . '#' . $anchor);
         $errorKey = $anchor === 'contact' ? 'demo_error' : 'apporteur_error';
 
         // Usually an expired session on a page left open: an access-denied here would bounce a prospect to /login.

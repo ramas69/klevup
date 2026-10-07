@@ -125,7 +125,7 @@
           <div class="field">
             <label for="monthly_amount">Abonnement</label>
             <div class="suffix"><input type="number" id="monthly_amount" name="monthly_amount" min="0" step="1" value="{{ lead.monthlyAmount }}" placeholder="0"><span>€/mois</span></div>
-            <small>Hors commission.</small>
+            <small>{{ recurringRate }} % pour l'apporteur pendant {{ recurringMonths }} mois.</small>
           </div>
         </div>
 
@@ -133,6 +133,7 @@
         <div class="calc" id="calc">
           <div class="v" id="calc-v"></div>
           <div class="l">Commission {{ lead.apporteur.name }} · {{ rate }} % de la mise en place{{ rate > (lead.product ? lead.product.commissionRate : 15) ? ' (palier atteint)' }}</div>
+          <div class="l" id="calc-rec" style="margin-top:8px;color:#fff;font-weight:600"></div>
         </div>
         {% else %}
         <div class="calc none"><div class="v">Pas de commission</div><div class="l">Lead sans apporteur.</div></div>
@@ -141,6 +142,30 @@
         <button type="submit" class="btn btn-gold save">Enregistrer</button>
       </form>
     </section>
+
+    {% if lead.apporteur and lead.status == 'signed' %}
+    <section class="sec">
+      <h2>Commission récurrente</h2>
+      {% if application %}
+        <p class="meta" style="margin:0 0 12px">Abonnement lié : <strong>{{ application.name }}</strong>{{ application.monthlyPrice ? ' · ' ~ application.monthlyPrice ~ ' €/mois' }}{% if not application.subscriptionActive %} — <span style="color:#C0392B;font-weight:700">terminé</span>{% endif %}. {{ recurringRate }} % chaque mois pendant {{ recurringMonths }} mois, tant que le client paie.</p>
+      {% else %}
+        <div class="locked" style="background:#FDF9F0;color:#8a6d1a">⚠ Aucun abonnement relié à cette vente : le récurrent ne démarrera pas. Dans <a href="{{ path('admin_applications') }}" style="color:#1D4E89">Applications</a>, indiquez cette vente comme « vente d'origine ».</div>
+      {% endif %}
+      {% set months = recurring|filter(c => c.recurring) %}
+      {% if months|length > 0 %}
+      <table style="font-size:13px">
+        <thead><tr><th>Mois</th><th>Montant</th><th>Statut</th></tr></thead>
+        <tbody>
+          {% for c in months %}
+          <tr><td>{{ c.period }}/{{ recurringMonths }}</td><td>{{ c.amount }} €</td><td>{{ c.status == 'encashed' ? 'Versée le ' ~ c.encashedAt|date('d/m/Y') : 'Prévu le ' ~ (c.dueAt ? c.dueAt|date('d/m/Y') : '—') }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p class="meta" style="margin:0">Aucune mensualité générée pour l'instant — la première arrive un mois après la signature.</p>
+      {% endif %}
+    </section>
+    {% endif %}
   </aside>
 </div>
 
@@ -155,6 +180,8 @@
     if (rate !== null) {
       var amount = +document.getElementById('deal_amount').value || 0;
       document.getElementById('calc-v').textContent = amount ? Math.round(amount * rate / 100).toLocaleString('fr-FR') + ' €' : 'Saisissez la mise en place';
+      var monthly = +document.getElementById('monthly_amount').value || 0;
+      document.getElementById('calc-rec').textContent = monthly ? '+ ' + Math.round(monthly * {{ recurringRate }} / 100).toLocaleString('fr-FR') + ' € × {{ recurringMonths }} mois sur l\'abonnement ({{ recurringRate }} %)' : '';
     }
   }
   form.addEventListener('input', sync);

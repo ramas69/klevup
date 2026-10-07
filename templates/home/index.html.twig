@@ -72,6 +72,14 @@ section{padding:84px 0}
   .grid,.steps-grid,.lead-form .row2{grid-template-columns:1fr}
   h1{font-size:38px}
 }
+.faq{background:var(--cream)}
+.faq-list{max-width:760px;margin:0 auto}
+.faq-item{background:#fff;border:2px solid var(--border);border-radius:14px;margin-bottom:12px;overflow:hidden}
+.faq-item summary{cursor:pointer;padding:18px 22px;font-weight:700;color:var(--navy);font-size:16px;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.faq-item summary::-webkit-details-marker{display:none}
+.faq-item summary::after{content:'+';font-size:22px;color:var(--gold);font-weight:800}
+.faq-item[open] summary::after{content:'−'}
+.faq-item .a{padding:0 22px 18px;color:var(--gray);font-size:14.5px;line-height:1.65}
 </style>
 {% endblock %}
 
@@ -141,7 +149,8 @@ section{padding:84px 0}
   <div class="wrap">
     <div>
       <h2>Vous connaissez des entreprises qui en ont besoin ? <em>Devenez apporteur.</em></h2>
-      <p>Consultants, formateurs, commerciaux, entrepreneurs : recommandez Klevup autour de vous. Vous transmettez le contact, on s'occupe de tout — démo, devis, livraison — et vous touchez une commission sur chaque mise en place signée.</p>
+      <p>Consultants, formateurs, commerciaux, entrepreneurs : recommandez Klevup autour de vous. Vous transmettez le contact, on s'occupe de tout — démo, devis, livraison — et vous touchez {{ rates.setup }} % de la mise en place <em>plus {{ rates.recurring }} % de l'abonnement pendant {{ rates.months }} mois</em> : chaque client apporté devient un revenu qui coule.</p>
+      <div style="margin:-6px 0 22px"><a href="{{ path('apporteur_page') }}" style="color:var(--gold);font-weight:700;text-decoration:underline">Voir le détail des commissions et le calculateur →</a></div>
       {% for m in app.flashes('apporteur_success') %}<div class="flash ok">{{ m }}</div>{% endfor %}
       {% for m in app.flashes('apporteur_error') %}<div class="flash ko">{{ m }}</div>{% endfor %}
       <form method="post" action="{{ path('apporteur_request') }}" class="lead-form dark">
@@ -158,10 +167,23 @@ section{padding:84px 0}
       </form>
     </div>
     <div class="stat-cards">
-      <div class="stat"><div class="v">15 %</div><div class="l">de commission sur chaque mise en place</div></div>
-      <div class="stat"><div class="v">20 %</div><div class="l">dès la 4ᵉ vente du trimestre</div></div>
+      <div class="stat"><div class="v">{{ rates.setup }} %</div><div class="l">de la mise en place + {{ rates.recurring }} % de l'abonnement pendant {{ rates.months }} mois</div></div>
+      <div class="stat"><div class="v">{{ rates.setup + rates.bonus }} %</div><div class="l">sur la mise en place dès la {{ rates.palier + 1 }}ᵉ vente du trimestre</div></div>
       <div class="stat"><div class="v">≈ 1 000 €</div><div class="l">par mois à 2 ventes/mois</div></div>
       <div class="stat"><div class="v">24 h</div><div class="l">pour prendre en charge vos leads</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="faq" id="faq">
+  <div class="wrap">
+    <div class="sec-head"><h2>Questions fréquentes</h2><p>Les réponses honnêtes aux questions qu'on nous pose le plus.</p></div>
+    <div class="faq-list">
+      <details class="faq-item"><summary>Qui possède les données de mon application ?</summary><div class="a">Vous. Vos données sont les vôtres : à tout moment, vous pouvez les exporter (CSV/Excel). Pas de prisonnier : si vous partez, vous repartez avec tout votre historique.</div></details>
+      <details class="faq-item"><summary>Que se passe-t-il si j'arrête l'abonnement ?</summary><div class="a">L'hébergement et le support s'arrêtent, mais vos données vous appartiennent : on vous fournit une exportation complète avant la fin. Pas de frais de sortie, pas de rétention.</div></details>
+      <details class="faq-item"><summary>Et si mon besoin n'est pas dans la liste ?</summary><div class="a">C'est notre métier : décrivez-le dans le formulaire de démo, on échange 30 minutes et on vous fait un devis ferme sous 48 h — application sur mesure ou adaptation d'une solution existante.</div></details>
+      <details class="faq-item"><summary>En combien de temps suis-je opérationnel ?</summary><div class="a">Quelques jours pour les solutions standard : maquette validée, personnalisation à votre marque, formation de votre équipe, mise en ligne. Un calendrier précis vous est donné avec le devis.</div></details>
+      <details class="faq-item"><summary>Qui est derrière Klevup ?</summary><div class="a">Une équipe française, développeuse et formatrice : une dizaine de plateformes livrées en production, 1 500+ professionnels formés. On construit l'outil ET on fait en sorte que vos équipes s'en servent.</div></details>
     </div>
   </div>
 </section>
