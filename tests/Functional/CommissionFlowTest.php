@@ -357,7 +357,7 @@ class CommissionFlowTest extends WebTestCase
         $recurring = $this->em->getRepository(Commission::class)->findBy(['lead' => $this->lead->getId(), 'period' => [1, 2, 3]]);
         self::assertCount(3, $recurring);
         self::assertSame(8, $recurring[0]->getAmount()); // 5 % of 150 € = 7.5 → 8 €
-        self::assertSame(1, (int) $this->em->getConnection()->fetchOne("SELECT COUNT(*) FROM commission WHERE period = 0"));
+        self::assertSame(1, (int) $this->em->getConnection()->fetchOne("SELECT COUNT(*) FROM commission WHERE periodIndex = 0"));
         $this->em->getConnection()->executeStatement('DELETE FROM application');
     }
 
@@ -367,7 +367,7 @@ class CommissionFlowTest extends WebTestCase
 
         $this->runRecurring();
 
-        self::assertSame(1, (int) $this->em->getConnection()->fetchOne('SELECT COUNT(*) FROM commission WHERE period > 0'));
+        self::assertSame(1, (int) $this->em->getConnection()->fetchOne('SELECT COUNT(*) FROM commission WHERE periodIndex > 0'));
         $this->em->getConnection()->executeStatement('DELETE FROM application');
     }
 

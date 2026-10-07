@@ -7,7 +7,8 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: CommissionRepository::class)]
 #[ORM\Table(name: 'commission')]
 // One setup commission (period 0) and up to N monthly recurring ones (period 1..N) per lead.
-#[ORM\UniqueConstraint(name: 'uniq_commission_lead_period', columns: ['lead_id', 'period'])]
+// Column is "periodIndex": PERIOD is a reserved word in MariaDB 11.
+#[ORM\UniqueConstraint(name: 'uniq_commission_lead_period', columns: ['lead_id', 'periodIndex'])]
 class Commission
 {
     public const REFERRAL_LABEL = 'Prime de parrainage';
@@ -53,7 +54,7 @@ class Commission
     private ?Lead $lead = null;
 
     // 0 = setup commission, 1..N = month N of the subscription (recurring commission).
-    #[ORM\Column(type: 'integer', options: ['default' => 0])]
+    #[ORM\Column(name: 'periodIndex', type: 'integer', options: ['default' => 0])]
     private int $period = 0;
 
     public function __construct() { $this->createdAt = new \DateTimeImmutable(); }
