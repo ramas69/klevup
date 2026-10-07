@@ -110,18 +110,36 @@ class AdminController extends AbstractController
 
             $inviteLink = $this->createInvitation($em, $role, $email !== '' ? $email : null);
 
-            // Invited from the Users page: stay there and show the link.
-            if ($request->request->getString('_back') === 'users') {
-                $this->addFlash('invite_link', $inviteLink);
+            // Stay on the page the invitation was sent from and show the link there.
+            $this->addFlash('invite_link', $inviteLink);
 
-                return $this->redirectToRoute('admin_users');
-            }
+            return $request->request->getString('_back') === 'users' ? $this->redirectToRoute('admin_users') : $this->redirectToRoute('admin_invite');
+        }
+
+        // History of every invitation sent, with who accepted it (users keep the code they registered with).
+        $filter = $request->query->getString('statut');
+        $now = new \DateTimeImmutable();
+        $all = $em->getRepository(Invitation::class)->findBy([], ['createdAt' => 'DESC']);
+        $accepted = [];
+        foreach ($em->getRepository(User::class)->findBy(['invitationCode' => array_map(fn(Invitation $i) => $i->getCode(), $all) ?: ['-']]) as $u) {
+            $accepted[$u->getInvitationCode()] = $u;
+        }
+        $statusOf = fn(Invitation $i) => $i->isUsed() ? 'accepted' : ($i->getExpiresAt() < $now ? 'expired' : 'pending');
+        $counts = ['all' => count($all), 'pending' => 0, 'accepted' => 0, 'expired' => 0];
+        foreach ($all as $i) {
+            ++$counts[$statusOf($i)];
         }
 
         return $this->render('admin/invite.html.twig', [
             'inviteLink' => $inviteLink,
             'roles' => self::INVITABLE_ROLES,
+            'roleLabels' => self::ROLE_LABELS,
             'requests' => $em->getRepository(ApporteurRequest::class)->findBy(['handledAt' => null], ['createdAt' => 'DESC']),
+            'invitations' => array_values(array_filter($all, fn(Invitation $i) => !isset($counts[$filter]) || $filter === 'all' || $statusOf($i) === $filter)),
+            'statusOf' => array_combine(array_map(fn(Invitation $i) => (string) $i->getId(), $all), array_map($statusOf, $all)) ?: [],
+            'accepted' => $accepted,
+            'counts' => $counts,
+            'filter' => isset($counts[$filter]) ? $filter : 'all',
         ]);
     }
 
@@ -188,7 +206,7 @@ class AdminController extends AbstractController
         if ($invitation->isUsed()) {
             $this->addFlash('error', 'Cette invitation a déjà été utilisée.');
 
-            return $this->redirectToRoute('admin_users');
+            return $this->invitationBack($request);
         }
 
         if ($action === 'revoke') {
@@ -206,7 +224,14 @@ class AdminController extends AbstractController
             }
         }
 
-        return $this->redirectToRoute('admin_users');
+        return $this->invitationBack($request);
+    }
+
+    private function invitationBack(Request $request): Response
+    {
+        return $request->request->getString('_back') === 'invitations'
+            ? $this->redirectToRoute('admin_invite', array_filter(['statut' => $request->request->getString('statut')]))
+            : $this->redirectToRoute('admin_users');
     }
 
     #[Route('/admin/users', name: 'admin_users')]

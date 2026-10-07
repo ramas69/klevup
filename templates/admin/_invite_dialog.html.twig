@@ -1,0 +1,53 @@
+{# Invite dialog — shared by Users and Invitations pages. Var: back ('users' | 'invitations'). #}
+<style>
+dialog{border:none;border-radius:18px;padding:0;width:min(480px,calc(100% - 32px));box-shadow:0 24px 60px rgba(4,12,28,.35)}
+dialog::backdrop{background:rgba(15,36,71,.45)}
+.dlg{padding:26px}
+.dlg h2{color:#0F2447;font-size:19px;margin-bottom:4px}
+.dlg .lead{color:#5A6A80;font-size:13.5px;margin-bottom:18px}
+.dlg .form-group{margin-bottom:16px}
+.dlg-roles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.dlg-roles label{position:relative}
+.dlg-roles input{position:absolute;opacity:0}
+.dlg-roles span{display:block;text-align:center;padding:12px 6px;border:2px solid #E3E9F2;border-radius:12px;font-weight:700;font-size:13px;color:#5A6A80;cursor:pointer}
+.dlg-roles span small{display:block;font-weight:500;font-size:11px;margin-top:2px}
+.dlg-roles input:checked + span{border-color:#0F2447;background:#0F2447;color:#fff}
+.dlg-roles input:focus-visible + span{outline:3px solid #F5B731}
+.dlg-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:6px}
+.dlg-actions .cancel{background:none;border:none;color:#5A6A80;font-weight:600;cursor:pointer;font-family:Poppins,sans-serif;font-size:14px}
+.admin-warn{display:none;background:#ffebee;color:#c0392b;border-radius:10px;padding:10px 12px;font-size:12.5px;margin-top:-6px;margin-bottom:14px}
+</style>
+<dialog id="invite-dialog" aria-labelledby="invite-title">
+  <form method="post" action="{{ path('admin_invite') }}" class="dlg">
+    <input type="hidden" name="_token" value="{{ csrf_token('invite') }}">
+    <input type="hidden" name="_back" value="{{ back }}">
+    <h2 id="invite-title">Inviter quelqu'un</h2>
+    <p class="lead">Un lien personnel, valable 30 jours et utilisable une seule fois.</p>
+    <div class="form-group">
+      <label>Rôle</label>
+      <div class="dlg-roles">
+        <label><input type="radio" name="role" value="ROLE_APPORTEUR" checked><span>Apporteur<small>envoie des leads</small></span></label>
+        <label><input type="radio" name="role" value="ROLE_CLIENT"><span>Client<small>portail support</small></span></label>
+        <label><input type="radio" name="role" value="ROLE_ADMIN"><span>Admin<small>accès complet</small></span></label>
+      </div>
+    </div>
+    <div class="admin-warn" id="admin-warn">Un admin voit et modifie tout : leads, commissions, IBAN, utilisateurs.</div>
+    <div class="form-group">
+      <label for="invite-email">Email (recommandé)</label>
+      <input type="email" id="invite-email" name="email" placeholder="prenom@entreprise.fr">
+      <small style="display:block;font-size:12px;color:#5A6A80;margin-top:5px">Le lien est envoyé directement, et seule cette adresse pourra l'utiliser. Sans email, vous copiez le lien vous-même.</small>
+    </div>
+    <div class="dlg-actions">
+      <button type="button" class="cancel" onclick="this.closest('dialog').close()">Annuler</button>
+      <button type="submit" class="btn btn-gold">Créer l'invitation</button>
+    </div>
+  </form>
+</dialog>
+<script>
+(function () {
+  var dlg = document.getElementById('invite-dialog');
+  dlg.addEventListener('change', function () {
+    document.getElementById('admin-warn').style.display = dlg.querySelector('input[name=role]:checked').value === 'ROLE_ADMIN' ? 'block' : 'none';
+  });
+})();
+</script>

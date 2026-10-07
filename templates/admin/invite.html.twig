@@ -1,19 +1,51 @@
 {% extends "admin/base_admin.html.twig" %}
 {% block title %}Invitations - Admin Klevup{% endblock %}
-{% block page_title %}Gestion des invitations{% endblock %}
-{% block page_subtitle %}Générez des liens d'invitation pour les nouveaux utilisateurs — valables 30 jours, à usage unique.{% endblock %}
+{% block page_title %}Invitations <span style="font-size:18px;color:#5A6A80;font-weight:600">· {{ counts.all }}</span>{% endblock %}
+{% block page_subtitle %}Toutes les invitations envoyées, leur statut et qui les a acceptées. Liens valables 30 jours, à usage unique.{% endblock %}
+
+{% block topbar_action %}
+<button type="button" class="btn btn-gold" onclick="document.getElementById('invite-dialog').showModal()">+ Inviter quelqu'un</button>
+{% endblock %}
 
 {% block admin_styles %}<style>
-.card{max-width:640px}
-.form-group{margin-bottom:18px}
-.success{background:#e8f5e9;border:2px solid #2E8B57;border-radius:12px;padding:16px;margin-top:20px}
-.success p{color:#2E8B57;font-size:14px;margin:8px 0}
-.invite-link{background:#f8f9fa;padding:12px;border-radius:8px;font-family:monospace;font-size:12px;word-break:break-all;color:#0F2447;border:1px solid #E3E9F2}
-.copy-btn{background:#0F2447;color:#fff;padding:8px 16px;border-radius:8px;font-size:12px;cursor:pointer;border:none;font-weight:600;font-family:Poppins,sans-serif;transition:all .15s}
-.copy-btn:hover{filter:brightness(1.1)}
+.card{max-width:none}
+.copy-btn{background:#0F2447;color:#fff;padding:8px 16px;border-radius:8px;font-size:12px;cursor:pointer;border:none;font-weight:600;font-family:Poppins,sans-serif}
+.link-box{background:#e8f5e9;border:2px solid #2E8B57;border-radius:14px;padding:16px;margin-bottom:18px}
+.link-box p{color:#2E8B57;font-weight:700;font-size:14px;margin-bottom:8px}
+.link-row{display:flex;gap:10px;flex-wrap:wrap}
+.link-row input{flex:1;min-width:240px;padding:10px;border-radius:10px;border:1px solid #E3E9F2;font-family:monospace;font-size:12.5px;color:#0F2447}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.chips a{display:inline-flex;gap:8px;align-items:center;padding:9px 14px;border-radius:999px;background:#fff;border:2px solid #E3E9F2;color:#0F2447;text-decoration:none;font-weight:700;font-size:13px}
+.chips a:hover{border-color:#F5B731}
+.chips a.on{background:#0F2447;border-color:#0F2447;color:#fff}
+.chips .n{background:#F0F2F5;color:#0F2447;border-radius:999px;padding:1px 8px;font-size:12px}
+.chips a.on .n{background:#F5B731}
+.who b{color:#0F2447}
+.who small{display:block;color:#5A6A80;font-size:12px;margin-top:2px}
+.role{display:inline-block;font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px}
+.role-ROLE_ADMIN{background:#ffebee;color:#c0392b}.role-ROLE_APPORTEUR{background:#fffbee;color:#b9770e}.role-ROLE_CLIENT{background:#e3f2fd;color:#1976d2}
+.st{display:inline-block;font-size:11.5px;font-weight:700;padding:3px 10px;border-radius:999px;white-space:nowrap}
+.st-pending{background:#fff3e0;color:#f57c00}.st-accepted{background:#e8f5e9;color:#2E8B57}.st-expired{background:#f0f2f5;color:#888}
+.sub{display:block;font-size:12px;color:#5A6A80;margin-top:3px}
+.row-actions{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap}
+.row-actions form{display:inline}
+.btn-mini{background:#F0F2F5;color:#0F2447;padding:7px 12px;border-radius:8px;font-size:12px;border:none;cursor:pointer;font-family:Poppins,sans-serif;font-weight:600}
+.btn-mini:hover{background:#E3E9F2}
+.btn-mini.danger{background:#fff;color:#C0392B;border:1px solid #f5c6c0}
+@media(max-width:900px){.hide-sm{display:none}}
 </style>{% endblock %}
 
 {% block admin_content %}
+{% for link in app.flashes('invite_link') %}
+<div class="link-box">
+  <p>✓ Invitation créée — lien valable 30 jours, à usage unique</p>
+  <div class="link-row">
+    <input type="text" value="{{ link }}" readonly aria-label="Lien d'invitation">
+    <button type="button" class="btn-save" data-link="{{ link }}" onclick="navigator.clipboard.writeText(this.dataset.link);this.textContent='Copié ✓'">Copier le lien</button>
+  </div>
+</div>
+{% endfor %}
+
 {% if requests|length > 0 %}
 <div class="card" style="max-width:none">
   <h2>Candidatures apporteurs ({{ requests|length }})</h2>
@@ -41,32 +73,67 @@
   </table>
 </div>
 {% endif %}
-<div class="card">
-  <h2>Créer un lien d'invitation</h2>
-  <form method="post">
-    <input type="hidden" name="_token" value="{{ csrf_token('invite') }}">
-    <div class="form-group">
-      <label for="role">Rôle de l'invité</label>
-      <select name="role" id="role">
-        <option value="ROLE_APPORTEUR">Apporteur</option>
-        <option value="ROLE_CLIENT">Client</option>
-        <option value="ROLE_ADMIN">Admin (accès complet)</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label for="email">Email de l'invité (optionnel — envoie le lien directement)</label>
-      <input type="email" name="email" id="email" placeholder="prenom@entreprise.fr">
-    </div>
-    <button type="submit" class="btn-save">Générer un lien d'invitation</button>
-  </form>
 
-  {% if inviteLink %}
-  <div class="success">
-    <p><strong>Lien d'invitation généré ✓</strong></p>
-    <div class="invite-link">{{ inviteLink }}</div>
-    <button type="button" class="copy-btn" data-link="{{ inviteLink }}" onclick="navigator.clipboard.writeText(this.dataset.link)">Copier le lien</button>
-    <p style="margin-top:12px;font-size:13px">Partagez ce lien avec l'utilisateur invité. Il aura 30 jours pour s'inscrire.</p>
-  </div>
+<nav class="chips" aria-label="Filtrer les invitations">
+  {% for key, label in {all: 'Toutes', pending: 'En attente', accepted: 'Acceptées', expired: 'Expirées'} %}
+  <a href="{{ path('admin_invite', key == 'all' ? {} : {statut: key}) }}" class="{{ filter == key ? 'on' }}">{{ label }} <span class="n">{{ counts[key] }}</span></a>
+  {% endfor %}
+</nav>
+
+<div class="panel">
+  {% if invitations|length > 0 %}
+  <table>
+    <thead><tr><th>Invité</th><th>Rôle</th><th class="hide-sm">Envoyée le</th><th>Statut</th><th></th></tr></thead>
+    <tbody>
+      {% for inv in invitations %}
+      {% set st = statusOf[inv.id] %}
+      {% set user = accepted[inv.code] ?? null %}
+      <tr>
+        <td class="who">
+          <b>{{ inv.email ?? 'Lien sans email' }}</b>
+          {% if inv.referrer %}<small>Parrainé par {{ inv.referrer.name }}</small>{% endif %}
+        </td>
+        <td><span class="role role-{{ inv.role }}">{{ roleLabels[inv.role]|default(inv.role) }}</span></td>
+        <td class="hide-sm">{{ inv.createdAt|date('d/m/Y à H:i') }}</td>
+        <td>
+          {% if st == 'accepted' %}
+            <span class="st st-accepted">Acceptée</span>
+            <span class="sub">le {{ inv.usedAt|date('d/m/Y') }}{% if user %} · {{ user.name }}{% endif %}</span>
+          {% elseif st == 'expired' %}
+            <span class="st st-expired">Expirée</span>
+            <span class="sub">le {{ inv.expiresAt|date('d/m/Y') }}</span>
+          {% else %}
+            <span class="st st-pending">En attente</span>
+            <span class="sub">expire le {{ inv.expiresAt|date('d/m/Y') }}</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if st != 'accepted' %}
+          <div class="row-actions">
+            {% if st == 'pending' %}<button type="button" class="btn-mini" data-link="{{ url('register', {code: inv.code}) }}" onclick="navigator.clipboard.writeText(this.dataset.link);this.textContent='Copié ✓'">Copier le lien</button>{% endif %}
+            <form method="post" action="{{ path('admin_invitation_action', {id: inv.id, action: 'resend'}) }}">
+              <input type="hidden" name="_token" value="{{ csrf_token('invitation_' ~ inv.id) }}">
+              <input type="hidden" name="_back" value="invitations"><input type="hidden" name="statut" value="{{ filter == 'all' ? '' : filter }}">
+              <button type="submit" class="btn-mini">{{ inv.email ? 'Renvoyer' : 'Prolonger' }}</button>
+            </form>
+            <form method="post" action="{{ path('admin_invitation_action', {id: inv.id, action: 'revoke'}) }}" onsubmit="return confirm('Annuler cette invitation ? Le lien ne fonctionnera plus.');">
+              <input type="hidden" name="_token" value="{{ csrf_token('invitation_' ~ inv.id) }}">
+              <input type="hidden" name="_back" value="invitations"><input type="hidden" name="statut" value="{{ filter == 'all' ? '' : filter }}">
+              <button type="submit" class="btn-mini danger">Annuler</button>
+            </form>
+          </div>
+          {% elseif user %}
+          <div class="row-actions"><a class="btn-mini" style="text-decoration:none" href="{{ path('admin_users', {q: user.email}) }}">Voir le compte</a></div>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty">Aucune invitation{{ filter != 'all' ? ' dans cette catégorie' }}.</div>
   {% endif %}
 </div>
+
+{% include 'admin/_invite_dialog.html.twig' with {back: 'invitations'} %}
 {% endblock %}

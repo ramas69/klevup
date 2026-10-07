@@ -514,4 +514,28 @@ class SalesFlowTest extends WebTestCase
         $this->client->request('POST', sprintf('/admin/invitation/%d/revoke', $id), ['_token' => $token]);
         self::assertSame(0, (int) $this->em->getConnection()->fetchOne('SELECT COUNT(*) FROM invitation'));
     }
+
+    public function testInvitationsPageShowsTheFullHistory(): void
+    {
+        $this->client->loginUser($this->makeUser('admin@test.fr', 'ROLE_ADMIN'));
+        $crawler = $this->client->request('GET', '/admin/invite');
+        $this->client->submit($crawler->filter('#invite-dialog form')->form(), ['role' => 'ROLE_APPORTEUR', 'email' => 'julie@test.fr']);
+        self::assertResponseRedirects('/admin/invite');
+        $crawler = $this->client->submit($this->client->request('GET', '/admin/invite')->filter('#invite-dialog form')->form(), ['role' => 'ROLE_ADMIN', 'email' => 'badr@test.fr']);
+
+        // Julie accepts hers.
+        $code = $this->em->getConnection()->fetchOne("SELECT code FROM invitation WHERE email = 'julie@test.fr'");
+        $this->client->request('GET', '/logout');
+        $this->client->request('POST', '/register/' . $code, ['name' => 'Julie Martin', 'email' => 'julie@test.fr', 'password' => 'motdepasse1']);
+
+        $this->client->loginUser($this->em->getRepository(User::class)->findOneBy(['email' => 'admin@test.fr']));
+        $this->client->request('GET', '/admin/invite');
+        self::assertSelectorTextContains('.panel tbody', 'badr@test.fr');
+        self::assertSelectorTextContains('.panel tbody', 'Julie Martin');
+        self::assertSelectorTextContains('h1', '2');
+
+        $crawler = $this->client->request('GET', '/admin/invite?statut=pending');
+        self::assertCount(1, $crawler->filter('.panel tbody tr'));
+        self::assertSelectorTextContains('.panel tbody', 'badr@test.fr');
+    }
 }
