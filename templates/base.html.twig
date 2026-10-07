@@ -22,6 +22,13 @@ body{font-family:'Poppins','Segoe UI',sans-serif;color:var(--ink);background:#ff
 .btn{display:inline-block;font-weight:700;border-radius:12px;text-decoration:none;cursor:pointer;border:none;font-family:inherit;transition:.15s}
 .btn-gold{background:var(--gold);color:var(--navy);padding:13px 26px;font-size:15px}
 .btn-gold:hover{filter:brightness(1.06);transform:translateY(-1px)}
+/* Shared logo (partials/_logo.html.twig) */
+.k-logo{display:inline-flex;align-items:center;gap:calc(var(--k-size) * .28);text-decoration:none;line-height:1}
+.k-logo svg{flex-shrink:0;display:block}
+.k-logo__text{font-weight:700;font-size:calc(var(--k-size) * .64);letter-spacing:-.5px;color:var(--navy)}
+.k-logo__text small{display:block;font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);margin-top:5px}
+.k-logo--light .k-logo__text{color:#fff}
+.k-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 </style>
 {% block styles %}{% endblock %}
 </head>

@@ -38,10 +38,8 @@ body { background: #f8f9fa; }
 .flash-error { color: #C0392B; background: #fdecea; border: 1px solid #C0392B; border-radius: 12px; padding: 12px; margin-bottom: 16px; font-size: 14px; }
 </style>{% endblock %}
 {% block body %}
+{% include 'client/_topbar.html.twig' %}
 <div class="page">
-  <div class="nav-back">
-    <a href="{{ path('support') }}">← Retour au support</a>
-  </div>
 
   {% for message in app.flashes('success') %}<div class="flash-success">{{ message }}</div>{% endfor %}
   {% for message in app.flashes('error') %}<div class="flash-error">{{ message }}</div>{% endfor %}

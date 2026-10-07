@@ -61,7 +61,7 @@ thead th,tbody td{padding:8px}
 {% block body %}
 <div class="layout">
   <aside class="sidebar">
-    <div class="sidebar-logo">K Klevup<small>Administration</small></div>
+    <div class="sidebar-logo"><a href="{{ path('admin_dashboard') }}" style="text-decoration:none">{% include 'partials/_logo.html.twig' with {size: 36, tone: 'light', label: 'Administration'} only %}</a></div>
     <ul class="sidebar-nav">
       <li><a href="{{ path('admin_dashboard') }}" class="{{ app.current_route == 'admin_dashboard' ? 'active' }}">Tableau de bord</a></li>
       <li><a href="{{ path('admin_leads') }}" class="{{ app.current_route in ['admin_leads', 'admin_lead_show'] ? 'active' }}">Leads</a></li>

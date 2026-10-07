@@ -29,7 +29,7 @@ td{padding:10px 8px;border-bottom:1px solid var(--border)}
 <div class="sheet">
   <div class="head">
     <div>
-      <div class="brand">klevup<small>contact@klevup.fr</small></div>
+      <div class="brand">{% include 'partials/_logo.html.twig' with {size: 36} only %}<small>contact@klevup.fr</small></div>
     </div>
     <div class="who">
       <h1>Relevé de commissions — {{ period|date('m/Y') }}</h1>

@@ -1,0 +1,14 @@
+<style>
+.site-footer{background:var(--navy);color:#9FB6D6;padding:40px 0;font-size:14px}
+.site-footer .wrap{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}
+.site-footer a{color:var(--gold);text-decoration:none;font-weight:600}
+</style>
+<footer class="site-footer"><div class="wrap">
+  <a href="{{ path('home') }}" style="text-decoration:none">{% include 'partials/_logo.html.twig' with {size: 30, tone: 'light'} only %}</a>
+  <div>Les applications intelligentes qui font monter votre business.</div>
+  <div style="display:flex;gap:18px;flex-wrap:wrap">
+    <a href="{{ path('legal_mentions') }}">Mentions légales</a>
+    <a href="{{ path('legal_privacy') }}">Confidentialité</a>
+    <a href="mailto:contact@klevup.fr">contact@klevup.fr</a>
+  </div>
+</div></footer>

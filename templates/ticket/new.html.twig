@@ -19,10 +19,8 @@ body { background: #f8f9fa; }
 @media(max-width: 480px){ .row-2 { grid-template-columns: 1fr; } }
 </style>{% endblock %}
 {% block body %}
+{% include 'client/_topbar.html.twig' %}
 <div class="page">
-  <div class="nav-back">
-    <a href="{{ path('support') }}">← Retour au support</a>
-  </div>
   <div class="card">
     <h1>Nouvelle demande</h1>
     <p class="sub">Décrivez votre problème ou votre idée — nous accusons réception sous 24 h ouvrées.</p>

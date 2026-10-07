@@ -69,7 +69,7 @@
 {% set remaining = apporter.palier_target - apporter.sales_trimestre %}
 <div class="palier">
   <div class="palier-head">
-    <div class="palier-icon">K</div>
+    <div class="palier-icon">{% include 'partials/_logo.html.twig' with {size: 40, wordmark: false} only %}</div>
     <div class="palier-text">
       <h3>{% if remaining <= 0 %}Taux Performance {{ apporter.bonus_rate }} % activé 🎉{% else %}Plus que {{ remaining }} vente{{ remaining > 1 ? 's' }} avant le taux {{ apporter.bonus_rate }} %{% endif %}</h3>
       <p>Commission de {{ apporter.base_rate }} % du montant de mise en place, puis {{ apporter.bonus_rate }} % dès ta {{ apporter.palier_target + 1 }}ᵉ vente signée du trimestre.</p>

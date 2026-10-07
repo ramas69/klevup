@@ -4,12 +4,6 @@
 
 {% block styles %}
 <style>
-nav{position:sticky;top:0;background:#fff;border-bottom:1px solid var(--border);z-index:10}
-.nav-in{display:flex;align-items:center;justify-content:space-between;height:72px}
-.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:24px;color:var(--navy);letter-spacing:-.5px;text-decoration:none}
-.nav-links{display:flex;gap:32px;align-items:center}
-.nav-links a{color:var(--ink);text-decoration:none;font-weight:500;font-size:15px}
-.nav-links a:hover{color:var(--blue)}
 .btn-ghost{background:transparent;color:#fff;border:2px solid rgba(255,255,255,.6);padding:12px 24px;font-size:15px}
 .btn-ghost:hover{border-color:#fff}
 .hero{background:var(--grad);color:#fff;padding:88px 0 96px}
@@ -73,35 +67,16 @@ section{padding:84px 0}
 .flash.ok{background:#E2EFDA;color:var(--success)}
 .flash.ko{background:#fdecea;color:#C0392B}
 .apporteur .flash{margin:0 0 14px}
-footer{background:var(--navy);color:#9FB6D6;padding:40px 0;font-size:14px}
-footer .wrap{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}
-footer .fl{display:flex;align-items:center;gap:10px;color:#fff;font-weight:700;font-size:19px}
-footer a{color:var(--gold);text-decoration:none;font-weight:600}
 @media(max-width:860px){
   .hero .wrap,.apporteur .wrap{grid-template-columns:1fr}
   .grid,.steps-grid,.lead-form .row2{grid-template-columns:1fr}
   h1{font-size:38px}
-  .nav-links a:not(.btn){display:none}
 }
 </style>
 {% endblock %}
 
 {% block body %}
-<svg width="0" height="0"><defs><linearGradient id="kg" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#0F2447"/><stop offset="1" stop-color="#1D4E89"/></linearGradient></defs></svg>
-
-<nav><div class="wrap nav-in">
-  <a class="logo" href="{{ path('home') }}">
-    <svg width="38" height="38" viewBox="0 0 130 130"><rect width="130" height="130" rx="32" fill="url(#kg)"/><line x1="38" y1="30" x2="38" y2="100" stroke="#fff" stroke-width="15" stroke-linecap="round"/><line x1="40" y1="68" x2="85" y2="103" stroke="#fff" stroke-width="15" stroke-linecap="round"/><line x1="40" y1="68" x2="88" y2="31" stroke="#F5B731" stroke-width="15" stroke-linecap="round"/><path d="M72 27 L92 27 L92 47" fill="none" stroke="#F5B731" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    klevup
-  </a>
-  <div class="nav-links">
-    <a href="#solutions">Solutions</a>
-    <a href="#comment">Comment ça marche</a>
-    <a href="#apporteur">Devenir apporteur</a>
-    <a href="{{ path('login') }}">Se connecter</a>
-    <a class="btn btn-gold" href="#contact">Demander une démo</a>
-  </div>
-</div></nav>
+{% include 'partials/_public_header.html.twig' %}
 
 <header class="hero">
   <div class="wrap">
@@ -121,7 +96,7 @@ footer a{color:var(--gold);text-decoration:none;font-weight:600}
     </div>
     <div class="hero-card">
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px">
-        <svg width="40" height="40" viewBox="0 0 130 130"><rect width="130" height="130" rx="32" fill="url(#kg)"/><line x1="38" y1="30" x2="38" y2="100" stroke="#fff" stroke-width="15" stroke-linecap="round"/><line x1="40" y1="68" x2="85" y2="103" stroke="#fff" stroke-width="15" stroke-linecap="round"/><line x1="40" y1="68" x2="88" y2="31" stroke="#F5B731" stroke-width="15" stroke-linecap="round"/><path d="M72 27 L92 27 L92 47" fill="none" stroke="#F5B731" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        {% include 'partials/_logo.html.twig' with {size: 40, wordmark: false} only %}
         <div><div style="font-weight:700;color:var(--navy)">Votre projet Klevup</div><div style="font-size:12.5px;color:var(--gray)">Suivi de livraison</div></div>
       </div>
       <div class="hc-row"><span>Maquette validée</span><span class="hc-badge">Fait</span></div>
@@ -220,16 +195,5 @@ footer a{color:var(--gold);text-decoration:none;font-weight:600}
   </div>
 </section>
 
-<footer><div class="wrap">
-  <div class="fl">
-    <svg width="30" height="30" viewBox="0 0 130 130"><rect width="130" height="130" rx="32" fill="#fff"/><line x1="38" y1="30" x2="38" y2="100" stroke="#0F2447" stroke-width="15" stroke-linecap="round"/><line x1="40" y1="68" x2="85" y2="103" stroke="#0F2447" stroke-width="15" stroke-linecap="round"/><line x1="40" y1="68" x2="88" y2="31" stroke="#F5B731" stroke-width="15" stroke-linecap="round"/><path d="M72 27 L92 27 L92 47" fill="none" stroke="#F5B731" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    klevup
-  </div>
-  <div>Les applications intelligentes qui font monter votre business.</div>
-  <div style="display:flex;gap:18px;flex-wrap:wrap">
-    <a href="{{ path('legal_mentions') }}">Mentions légales</a>
-    <a href="{{ path('legal_privacy') }}">Confidentialité</a>
-    <a href="mailto:contact@klevup.fr">contact@klevup.fr</a>
-  </div>
-</div></footer>
+{% include 'partials/_public_footer.html.twig' %}
 {% endblock %}

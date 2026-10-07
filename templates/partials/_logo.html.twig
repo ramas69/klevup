@@ -1,0 +1,19 @@
+{# Klevup logo — the one and only. Vars: size (px, default 34), tone ('dark' on light backgrounds, 'light' on dark), wordmark (default true), label (optional small caption). #}
+{% set size = size ?? 34 %}
+{% set light = (tone ?? 'dark') == 'light' %}
+{% set gid = 'kg' ~ random() %}
+<span class="k-logo{{ light ? ' k-logo--light' }}" style="--k-size:{{ size }}px">
+  <svg width="{{ size }}" height="{{ size }}" viewBox="0 0 130 130" aria-hidden="true" focusable="false">
+    {% if light %}
+    <rect width="130" height="130" rx="32" fill="#fff"/>
+    {% else %}
+    <defs><linearGradient id="{{ gid }}" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#0F2447"/><stop offset="1" stop-color="#1D4E89"/></linearGradient></defs>
+    <rect width="130" height="130" rx="32" fill="url(#{{ gid }})"/>
+    {% endif %}
+    <line x1="38" y1="30" x2="38" y2="100" stroke="{{ light ? '#0F2447' : '#fff' }}" stroke-width="15" stroke-linecap="round"/>
+    <line x1="40" y1="68" x2="85" y2="103" stroke="{{ light ? '#0F2447' : '#fff' }}" stroke-width="15" stroke-linecap="round"/>
+    <line x1="40" y1="68" x2="88" y2="31" stroke="#F5B731" stroke-width="15" stroke-linecap="round"/>
+    <path d="M72 27 L92 27 L92 47" fill="none" stroke="#F5B731" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+  {% if wordmark ?? true %}<span class="k-logo__text">klevup{% if label ?? false %}<small>{{ label }}</small>{% endif %}</span>{% else %}<span class="k-sr">Klevup</span>{% endif %}
+</span>

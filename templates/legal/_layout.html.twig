@@ -2,8 +2,6 @@
 {% block styles %}<style>
 body { background: #f8f9fa; }
 .legal-page { max-width: 760px; margin: 0 auto; padding: 40px 24px 60px; }
-.nav-back { margin-bottom: 24px; }
-.nav-back a { color: #0F2447; text-decoration: none; font-weight: 600; font-size: 14px; }
 .legal-card { background: #fff; border-radius: 18px; padding: 40px; border: 2px solid #E3E9F2; box-shadow: 0 4px 12px rgba(15, 36, 71, 0.08); }
 .legal-card h1 { color: #0F2447; font-size: 26px; font-weight: 800; margin-bottom: 24px; }
 .legal-card h2 { color: #0F2447; font-size: 18px; font-weight: 700; margin: 28px 0 10px; }
@@ -14,11 +12,12 @@ body { background: #f8f9fa; }
 .legal-updated { color: #5A6A80; font-size: 13px; margin-top: 32px; padding-top: 16px; border-top: 1px solid #E3E9F2; }
 </style>{% endblock %}
 {% block body %}
+{% include 'partials/_public_header.html.twig' %}
 <div class="legal-page">
-  <div class="nav-back"><a href="{{ path('home') }}">← Retour à l'accueil</a></div>
   <div class="legal-card">
     {% block legal_content %}{% endblock %}
     <p class="legal-updated">Dernière mise à jour : {{ 'now'|date('d/m/Y') }}</p>
   </div>
 </div>
+{% include 'partials/_public_footer.html.twig' %}
 {% endblock %}

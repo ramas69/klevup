@@ -1,11 +1,9 @@
-{% extends "base.html.twig" %}
+{% extends "apporteur/base_apporteur.html.twig" %}
 {% block title %}Nouveau lead - Klevup{% endblock %}
-{% block styles %}<style>
-body { background: #f8f9fa; }
-.page { max-width: 760px; margin: 0 auto; padding: 40px 24px; }
-.nav-back { margin-bottom: 24px; }
-.nav-back a { display: inline-flex; align-items: center; gap: 8px; color: #0F2447; text-decoration: none; font-weight: 600; font-size: 14px; padding: 8px 12px; border-radius: 8px; transition: all 0.3s; }
-.nav-back a:hover { background: rgba(15, 36, 71, 0.1); }
+{% block page_title %}Envoyer un lead{% endblock %}
+{% block page_subtitle %}Un contact intéressé par une solution Klevup ? Transmettez-le, on s'occupe du reste.{% endblock %}
+{% block apporteur_styles %}<style>
+.lead-card { max-width: 760px; }
 .card { background: #fff; border-radius: 18px; padding: 30px; border: 2px solid #E3E9F2; box-shadow: 0 4px 12px rgba(15, 36, 71, 0.08); }
 .card h1 { color: #0F2447; font-size: 24px; font-weight: 700; margin-bottom: 8px; }
 .card p.sub { color: #5A6A80; font-size: 14px; margin-bottom: 24px; }
@@ -22,14 +20,9 @@ body { background: #f8f9fa; }
 .form-group small { color: #5A6A80; font-size: 12px; display: block; margin-top: 6px; }
 .error { color: #C0392B; background: #fdecea; border: 1px solid #C0392B; border-radius: 12px; padding: 12px; margin-bottom: 20px; font-size: 14px; }
 </style>{% endblock %}
-{% block body %}
-<div class="page">
-  <div class="nav-back">
-    <a href="{{ path('leads') }}">← Retour à mes leads</a>
-  </div>
+{% block apporteur_content %}
+<div class="lead-card">
   <div class="card">
-    <h1>Envoyer un lead</h1>
-    <p class="sub">Un contact intéressé par une solution Klevup ? Transmettez-le, on s'occupe du reste.</p>
     {% if error is defined and error %}
       <div class="error">{{ error }}</div>
     {% endif %}

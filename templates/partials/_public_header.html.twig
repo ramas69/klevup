@@ -1,0 +1,27 @@
+{# Public site header — home page and legal pages. Anchors point to the home page so they work from anywhere. #}
+{% set home = path('home') %}
+{% if is_granted('ROLE_ADMIN') %}{% set space = path('admin_dashboard') %}{% elseif is_granted('ROLE_APPORTEUR') %}{% set space = path('dashboard') %}{% elseif is_granted('ROLE_CLIENT') %}{% set space = path('support') %}{% else %}{% set space = null %}{% endif %}
+<style>
+.site-nav{position:sticky;top:0;background:#fff;border-bottom:1px solid var(--border);z-index:10}
+.site-nav .nav-in{display:flex;align-items:center;justify-content:space-between;height:72px;gap:16px}
+.site-nav .nav-links{display:flex;gap:32px;align-items:center}
+.site-nav .nav-links a{color:var(--ink);text-decoration:none;font-weight:500;font-size:15px}
+.site-nav .nav-links a:hover{color:var(--blue)}
+.site-nav .nav-links a.btn-gold{color:var(--navy);font-weight:700}
+.site-nav .nav-links a.nav-login{font-weight:600;color:var(--navy)}
+@media(max-width:860px){
+  .site-nav .nav-links{gap:12px}
+  .site-nav .nav-links a.nav-anchor{display:none}
+  .site-nav .nav-links a.btn-gold{padding:10px 14px;font-size:14px}
+}
+</style>
+<nav class="site-nav" aria-label="Navigation principale"><div class="wrap nav-in">
+  <a href="{{ home }}" aria-label="Klevup — accueil" style="text-decoration:none">{% include 'partials/_logo.html.twig' with {size: 38} only %}</a>
+  <div class="nav-links">
+    <a class="nav-anchor" href="{{ home }}#solutions">Solutions</a>
+    <a class="nav-anchor" href="{{ home }}#comment">Comment ça marche</a>
+    <a class="nav-anchor" href="{{ home }}#apporteur">Devenir apporteur</a>
+    {% if space %}<a class="nav-login" href="{{ space }}">Mon espace</a>{% else %}<a class="nav-login" href="{{ path('login') }}">Se connecter</a>{% endif %}
+    <a class="btn btn-gold" href="{{ home }}#contact">Demander une démo</a>
+  </div>
+</div></nav>

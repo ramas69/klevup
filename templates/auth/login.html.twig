@@ -38,14 +38,15 @@
 .dev-account { display: block; width: 100%; text-align: left; background: #fff; border: 1px solid #E3E9F2; border-radius: 8px; padding: 8px 10px; margin-bottom: 6px; font-size: 12px; color: #0F2447; cursor: pointer; font-family: Poppins, sans-serif; transition: all 0.15s; }
 .dev-account:hover { border-color: #F5B731; background: #fffbee; }
 .dev-account:last-child { margin-bottom: 0; }
+.back-site { position: relative; z-index: 10; text-align: center; margin-top: 18px; }
+.back-site a { color: rgba(255,255,255,.85); text-decoration: none; font-weight: 600; font-size: 14px; }
+.back-site a:hover { color: #fff; }
+.auth-page { flex-direction: column; }
 </style>{% endblock %}
 {% block body %}
-<svg width="0" height="0"><defs><linearGradient id="kg" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#0F2447"/><stop offset="1" stop-color="#1D4E89"/></linearGradient></defs></svg>
 <div class="auth-page">
   <div class="auth-card">
-    <div class="auth-logo">
-      <svg width="48" height="48" viewBox="0 0 130 130"><rect width="130" height="130" rx="32" fill="url(#kg)"/><line x1="38" y1="30" x2="38" y2="100" stroke="#fff" stroke-width="15" stroke-linecap="round"/><line x1="40" y1="68" x2="85" y2="103" stroke="#fff" stroke-width="15" stroke-linecap="round"/><line x1="40" y1="68" x2="88" y2="31" stroke="#F5B731" stroke-width="15" stroke-linecap="round"/><path d="M72 27 L92 27 L92 47" fill="none" stroke="#F5B731" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    </div>
+    <div class="auth-logo"><a href="{{ path('home') }}" aria-label="Klevup — accueil" style="text-decoration:none">{% include 'partials/_logo.html.twig' with {size: 44} only %}</a></div>
     <h1>Connexion</h1>
     <p>Accédez à votre espace</p>
     {% for message in app.flashes('success') %}<div style="color:#2E8B57;background:#e8f5e9;border:1px solid #2E8B57;border-radius:12px;padding:12px;margin-bottom:20px;font-size:13px">{{ message }}</div>{% endfor %}
@@ -80,5 +81,6 @@
     </script>
     {% endif %}
   </div>
+  <div class="back-site"><a href="{{ path('home') }}">← Retour au site</a></div>
 </div>
 {% endblock %}

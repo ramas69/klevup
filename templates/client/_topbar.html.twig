@@ -1,0 +1,24 @@
+{# Client portal top bar — shared by support, tickets and client profile. #}
+{% set r = app.current_route %}
+<style>
+.cbar{background:linear-gradient(135deg,#0F2447 0%,#1D4E89 70%,#2A6DB5 100%);color:#fff}
+.cbar .in{max-width:1120px;margin:0 auto;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.cbar ul{display:flex;gap:6px;list-style:none;flex-wrap:wrap;margin:0;padding:0}
+.cbar ul a{display:block;color:rgba(255,255,255,.78);text-decoration:none;font-weight:600;font-size:14px;padding:8px 12px;border-radius:10px}
+.cbar ul a:hover{color:#fff;background:rgba(255,255,255,.08)}
+.cbar ul a.on{color:#fff;background:rgba(255,255,255,.14)}
+.cbar ul a.cta{background:#F5B731;color:#0F2447}
+.cbar .who{display:flex;align-items:center;gap:10px;font-size:13px;color:#CFE0F5}
+.cbar .avatar{width:36px;height:36px;background:#F5B731;color:#0F2447;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700}
+@media(max-width:640px){.cbar .who span{display:none}.cbar ul a{padding:7px 9px;font-size:13px}}
+</style>
+<header class="cbar"><div class="in">
+  <a href="{{ path('support') }}" style="text-decoration:none">{% include 'partials/_logo.html.twig' with {size: 34, tone: 'light', label: 'Espace client'} only %}</a>
+  <nav aria-label="Espace client"><ul>
+    <li><a href="{{ path('support') }}" class="{{ r in ['support', 'ticket_show'] ? 'on' }}">Mes demandes</a></li>
+    <li><a href="{{ path('ticket_new') }}" class="{{ r == 'ticket_new' ? 'on' : 'cta' }}">+ Nouvelle demande</a></li>
+    <li><a href="{{ path('profile') }}" class="{{ r == 'profile' ? 'on' }}">Mon profil</a></li>
+    <li><a href="{{ path('logout') }}">Déconnexion</a></li>
+  </ul></nav>
+  <div class="who"><span>{{ app.user.name }}</span><div class="avatar" aria-hidden="true">{{ app.user.name|slice(0, 1)|upper }}</div></div>
+</div></header>
